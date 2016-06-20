@@ -58,7 +58,6 @@ func main() {
 	}()
 	// Firehost message processing loop
 	for msg := range msgChan {
-
 		msgReceivedCount++
 		var omsMessage interface{}
 		switch msg.GetEventType() {
@@ -90,7 +89,7 @@ func main() {
 		// OMS message as JSON
 		msgAsJSON, err := json.Marshal(&omsMessage)
 		// Version the events during testing
-		var msgType = msg.GetEventType().String() + "v1"
+		var msgType = "PCF_" + msg.GetEventType().String() + "_v1"
 		if err != nil {
 			fmt.Printf("Error marshalling message type %s to JSON. error: %s", msgType, err)
 		} else {

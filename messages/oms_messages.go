@@ -1,6 +1,8 @@
 package messages
 
 import (
+	"crypto/md5"
+	hex "encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -19,6 +21,7 @@ type BaseMessage struct {
 	IP             string
 	Tags           string
 	NozzleInstance string
+	MessageHash    string
 }
 
 func NewBaseMessage(e *events.Envelope) *BaseMessage {
@@ -34,6 +37,10 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	if e.GetTags() != nil {
 		b.Tags = fmt.Sprintf("%v", e.GetTags())
 	}
+	// String() returns string from underlying protobuf message
+	var hash = md5.Sum([]byte(e.String()))
+	b.MessageHash = hex.EncodeToString(hash[:])
+
 	return &b
 }
 
