@@ -248,34 +248,40 @@ func NewContainerMetric(e *events.Envelope) *ContainerMetric {
 // A CounterEvent represents the increment of a counter. It contains only the change in the value; it is the responsibility of downstream consumers to maintain the value of the counter.
 type CounterEvent struct {
 	BaseMessage
-	Name  string
-	Delta uint64
-	Total uint64
+	Name       string
+	Delta      uint64
+	Total      uint64
+	CounterKey string
 }
 
 func NewCounterEvent(e *events.Envelope) *CounterEvent {
-	return &CounterEvent{
+	var r = CounterEvent{
 		BaseMessage: *NewBaseMessage(e),
 		Name:        *e.CounterEvent.Name,
 		Delta:       *e.CounterEvent.Delta,
 		Total:       *e.CounterEvent.Total,
 	}
+	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
+
+	return &r
 }
 
 // A ValueMetric indicates the value of a metric at an instant in time.
 type ValueMetric struct {
 	BaseMessage
-	Name  string
-	Value float64
-	Unit  string
+	Name      string
+	Value     float64
+	Unit      string
+	MetricKey string
 }
 
 func NewValueMetric(e *events.Envelope) *ValueMetric {
-	return &ValueMetric{
+	var r = ValueMetric{
 		BaseMessage: *NewBaseMessage(e),
 		Name:        *e.ValueMetric.Name,
 		Value:       *e.ValueMetric.Value,
 		Unit:        *e.ValueMetric.Unit,
 	}
-
+	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
+	return &r
 }
