@@ -22,6 +22,7 @@ type BaseMessage struct {
 	Tags           string
 	NozzleInstance string
 	MessageHash    string
+	// for grouping in OMS until multi-field grouping is supported
 	SourceInstance string
 }
 
@@ -34,9 +35,13 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),
 		NozzleInstance: client.NozzleInstance,
-		// for grouping in OMS until multi-field grouping is supported
-		SourceInstance: fmt.Sprintf("%s.%s.%s", e.GetDeployment(), e.GetJob(), e.GetIndex()),
 	}
+	if e.Deployment != nil && e.Job != nil && e.Index != nil {
+		b.SourceInstance = fmt.Sprintf("%s.%s.%s", e.GetDeployment(), e.GetJob(), e.GetIndex())
+	} else {
+		b.SourceInstance = "MISSING"
+	}
+
 	if e.GetTags() != nil {
 		b.Tags = fmt.Sprintf("%v", e.GetTags())
 	}
