@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/dave-read/pcf-oms-poc/client"
@@ -18,10 +19,15 @@ const (
 
 // Required parameters
 var (
+	//TODO: query info endpoint for URLs
 	dopplerAddress = os.Getenv("DOPPLER_ADDR")
-	authToken      = os.Getenv("CF_ACCESS_TOKEN")
+	uaaAddress     = os.Getenv("UAA_ADDR")
+	pcfUser        = os.Getenv("PCF_USER")
+	pcfPassword    = os.Getenv("PCF_PASSWORD")
 	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
 	omsKey         = os.Getenv("OMS_KEY")
+	// TODO add parm
+	sslSkipVerify = true
 )
 
 func main() {
@@ -29,14 +35,25 @@ func main() {
 	if len(dopplerAddress) == 0 {
 		panic("DOPPLER_ADDR env var not provided")
 	}
-	if len(authToken) == 0 {
-		panic("CF_ACCESS_TOKEN env var not provided")
+	if len(uaaAddress) == 0 {
+		panic("UAA_ADDR env var not provided")
 	}
+	/*
+		if len(authToken) == 0 {
+			panic("CF_ACCESS_TOKEN env var not provided")
+		}
+	*/
 	if len(omsWorkspace) == 0 {
 		panic("OMS_WORKSPACE env var not provided")
 	}
 	if len(omsKey) == 0 {
 		panic("OMS_KEY env var not provided")
+	}
+	if len(pcfUser) == 0 {
+		panic("PCF_USER env var not provided")
+	}
+	if len(pcfPassword) == 0 {
+		panic("PCF_PASSWORD env var not provided")
 	}
 
 	// counters
@@ -48,6 +65,16 @@ func main() {
 	client := client.New(omsWorkspace, omsKey)
 
 	// connect to PCF
+	uaaClient, err := uaago.NewClient(uaaAddress)
+	if err != nil {
+		panic("Error creating uaa client:" + err.Error())
+	}
+
+	var authToken string
+	authToken, err = uaaClient.GetAuthToken(pcfUser, pcfPassword, true)
+	if err != nil {
+		panic("Error getting Auth Token")
+	}
 	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 	consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
