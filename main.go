@@ -65,6 +65,10 @@ func main() {
 	client := client.New(omsWorkspace, omsKey)
 
 	// connect to PCF
+	fmt.Sprintf("UAA %s", uaaAddress)
+	fmt.Sprintf("PCF USER %s", pcfUser)
+	fmt.Sprintf("PCF PWD %s", pcfPassword)
+
 	uaaClient, err := uaago.NewClient(uaaAddress)
 	if err != nil {
 		panic("Error creating uaa client:" + err.Error())
