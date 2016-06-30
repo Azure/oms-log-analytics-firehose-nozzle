@@ -290,3 +290,9 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	return &r
 }
+
+type HealthMonitorMetric struct {
+	Timestamp time.Time
+	Key       string
+	Value     string
+}
