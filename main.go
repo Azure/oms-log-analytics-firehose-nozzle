@@ -149,7 +149,7 @@ func main() {
 
 	go func() {
 
-		l, err := net.Listen("tcp", "localhost:8888")
+		l, err := net.Listen("tcp", ":8888")
 		if err != nil {
 			fmt.Println("Error listening:", err.Error())
 			os.Exit(1)
@@ -198,6 +198,7 @@ func main() {
 						}
 						msgAsJSON, _ := json.Marshal(&metric)
 						fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
+						client.PostData(&msgAsJSON, "PCF_HealthMonitor")
 					}
 				}
 			}(conn)
