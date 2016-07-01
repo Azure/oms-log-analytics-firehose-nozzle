@@ -126,6 +126,7 @@ func main() {
 				msgSentCount++
 			}
 		}
-		fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", msgType, msgReceivedCount, msgSentCount, msgSendErrorCount)
+		//Only use this when testing local.  Otherwise you're generate events to yourself
+		//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", msgType, msgReceivedCount, msgSentCount, msgSendErrorCount)
 	}
 }
