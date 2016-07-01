@@ -2,20 +2,16 @@ package main
 
 import (
 	"bufio"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
+	"hex"
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
-	"github.com/cloudfoundry-incubator/uaago"
-	"github.com/cloudfoundry/noaa/consumer"
-	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/dave-read/pcf-oms-poc/client"
 	"github.com/dave-read/pcf-oms-poc/messages"
 )
@@ -27,35 +23,23 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	dopplerAddress = os.Getenv("DOPPLER_ADDR")
-	uaaAddress     = os.Getenv("UAA_ADDR")
-	pcfUser        = os.Getenv("PCF_USER")
-	pcfPassword    = os.Getenv("PCF_PASSWORD")
-	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
-	omsKey         = os.Getenv("OMS_KEY")
+	listenPort   = os.Getenv("LISTEN_PORT")
+	omsWorkspace = os.Getenv("OMS_WORKSPACE")
+	omsKey       = os.Getenv("OMS_KEY")
 	// TODO add parm
 	sslSkipVerify = true
 )
 
 func main() {
 	// check required parms
-	if len(dopplerAddress) == 0 {
-		panic("DOPPLER_ADDR env var not provided")
-	}
-	if len(uaaAddress) == 0 {
-		panic("UAA_ADDR env var not provided")
+	if len(listenPort) == 0 {
+		panic("LISTEN_PORT env var not provided")
 	}
 	if len(omsWorkspace) == 0 {
 		panic("OMS_WORKSPACE env var not provided")
 	}
 	if len(omsKey) == 0 {
 		panic("OMS_KEY env var not provided")
-	}
-	if len(pcfUser) == 0 {
-		panic("PCF_USER env var not provided")
-	}
-	if len(pcfPassword) == 0 {
-		panic("PCF_PASSWORD env var not provided")
 	}
 
 	// counters
@@ -67,143 +51,80 @@ func main() {
 	client := client.New(omsWorkspace, omsKey)
 
 	// connect to PCF
-	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", uaaAddress, dopplerAddress)
+	fmt.Printf("Starting with listenPort:%s\n", listenPort)
 
-	uaaClient, err := uaago.NewClient(uaaAddress)
+	l, err := net.Listen("tcp", ":"+listenPort)
 	if err != nil {
-		panic("Error creating uaa client:" + err.Error())
+		panic("Error listening:" + err.Error())
 	}
+	// Close the listener when the application closes.
+	defer l.Close()
 
-	var authToken string
-	authToken, err = uaaClient.GetAuthToken(pcfUser, pcfPassword, true)
-	if err != nil {
-		panic("Error getting Auth Token" + err.Error())
-	}
-	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
-	consumer.SetDebugPrinter(ConsoleDebugPrinter{})
-	var waitGroup sync.WaitGroup
-	//TODO track completions
-	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
-	go func() {
-		for err := range errorChan {
-			fmt.Fprintf(os.Stderr, "%v\n", err.Error())
-		}
-	}()
-	// Firehose message processing loop
-	go func() {
-		for msg := range msgChan {
-			msgReceivedCount++
-			var omsMessage interface{}
-			switch msg.GetEventType() {
-			// Metrics
-			case events.Envelope_ValueMetric:
-				omsMessage = messages.NewValueMetric(msg)
-			case events.Envelope_CounterEvent:
-				omsMessage = messages.NewCounterEvent(msg)
-			case events.Envelope_ContainerMetric:
-				omsMessage = messages.NewContainerMetric(msg)
-			// Logs Errors
-			case events.Envelope_LogMessage:
-				omsMessage = messages.NewLogMessage(msg)
-			case events.Envelope_Error:
-				omsMessage = messages.NewError(msg)
-			// HTTP Start/Stop
-			case events.Envelope_HttpStart:
-				omsMessage = messages.NewHTTPStart(msg)
-			case events.Envelope_HttpStartStop:
-				omsMessage = messages.NewHTTPStartStop(msg)
-			case events.Envelope_HttpStop:
-				omsMessage = messages.NewHTTPStop(msg)
-			// Unknown
-			default:
-				fmt.Println("Unexpected message type" + msg.GetEventType().String())
-				continue
-			}
-
-			// OMS message as JSON
-			msgAsJSON, err := json.Marshal(&omsMessage)
-			// Version the events during testing
-			var msgType = "PCF_" + msg.GetEventType().String() + "_v1"
-			if err != nil {
-				fmt.Printf("Error marshalling message type %s to JSON. error: %s", msgType, err)
-			} else {
-				err = client.PostData(&msgAsJSON, msgType)
-				if err != nil {
-					msgSendErrorCount++
-					fmt.Printf("Error posting message type %s to OMS. error: %s", msgType, err)
-				} else {
-					msgSentCount++
-				}
-			}
-			//fmt.Printf("Current type %s totals ... recieved %d sent %d errors %d\n", msgType, msgReceivedCount, msgSentCount, msgSendErrorCount)
-		}
-	}()
-
-	go func() {
-
-		l, err := net.Listen("tcp", ":8888")
+	fmt.Println("Listening on port:%s" + listenPort)
+	for {
+		// Listen for an incoming connection.
+		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("Error listening:", err.Error())
+			fmt.Println("Error accepting: ", err.Error())
 			os.Exit(1)
 		}
-		// Close the listener when the application closes.
-		defer l.Close()
-
-		fmt.Println("Listening on localhost:8888")
-		for {
-			// Listen for an incoming connection.
-			conn, err := l.Accept()
-			if err != nil {
-				fmt.Println("Error accepting: ", err.Error())
-				os.Exit(1)
-			}
-			// Handle connections in a new goroutine.
-			go func(conn net.Conn) {
-				defer conn.Close()
-				reader := bufio.NewReader(conn)
-				for {
-					conn.SetReadDeadline(time.Now().Add(2 * time.Minute))
-					line, _, err := reader.ReadLine()
-					if err != nil {
-						if err == io.EOF {
-							if len(line) > 0 {
-								fmt.Printf("[tcp] Unfinished line: %#v", line)
-							}
-						} else {
-							panic(err)
+		// Handle connections in a new goroutine.
+		go func(conn net.Conn) {
+			defer conn.Close()
+			reader := bufio.NewReader(conn)
+			for {
+				line, _, err := reader.ReadLine()
+				if err != nil {
+					if err == io.EOF {
+						if len(line) > 0 {
+							fmt.Printf("[tcp] Unfinished line: %#v", line)
 						}
-						break
+					} else {
+						panic(err)
 					}
-					if len(line) > 0 { // skip empty lines
-						var s = string(line)
-						fmt.Printf("#################### Received line %s", s)
-						parts := strings.Split(s, " ")
-						ts, err := strconv.ParseInt(parts[2], 10, 64)
-						if err != nil {
-							panic(err)
-						}
-						fmt.Printf("TS as int %d", ts)
-						metric := messages.HealthMonitorMetric{
-						//Timestamp: time.Unix(ts, 0),
-						//Key:       parts[0],
-						//Value:     parts[1],
-						}
-						msgAsJSON, _ := json.Marshal(&metric)
-						fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
-						client.PostData(&msgAsJSON, "PCF_HealthMonitor")
-					}
+					break
 				}
-			}(conn)
-		}
-	}()
+				if len(line) > 0 { // skip empty lines
+					var s = string(line)
+					fmt.Printf("#################### Received line %s", s)
+					// graphite record is space separated: key val ts
+					graphiteParts := strings.Split(s, " ")
+					if len(graphiteParts) != 3 {
+						fmt.Printf("Incorrect message len.  Expected 3 got:%d", len(graphiteParts))
+					}
+					// get timestamp
+					ts, err := strconv.ParseInt(graphiteParts[2], 10, 64)
+					if err != nil {
+						fmt.Printf("Error parsing ts:%s", err)
+					}
+					// get value as float
+					val, err := strconv.ParseFloat(graphiteParts[1], 64)
+					// parse out the remaining parts from the graphite key
+					metricParts := strings.Split(graphiteParts[2], ".")
+					if len(metricParts) != 5 {
+						fmt.Printf("Incorrect metric len.  Expected 5 got:%d", len(metricParts))
+					}
 
-	waitGroup.Wait()
-
-}
-
-type ConsoleDebugPrinter struct{}
-
-func (c ConsoleDebugPrinter) Print(title, dump string) {
-	println(title)
-	println(dump)
+					var metric = messages.ValueMetric{}
+					metric.EventType = "PCF_ValueMetric_v1"
+					metric.Deployment = metricParts[0]
+					metric.Timestamp = time.Unix(ts, 0)
+					metric.Job = metricParts[1]
+					metric.Index = metricParts[2]
+					metric.NozzleInstance = client.NozzleInstance
+					var hash = md5.Sum([]byte(s)
+					metric.MessageHash = hex.EncodeToString(hash[:])
+					metric.Name = metricParts[4]
+					metric.Value = val
+					metric.Unit = "NA"
+					metric.Key = metric.Deployment + "." + metric.Job + "." +metric.Index +"." + metric.Key
+					// key plus agent
+					metric.SourceInstance = metric.Key + "." metricParts[3]
+					msgAsJSON, _ := json.Marshal(&metric)
+					fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
+					client.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
+				}
+			}
+		}(conn)
+	}
 }
