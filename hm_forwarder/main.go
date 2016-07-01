@@ -88,7 +88,7 @@ func main() {
 				}
 				if len(line) > 0 { // skip empty lines
 					var s = string(line)
-					fmt.Printf("#################### Received line %s", s)
+					//fmt.Printf("#################### Received line %s", s)
 					// graphite record is space separated: key val ts
 					graphiteParts := strings.Split(s, " ")
 					if len(graphiteParts) != 3 {
@@ -102,7 +102,7 @@ func main() {
 					// get value as float
 					val, err := strconv.ParseFloat(graphiteParts[1], 64)
 					// parse out the remaining parts from the graphite key
-					metricParts := strings.Split(graphiteParts[2], ".")
+					metricParts := strings.Split(graphiteParts[0], ".")
 					if len(metricParts) != 5 {
 						fmt.Printf("Incorrect metric len.  Expected 5 got:%d", len(metricParts))
 					}
@@ -123,7 +123,7 @@ func main() {
 					// key plus agent
 					metric.SourceInstance = metric.MetricKey + "." + metricParts[3]
 					msgAsJSON, _ := json.Marshal(&metric)
-					fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
+					//fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
 					err = omsClient.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
 					msgSentCount++
 					if err != nil {
