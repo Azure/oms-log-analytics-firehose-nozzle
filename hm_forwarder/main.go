@@ -2,11 +2,12 @@ package main
 
 import (
 	"bufio"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net"
-	"hex"
 	"os"
 	"strconv"
 	"strings"
@@ -48,11 +49,10 @@ func main() {
 	var msgSendErrorCount = 0
 
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
-	client := client.New(omsWorkspace, omsKey)
+	omsClient := client.New(omsWorkspace, omsKey)
 
-	// connect to PCF
 	fmt.Printf("Starting with listenPort:%s\n", listenPort)
-
+	// start listening
 	l, err := net.Listen("tcp", ":"+listenPort)
 	if err != nil {
 		panic("Error listening:" + err.Error())
@@ -64,6 +64,7 @@ func main() {
 	for {
 		// Listen for an incoming connection.
 		conn, err := l.Accept()
+		fmt.Println("New Connection")
 		if err != nil {
 			fmt.Println("Error accepting: ", err.Error())
 			os.Exit(1)
@@ -74,6 +75,7 @@ func main() {
 			reader := bufio.NewReader(conn)
 			for {
 				line, _, err := reader.ReadLine()
+				msgReceivedCount++
 				if err != nil {
 					if err == io.EOF {
 						if len(line) > 0 {
@@ -112,17 +114,22 @@ func main() {
 					metric.Job = metricParts[1]
 					metric.Index = metricParts[2]
 					metric.NozzleInstance = client.NozzleInstance
-					var hash = md5.Sum([]byte(s)
+					var hash = md5.Sum([]byte(s))
 					metric.MessageHash = hex.EncodeToString(hash[:])
 					metric.Name = metricParts[4]
 					metric.Value = val
 					metric.Unit = "NA"
-					metric.Key = metric.Deployment + "." + metric.Job + "." +metric.Index +"." + metric.Key
+					metric.MetricKey = metric.Deployment + "." + metric.Job + "." + metric.Index + "." + metric.Name
 					// key plus agent
-					metric.SourceInstance = metric.Key + "." metricParts[3]
+					metric.SourceInstance = metric.MetricKey + "." + metricParts[3]
 					msgAsJSON, _ := json.Marshal(&metric)
 					fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
-					client.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
+					err = omsClient.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
+					msgSentCount++
+					if err != nil {
+						fmt.Printf("Error posting message to OMS %s", err)
+						msgSendErrorCount++
+					}
 				}
 			}
 		}(conn)
