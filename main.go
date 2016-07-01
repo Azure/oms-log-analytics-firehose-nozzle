@@ -192,9 +192,9 @@ func main() {
 						}
 						fmt.Printf("TS as int %d", ts)
 						metric := messages.HealthMonitorMetric{
-							Timestamp: time.Unix(ts, 0),
-							Key:       parts[0],
-							Value:     parts[1],
+						//Timestamp: time.Unix(ts, 0),
+						//Key:       parts[0],
+						//Value:     parts[1],
 						}
 						msgAsJSON, _ := json.Marshal(&metric)
 						fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))

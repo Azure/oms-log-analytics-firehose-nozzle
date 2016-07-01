@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	hex "encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -291,8 +292,25 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	return &r
 }
 
+func NewHealthMonitorMetric(graphiteString string) *HealthMonitorMetric {
+	var r = HealthMonitorMetric{}
+	messageParts := strings.Split(graphiteString, " ")
+	// Should be 3 key, value, ts
+	if len(messageParts) != 3 {
+		panic("wrong number of parts")
+	}
+	//keyParts := strings.Split(messageParts)
+	r.Name = messageParts[0]
+	r.Value, _ = strconv.ParseFloat(messageParts[1], 64)
+	var ts, _ = strconv.ParseInt(messageParts[2], 10, 64)
+	r.Timestamp = time.Unix(ts, 0)
+
+	return &r
+}
+
 type HealthMonitorMetric struct {
-	Timestamp time.Time
-	Key       string
-	Value     string
+	BaseMessage
+	MetricKey string
+	Name      string
+	Value     float64
 }
