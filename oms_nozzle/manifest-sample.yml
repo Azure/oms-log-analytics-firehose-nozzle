@@ -1,0 +1,16 @@
+---
+applications:
+- name: oms_nozzle
+  memory: 64M
+  instances: 1
+  buildpack: https://github.com/cloudfoundry/go-buildpack.git
+  command: oms_nozzle
+  no-route: true
+  health-check-type: none
+  env:
+    OMS_WORKSPACE: CHANGE_ME
+    OMS_KEY: CHANGE_ME
+    DOPPLER_ADDR: wss://CHANGE_ME
+    UAA_ADDR: https://CHANGE_ME
+    PCF_USER: ADD_ME
+    PCF_PASSWORD: SET_ME
