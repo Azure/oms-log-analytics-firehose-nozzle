@@ -2,9 +2,9 @@
 	"ImportPath": "github.com/dave-read/pcf-oms-poc/oms_nozzle",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
-	 "Packages": [
-        "./..."
-    ],
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/uaago",
@@ -29,6 +29,14 @@
 		{
 			"ImportPath": "github.com/cloudfoundry/sonde-go/events",
 			"Rev": "d6ed492b509e180ee7675ed15237906041e53a6e"
+		},
+		{
+			"ImportPath": "github.com/dave-read/pcf-oms-poc/client",
+			"Rev": "aa229976263e4754acd7c6cd5b45df4be845b280"
+		},
+		{
+			"ImportPath": "github.com/dave-read/pcf-oms-poc/messages",
+			"Rev": "aa229976263e4754acd7c6cd5b45df4be845b280"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/gogoproto",
