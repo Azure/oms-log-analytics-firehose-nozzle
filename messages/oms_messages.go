@@ -39,7 +39,7 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 		NozzleInstance: client.NozzleInstance,
 	}
 	if e.Origin != nil {
-		b.Origin = "XXXX" //e.GetOrigin()
+		b.Origin = e.GetOrigin()
 	}
 	if e.Deployment != nil && e.Job != nil && e.Index != nil {
 		b.SourceInstance = fmt.Sprintf("%s.%s.%s", e.GetDeployment(), e.GetJob(), e.GetIndex())

@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/dave-read/pcf-oms-poc/oms_nozzle",
+	"ImportPath": "github.com/dave-read/pcf-oms-poc",
 	"GoVersion": "go1.6",
 	"GodepVersion": "v74",
 	"Packages": [
@@ -29,14 +29,6 @@
 		{
 			"ImportPath": "github.com/cloudfoundry/sonde-go/events",
 			"Rev": "d6ed492b509e180ee7675ed15237906041e53a6e"
-		},
-		{
-			"ImportPath": "github.com/dave-read/pcf-oms-poc/client",
-			"Rev": "5d15b6584e07bf687953b739b9cc2f530a723381"
-		},
-		{
-			"ImportPath": "github.com/dave-read/pcf-oms-poc/messages",
-			"Rev": "5d15b6584e07bf687953b739b9cc2f530a723381"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/gogoproto",
