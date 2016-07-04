@@ -102,26 +102,33 @@ func main() {
 					// get value as float
 					val, err := strconv.ParseFloat(graphiteParts[1], 64)
 					// parse out the remaining parts from the graphite key
-					metricParts := strings.Split(graphiteParts[0], ".")
-					if len(metricParts) != 5 {
-						fmt.Printf("Incorrect metric len.  Expected 5 got:%d", len(metricParts))
+					var keyParts []string
+					var graphiteKey = graphiteParts[0]
+					// collector does not replace . with _ in metric name
+					if strings.HasPrefix(graphiteKey, "collector") {
+						keyParts = strings.SplitN(graphiteKey, ".", 5)
+					} else {
+						keyParts = strings.Split(graphiteKey, ".")
+					}
+					if len(keyParts) != 5 {
+						fmt.Printf("Incorrect metric key len. key:%s. Expected 5 got:%d\n", graphiteKey, len(keyParts))
 					}
 
 					var metric = messages.ValueMetric{}
-					metric.EventType = "PCF_ValueMetric_v1"
-					metric.Deployment = metricParts[0]
+					metric.EventType = "ValueMetric"
+					metric.Deployment = keyParts[0]
 					metric.Timestamp = time.Unix(ts, 0)
-					metric.Job = metricParts[1]
-					metric.Index = metricParts[2]
+					metric.Job = keyParts[1]
+					metric.Index = keyParts[2]
 					metric.NozzleInstance = client.NozzleInstance
 					var hash = md5.Sum([]byte(s))
 					metric.MessageHash = hex.EncodeToString(hash[:])
-					metric.Name = metricParts[4]
+					metric.Name = keyParts[4]
 					metric.Value = val
 					metric.Unit = "NA"
 					metric.MetricKey = metric.Deployment + "." + metric.Job + "." + metric.Index + "." + metric.Name
 					// key plus agent
-					metric.SourceInstance = metric.MetricKey + "." + metricParts[3]
+					metric.SourceInstance = metric.MetricKey + "." + keyParts[3]
 					msgAsJSON, _ := json.Marshal(&metric)
 					//fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
 					err = omsClient.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
