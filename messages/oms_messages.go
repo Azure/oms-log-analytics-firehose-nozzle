@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	hex "encoding/hex"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -25,8 +24,10 @@ type BaseMessage struct {
 	MessageHash    string
 	// for grouping in OMS until multi-field grouping is supported
 	SourceInstance string
+	Origin         string
 }
 
+// NewBaseMessage Creates the common attributes of messages
 func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	var b = BaseMessage{
 		EventType:      e.GetEventType().String(),
@@ -36,6 +37,9 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),
 		NozzleInstance: client.NozzleInstance,
+	}
+	if e.Origin != nil {
+		b.Origin = e.GetOrigin()
 	}
 	if e.Deployment != nil && e.Job != nil && e.Index != nil {
 		b.SourceInstance = fmt.Sprintf("%s.%s.%s", e.GetDeployment(), e.GetJob(), e.GetIndex())
@@ -69,6 +73,7 @@ type HTTPStart struct {
 	InstanceID      string
 }
 
+// NewHTTPStart creates a new NewHTTPStart
 func NewHTTPStart(e *events.Envelope) *HTTPStart {
 	var m = e.GetHttpStart()
 	var r = HTTPStart{
@@ -110,6 +115,7 @@ type HTTPStop struct {
 	ApplicationID string
 }
 
+// NewHTTPStop creates a new NewHTTPStop
 func NewHTTPStop(e *events.Envelope) *HTTPStop {
 	var m = e.GetHttpStop()
 	var r = HTTPStop{
@@ -150,6 +156,7 @@ type HTTPStartStop struct {
 	Forwarded      string
 }
 
+// NewHTTPStartStop creates a new NewHTTPStartStop
 func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 
 	var m = e.GetHttpStartStop()
@@ -195,6 +202,7 @@ type LogMessage struct {
 	SourceInstance string
 }
 
+// NewLogMessage creates a new NewLogMessage
 func NewLogMessage(e *events.Envelope) *LogMessage {
 	var m = e.GetLogMessage()
 	var r = LogMessage{
@@ -221,6 +229,7 @@ type Error struct {
 	Message string
 }
 
+// NewError creates a new NewError
 func NewError(e *events.Envelope) *Error {
 	return &Error{
 		BaseMessage: *NewBaseMessage(e),
@@ -240,6 +249,7 @@ type ContainerMetric struct {
 	DiskBytes     uint64  `json:",omitempty"`
 }
 
+// NewContainerMetric creates a new Container Metric
 func NewContainerMetric(e *events.Envelope) *ContainerMetric {
 	return &ContainerMetric{
 		BaseMessage:   *NewBaseMessage(e),
@@ -260,10 +270,11 @@ type CounterEvent struct {
 	CounterKey string
 }
 
+// NewCounterEvent creates a new CounterEvent
 func NewCounterEvent(e *events.Envelope) *CounterEvent {
 	var r = CounterEvent{
 		BaseMessage: *NewBaseMessage(e),
-		Name:        *e.CounterEvent.Name,
+		Name:        *e.Origin + "." + *e.CounterEvent.Name,
 		Delta:       *e.CounterEvent.Delta,
 		Total:       *e.CounterEvent.Total,
 	}
@@ -281,36 +292,14 @@ type ValueMetric struct {
 	MetricKey string
 }
 
+// NewValueMetric creates a new ValueMetric
 func NewValueMetric(e *events.Envelope) *ValueMetric {
 	var r = ValueMetric{
 		BaseMessage: *NewBaseMessage(e),
-		Name:        *e.ValueMetric.Name,
+		Name:        *e.Origin + "." + *e.ValueMetric.Name,
 		Value:       *e.ValueMetric.Value,
 		Unit:        *e.ValueMetric.Unit,
 	}
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	return &r
-}
-
-func NewHealthMonitorMetric(graphiteString string) *HealthMonitorMetric {
-	var r = HealthMonitorMetric{}
-	messageParts := strings.Split(graphiteString, " ")
-	// Should be 3 key, value, ts
-	if len(messageParts) != 3 {
-		panic("wrong number of parts")
-	}
-	//keyParts := strings.Split(messageParts)
-	r.Name = messageParts[0]
-	r.Value, _ = strconv.ParseFloat(messageParts[1], 64)
-	var ts, _ = strconv.ParseInt(messageParts[2], 10, 64)
-	r.Timestamp = time.Unix(ts, 0)
-
-	return &r
-}
-
-type HealthMonitorMetric struct {
-	BaseMessage
-	MetricKey string
-	Name      string
-	Value     float64
 }
