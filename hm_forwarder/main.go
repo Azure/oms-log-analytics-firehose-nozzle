@@ -88,7 +88,7 @@ func main() {
 				}
 				if len(line) > 0 { // skip empty lines
 					var s = string(line)
-					//fmt.Printf("#################### Received line %s", s)
+					// fmt.Printf("#################### Received line %s", s)
 					// graphite record is space separated: key val ts
 					graphiteParts := strings.Split(s, " ")
 					if len(graphiteParts) != 3 {
@@ -116,6 +116,12 @@ func main() {
 
 					var metric = messages.ValueMetric{}
 					metric.EventType = "ValueMetric"
+					if strings.HasPrefix(graphiteKey, "collector") {
+						metric.Origin = "collector"
+					} else {
+						metric.Origin = "hm"
+					}
+
 					metric.Deployment = keyParts[0]
 					metric.Timestamp = time.Unix(ts, 0)
 					metric.Job = keyParts[1]
@@ -130,7 +136,7 @@ func main() {
 					// key plus agent
 					metric.SourceInstance = metric.MetricKey + "." + keyParts[3]
 					msgAsJSON, _ := json.Marshal(&metric)
-					//fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
+					// fmt.Printf("Metric as JSON %s\n", string(msgAsJSON))
 					err = omsClient.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
 					msgSentCount++
 					if err != nil {
