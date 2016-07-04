@@ -278,7 +278,7 @@ func NewCounterEvent(e *events.Envelope) *CounterEvent {
 		Total:       *e.CounterEvent.Total,
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
-	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
+	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
 	return &r
 }
 
