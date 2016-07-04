@@ -28,14 +28,6 @@
 			"Rev": "d6ed492b509e180ee7675ed15237906041e53a6e"
 		},
 		{
-			"ImportPath": "github.com/dave-read/pcf-oms-poc/client",
-			"Rev": "b644d29bce918d9106201175dd0e07ce51202086"
-		},
-		{
-			"ImportPath": "github.com/dave-read/pcf-oms-poc/messages",
-			"Rev": "b644d29bce918d9106201175dd0e07ce51202086"
-		},
-		{
 			"ImportPath": "github.com/gogo/protobuf/gogoproto",
 			"Comment": "v0.2-20-g318371c",
 			"Rev": "318371cbef6bab80e8d1c69b470fffa79eebfb54"

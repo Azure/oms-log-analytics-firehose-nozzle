@@ -274,12 +274,11 @@ type CounterEvent struct {
 func NewCounterEvent(e *events.Envelope) *CounterEvent {
 	var r = CounterEvent{
 		BaseMessage: *NewBaseMessage(e),
-		Name:        *e.Origin + "." + *e.CounterEvent.Name,
 		Delta:       *e.CounterEvent.Delta,
 		Total:       *e.CounterEvent.Total,
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
-
+	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
 	return &r
 }
 
@@ -296,10 +295,10 @@ type ValueMetric struct {
 func NewValueMetric(e *events.Envelope) *ValueMetric {
 	var r = ValueMetric{
 		BaseMessage: *NewBaseMessage(e),
-		Name:        *e.Origin + "." + *e.ValueMetric.Name,
 		Value:       *e.ValueMetric.Value,
 		Unit:        *e.ValueMetric.Unit,
 	}
+	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	return &r
 }

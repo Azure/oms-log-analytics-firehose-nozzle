@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
@@ -73,6 +74,8 @@ func main() {
 		panic("Error getting Auth Token" + err.Error())
 	}
 	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
+	// TODO: Verify and make configurable.  See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
+	consumer.SetIdleTimeout(25 * time.Second)
 	// Create firehose connection
 	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
 	go func() {
