@@ -200,6 +200,7 @@ type LogMessage struct {
 	AppID          string
 	SourceType     string // APP,RTR,DEA,STG,etc
 	SourceInstance string
+	SourceTypeKey  string // Key for aggregation until multiple levels of grouping supported
 }
 
 // NewLogMessage creates a new NewLogMessage
@@ -217,6 +218,7 @@ func NewLogMessage(e *events.Envelope) *LogMessage {
 	}
 	if m.MessageType != nil {
 		r.MessageType = m.MessageType.String()
+		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
 	return &r
 }
