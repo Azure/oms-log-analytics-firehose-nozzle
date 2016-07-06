@@ -39,6 +39,8 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	}
 	if e.Timestamp != nil {
 		b.Timestamp = time.Unix(0, *e.Timestamp)
+	} else {
+		fmt.Printf("Message did not have timestamp EventType:%s", b.EventType)
 	}
 	if e.Origin != nil {
 		b.Origin = e.GetOrigin()
