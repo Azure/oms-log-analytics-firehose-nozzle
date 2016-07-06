@@ -31,12 +31,14 @@ type BaseMessage struct {
 func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	var b = BaseMessage{
 		EventType:      e.GetEventType().String(),
-		Timestamp:      time.Unix(0, *e.Timestamp),
 		Deployment:     e.GetDeployment(),
 		Job:            e.GetJob(),
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),
 		NozzleInstance: client.NozzleInstance,
+	}
+	if e.Timestamp != nil {
+		b.Timestamp = time.Unix(0, *e.Timestamp)
 	}
 	if e.Origin != nil {
 		b.Origin = e.GetOrigin()
