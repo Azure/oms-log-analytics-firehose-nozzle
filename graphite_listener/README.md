@@ -23,8 +23,8 @@ to be added to the collector job spec in the elastic-runtime deployment manifest
         deployment_name: collector
         use_graphite: true
         graphite:
-          address: 10.0.0.100
-          port: 8888
+          address: 10.0.0.100 # Address of where this process is running
+          port: 8888 # the LISTEN_PORT value
 ```
 
 To enable publishing of BOSH health monitor via graphite, the folowing
@@ -35,6 +35,6 @@ hm:
 ...
 graphite_enabled: true
       graphite:
-           address: 10.0.0.100
-           port: 8888
+           address: 10.0.0.100 # Address of where this process is running
+           port: 8888 # the LISTEN_PORT value
 ```
