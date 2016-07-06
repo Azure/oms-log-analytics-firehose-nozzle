@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	firehoseSubscriptionID = "oms"
+	firehoseSubscriptionID = "oms-poc"
 )
 
 // Required parameters

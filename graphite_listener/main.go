@@ -17,10 +17,6 @@ import (
 	"github.com/dave-read/pcf-oms-poc/messages"
 )
 
-const (
-	firehoseSubscriptionID = "oms"
-)
-
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
