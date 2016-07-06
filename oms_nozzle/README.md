@@ -16,3 +16,9 @@ The required parameters are:
 - workspace key
 
 You can get the workspace id and key from the OMS portal.
+
+There is sample manifest provided to allow deploying the nozzle as a CF app.  The project uses godep to manage vendor dependencies, so cf push needs to be run from the top of the repo with reference to the manifest:
+
+```
+cf push -f oms_nozzle\manifest.yml
+```
