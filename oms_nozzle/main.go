@@ -80,7 +80,8 @@ func main() {
 	}
 	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 	// TODO: Verify and make configurable.  See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
-	consumer.SetIdleTimeout(25 * time.Second)
+	consumer.SetIdleTimeout(60 * time.Second)
+	consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// Create firehose connection
 	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
 	// async error channel
@@ -148,4 +149,12 @@ func main() {
 			//fmt.Printf(string(msgAsJSON) + "\n")
 		}
 	}
+}
+
+// ConsoleDebugPrinter for debug logging
+type ConsoleDebugPrinter struct{}
+
+// Print debug logging
+func (c ConsoleDebugPrinter) Print(title, dump string) {
+	fmt.Printf("Consumer debug.  title:%s detail:%s", title, dump)
 }
