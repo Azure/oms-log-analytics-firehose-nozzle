@@ -64,7 +64,9 @@ func main() {
 
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
 	client := client.New(omsWorkspace, omsKey)
+	if client == nil {
 
+	}
 	// connect to PCF
 	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", uaaAddress, dopplerAddress)
 
@@ -79,70 +81,96 @@ func main() {
 		panic("Error getting Auth Token" + err.Error())
 	}
 	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
+
 	// TODO: Verify and make configurable.  See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
-	consumer.SetIdleTimeout(60 * time.Second)
-	consumer.SetDebugPrinter(ConsoleDebugPrinter{})
+	consumer.SetIdleTimeout(25 * time.Second)
+	//consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// Create firehose connection
 	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
 	// async error channel
 	go func() {
+		var errorChannelCount = 0
 		for err := range errorChan {
-			fmt.Fprintf(os.Stderr, "Firehose channel error:%v\n", err.Error())
+			errorChannelCount++
+			fmt.Fprintf(os.Stderr, "Firehose channel error.  Date:%v errorCount:%d error:%v\n", time.Now(), errorChannelCount, err.Error())
 		}
 	}()
+	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
-
+	ticker := time.NewTicker(time.Duration(10) * time.Second)
 	for {
 		// loop over message and signal channel
 		select {
 		case s := <-signalChannel:
 			fmt.Printf("Signal caught:%s Exiting\n", s.String())
-			consumer.Close()
-			os.Exit(0)
+			err := consumer.Close()
+			if err != nil {
+				fmt.Printf("Error closing consumer:%v\n", err)
+			}
+			os.Exit(1)
+		case <-ticker.C:
+			//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
+			for k, v := range pendingEvents {
+				// OMS message as JSON
+				msgAsJSON, err := json.Marshal(&v)
+				if err != nil {
+					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
+				} else {
+					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+					err = client.PostData(&msgAsJSON, "PCF_"+k+"_v1")
+					if err != nil {
+						msgSendErrorCount++
+						fmt.Printf("Error posting message type %s to OMS. error: %s", k, err)
+					} else {
+						msgSentCount++
+					}
+				}
+			}
+			pendingEvents = make(map[string][]interface{})
 		case msg := <-msgChan:
 			// process message
 			msgReceivedCount++
-			var omsMessage interface{}
+			var omsMessage OMSMessage
+			var omsMessageType = msg.GetEventType().String()
 			switch msg.GetEventType() {
 			// Metrics
 			case events.Envelope_ValueMetric:
 				omsMessage = messages.NewValueMetric(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			case events.Envelope_CounterEvent:
 				omsMessage = messages.NewCounterEvent(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			case events.Envelope_ContainerMetric:
 				omsMessage = messages.NewContainerMetric(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			// Logs Errors
 			case events.Envelope_LogMessage:
 				omsMessage = messages.NewLogMessage(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			case events.Envelope_Error:
 				omsMessage = messages.NewError(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			// HTTP Start/Stop
 			case events.Envelope_HttpStart:
 				omsMessage = messages.NewHTTPStart(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			case events.Envelope_HttpStartStop:
 				omsMessage = messages.NewHTTPStartStop(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+
 			case events.Envelope_HttpStop:
 				omsMessage = messages.NewHTTPStop(msg)
+				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 			// Unknown
 			default:
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
 				continue
-			}
-
-			// OMS message as JSON
-			msgAsJSON, err := json.Marshal(&omsMessage)
-			// Version the events during testing
-			var msgType = "PCF_" + msg.GetEventType().String() + "_v1"
-			if err != nil {
-				fmt.Printf("Error marshalling message type %s to JSON. error: %s", msgType, err)
-			} else {
-				err = client.PostData(&msgAsJSON, msgType)
-				if err != nil {
-					msgSendErrorCount++
-					fmt.Printf("Error posting message type %s to OMS. error: %s", msgType, err)
-				} else {
-					msgSentCount++
-				}
 			}
 			//Only use this when testing local.  Otherwise you're generate events to yourself
 			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", msgType, msgReceivedCount, msgSentCount, msgSendErrorCount)
@@ -150,6 +178,8 @@ func main() {
 		}
 	}
 }
+
+type OMSMessage interface{}
 
 // ConsoleDebugPrinter for debug logging
 type ConsoleDebugPrinter struct{}

@@ -285,6 +285,9 @@ func NewCounterEvent(e *events.Envelope) *CounterEvent {
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
+	if strings.HasPrefix(r.Name, "TruncatingBuffer.DroppedMessage") {
+		fmt.Println("######################### Received Dropped Message Event")
+	}
 	return &r
 }
 
