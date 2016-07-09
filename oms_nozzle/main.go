@@ -117,10 +117,12 @@ func main() {
 					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
 				} else {
 					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+					requestStartTime := time.Now()
 					err = client.PostData(&msgAsJSON, "PCF_"+k+"_v1")
+					elapsedTime := time.Since(requestStartTime)
 					if err != nil {
 						msgSendErrorCount++
-						fmt.Printf("Error posting message type %s to OMS. error: %s", k, err)
+						fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d\n", k, err, elapsedTime.String(), len(msgAsJSON))
 					} else {
 						msgSentCount++
 					}

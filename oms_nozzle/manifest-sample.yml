@@ -1,8 +1,8 @@
 ---
 applications:
 - name: oms_nozzle
-  memory: 64M
-  instances: 1
+  memory: 512M
+  instances: 2
   buildpack: https://github.com/cloudfoundry/go-buildpack.git
   command: oms_nozzle
   no-route: true

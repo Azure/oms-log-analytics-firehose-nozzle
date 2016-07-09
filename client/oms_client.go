@@ -80,16 +80,18 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 	req.Header["x-ms-date"] = []string{rfc1123date}
 	req.Header.Set("Content-Type", "application/json")
 
-	//TODO configure client with timeout and higher idle connections
-	resp, err := http.DefaultClient.Do(req)
+	//TODO make timeout external config value
+	client := http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}
+	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error invoking HTTP Request")
 		return err
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode >= 300 || resp.StatusCode < 200 {
-		return fmt.Errorf("Error in POST to OMS. HTTP response code:%d message:%s", resp.StatusCode, resp.Status)
+		return fmt.Errorf("Post Error. HTTP response code:%d message:%s", resp.StatusCode, resp.Status)
 	}
 	return nil
 }

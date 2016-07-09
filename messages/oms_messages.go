@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	hex "encoding/hex"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	if e.Timestamp != nil {
 		b.Timestamp = time.Unix(0, *e.Timestamp)
 	} else {
-		fmt.Printf("Message did not have timestamp EventType:%s", b.EventType)
+		fmt.Printf("Message did not have timestamp. EventType:%s Event:%s\n", b.EventType, e.String())
 	}
 	if e.Origin != nil {
 		b.Origin = e.GetOrigin()
@@ -285,8 +286,8 @@ func NewCounterEvent(e *events.Envelope) *CounterEvent {
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
-	if strings.HasPrefix(r.Name, "TruncatingBuffer.DroppedMessage") {
-		fmt.Println("######################### Received Dropped Message Event")
+	if strings.Contains(r.Name, "TruncatingBuffer.DroppedMessage") {
+		fmt.Fprintln(os.Stderr, "Received Dropped Message Event")
 	}
 	return &r
 }
