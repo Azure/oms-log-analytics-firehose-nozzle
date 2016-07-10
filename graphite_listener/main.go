@@ -58,7 +58,7 @@ func main() {
 	// Close the listener when the application closes.
 	defer l.Close()
 
-	fmt.Println("Listening on port:%s" + listenPort)
+	fmt.Println("Listening on port:" + listenPort)
 	for {
 		// Listen for an incoming connection.
 		conn, err := l.Accept()
@@ -77,7 +77,7 @@ func main() {
 				if err != nil {
 					if err == io.EOF {
 						if len(line) > 0 {
-							fmt.Printf("[tcp] Unfinished line: %#v", line)
+							fmt.Printf("[tcp] Unfinished line: %#v\n", line)
 						}
 					} else {
 						panic(err)
@@ -139,7 +139,7 @@ func main() {
 					msgSentCount++
 					if err != nil {
 						msgSendErrorCount++
-						fmt.Printf("%v SendErrorCount:%d Error posting message to OMS %s", time.Now(), msgSendErrorCount, err)
+						fmt.Printf("%v SendErrorCount:%d Error posting message to OMS %s\n", time.Now(), msgSendErrorCount, err)
 					}
 				}
 			}
