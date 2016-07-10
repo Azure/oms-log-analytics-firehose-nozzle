@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -18,6 +19,10 @@ import (
 
 const (
 	firehoseSubscriptionID = "oms-poc"
+	// lower limit for override
+	minOMSPostTimeoutSeconds = 1
+	// upper limit for override
+	maxOMSPostTimeoutSeconds = 60
 )
 
 // Required parameters
@@ -29,6 +34,7 @@ var (
 	pcfPassword    = os.Getenv("PCF_PASSWORD")
 	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
 	omsKey         = os.Getenv("OMS_KEY")
+	omsPostTimeout = os.Getenv("OMS_POST_TIMEOUT_SEC")
 	// TODO add parm
 	sslSkipVerify = true
 )
@@ -55,6 +61,19 @@ func main() {
 	}
 	if len(pcfPassword) == 0 {
 		panic("PCF_PASSWORD env var not provided")
+	}
+	if len(omsPostTimeout) != 0 {
+		i, err := strconv.Atoi(omsPostTimeout)
+		if err != nil {
+			fmt.Printf("Ignoring OMS_POST_TIMEOUT_SEC value %s. Error converting to int. Error:%s\n", omsPostTimeout, err)
+		} else {
+			if i > maxOMSPostTimeoutSeconds || i < minOMSPostTimeoutSeconds {
+				fmt.Printf("Ignoring OMS_POST_TIMEOUT_SEC value %d. Min value is %d, max value is %d\n", i, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
+			} else {
+				client.HTTPPostTimeout = time.Second * time.Duration(i)
+				fmt.Printf("OMS_POST_TIMEOUT_SEC overriden.  New value:%s\n", client.HTTPPostTimeout)
+			}
+		}
 	}
 
 	// counters

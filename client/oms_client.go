@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// HTTPPostTimeout defaults to 5 seconds
+var HTTPPostTimeout = time.Duration(5 * time.Second)
+
 //NozzleInstance identifies this instance of a firehose nozzle. Used for logging
 var NozzleInstance string
 
@@ -82,7 +85,7 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 
 	//TODO make timeout external config value
 	client := http.Client{
-		Timeout: time.Duration(5 * time.Second),
+		Timeout: HTTPPostTimeout,
 	}
 	resp, err := client.Do(req)
 	if err != nil {

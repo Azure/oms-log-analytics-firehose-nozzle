@@ -14,3 +14,4 @@ applications:
     UAA_ADDR: https://CHANGE_ME
     PCF_USER: ADD_ME
     PCF_PASSWORD: SET_ME
+    OMS_POST_TIMEOUT_SEC: 10
