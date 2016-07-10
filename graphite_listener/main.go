@@ -46,6 +46,8 @@ func main() {
 
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
 	omsClient := client.New(omsWorkspace, omsKey)
+	//TODO: parm
+	client.HTTPPostTimeout = time.Duration(time.Second * 10)
 
 	fmt.Printf("Starting with listenPort:%s\n", listenPort)
 	// start listening
@@ -136,8 +138,8 @@ func main() {
 					err = omsClient.PostData(&msgAsJSON, "PCF_ValueMetric_v1")
 					msgSentCount++
 					if err != nil {
-						fmt.Printf("Error posting message to OMS %s", err)
 						msgSendErrorCount++
+						fmt.Printf("%v SendErrorCount:%d Error posting message to OMS %s", time.Now(), msgSendErrorCount, err)
 					}
 				}
 			}
