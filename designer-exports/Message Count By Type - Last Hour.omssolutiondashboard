@@ -1,0 +1,245 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "[parameters('workspaceapiversion')]",
+                    "name": "f99ae5b2-5e3c-41ee-a546-0b53dae00e24",
+                    "type": "solutions",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/solutions/f99ae5b2-5e3c-41ee-a546-0b53dae00e24')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "f99ae5b2-5e3c-41ee-a546-0b53dae00e24",
+                        "Name": "Message Count By Type - Last Hour",
+                        "Author": "davre@microsoft.com",
+                        "Source": "Local",
+                        "Dashboard": [
+                            {
+                                "Id": "LineChartSparklineBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Message Count - Last Hour",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Message Count Per Minute - Last Hour",
+                                        "Subtitle": ""
+                                    },
+                                    "lineChart": {
+                                        "query": "TimeGenerated > NOW-1HOURS | measure count() interval 1minute",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "TimeGenerated > NOW-1HOURS | measure count() by Type interval 1MINUTES",
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Type",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartSparklineBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Message Count - Last 24 Hours",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Message Count - Last 24 Hours",
+                                        "Subtitle": ""
+                                    },
+                                    "lineChart": {
+                                        "query": "TimeGenerated > NOW-24HOURS | measure count() interval 1hour",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "TimeGenerated > NOW-24HOURS | measure count() by Type interval 1hour",
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Type",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartSparklineBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Syslog Messages - Last 24 Hours",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Total Over Last 24 Hours",
+                                        "Subtitle": ""
+                                    },
+                                    "lineChart": {
+                                        "query": "Type=Syslog TimeGenerated > NOW-24HOURS | measure count() by Type interval 1HOURS",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=Syslog TimeGenerated > NOW-24HOURS | measure count() by HostName interval 1HOURS",
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Host",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartSparklineBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Syslog Messages - Last Hour",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Total Over Last Hour",
+                                        "Subtitle": ""
+                                    },
+                                    "lineChart": {
+                                        "query": "Type=Syslog TimeGenerated > NOW-1HOURS | measure count() by Type  interval 1minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=Syslog TimeGenerated > NOW-1HOURS | measure count() by HostName interval 1minutes",
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Host",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "Donut": {
+                                    "Query": "TimeGenerated > NOW-1HOURS | measure count() as count by Type | sort count desc",
+                                    "CenterLegend": {
+                                        "Text": "Total",
+                                        "Operation": "Sum",
+                                        "ArcsToSelect": []
+                                    },
+                                    "Options": {
+                                        "colors": [
+                                            "#00188f",
+                                            "#0072c6",
+                                            "#00bcf2"
+                                        ],
+                                        "valueColorMapping": []
+                                    }
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": false,
+                                        "Query": "*",
+                                        "Message": ""
+                                    }
+                                },
+                                "TimeInterval": {
+                                    "intervalDurationInHours": 24,
+                                    "intervalEndOffsetInHours": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

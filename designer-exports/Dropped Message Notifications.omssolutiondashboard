@@ -1,0 +1,120 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "[parameters('workspaceapiversion')]",
+                    "name": "b3dfd5f7-ed95-4931-9226-2ffd177be568",
+                    "type": "solutions",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/solutions/b3dfd5f7-ed95-4931-9226-2ffd177be568')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "b3dfd5f7-ed95-4931-9226-2ffd177be568",
+                        "Name": "Dropped Message Notifications",
+                        "Author": "davre@microsoft.com",
+                        "Source": "Local",
+                        "Dashboard": [
+                            {
+                                "Id": "LineChartSparklineBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Dropped Message Notifications",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Dropped Message Count",
+                                        "Subtitle": ""
+                                    },
+                                    "lineChart": {
+                                        "query": "Name_s=\"DopplerServer.TruncatingBuffer.DroppedMessages\"  TimeGenerated > NOW-1HOURS | measure sum(Delta_d) by Name_s interval 1MINUTES",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Name_s=\"DopplerServer.TruncatingBuffer.DroppedMessages\"  TimeGenerated > NOW-1HOURS | measure sum(Delta_d) by Name_s interval 1MINUTES",
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Type",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "DoubleNumberBuilderTile",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "TileOne": {
+                                    "Legend": "Dropped Message Notification Events - Last 30 Minutes",
+                                    "Query": "Name_s=\"DopplerServer.TruncatingBuffer.DroppedMessages\"  TimeGenerated > NOW-1HOURS | measure count() by Name_s"
+                                },
+                                "TileTwo": {
+                                    "Legend": "Dropped Message Notification Events - Last 1 Hour",
+                                    "Query": "Name_s=\"DopplerServer.TruncatingBuffer.DroppedMessages\"  TimeGenerated > NOW-1HOURS | measure count() by Name_s"
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": false,
+                                        "Query": "*",
+                                        "Message": ""
+                                    }
+                                },
+                                "TimeInterval": {
+                                    "intervalDurationInHours": 24,
+                                    "intervalEndOffsetInHours": 0
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
