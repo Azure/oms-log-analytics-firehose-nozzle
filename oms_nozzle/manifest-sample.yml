@@ -14,4 +14,11 @@ applications:
     UAA_ADDR: https://CHANGE_ME
     PCF_USER: ADD_ME
     PCF_PASSWORD: SET_ME
+#   This string will be added as a prefix to the PCF log events. 
+#   May make it easier to identify the PCF related messages in OMS
+    OMS_TYPE_PREFIX: "PCF_"
+#   EVENT_FILTER causes the nozzle to drop rather than forward events of 
+#   matching types (a comma separated list) to OMS.  
+#   The three event types are METRIC,LOG,HTTP
+    EVENT_FILTER: "METRIC,HTTP"    
     OMS_POST_TIMEOUT_SEC: 10

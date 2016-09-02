@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -23,6 +24,12 @@ const (
 	minOMSPostTimeoutSeconds = 1
 	// upper limit for override
 	maxOMSPostTimeoutSeconds = 60
+	// filter metrics
+	metricEventType = "METRIC"
+	// filter stdout/stderr events
+	logEventType = "LOG"
+	// filter http start/stop events
+	httpEventType = "HTTP"
 )
 
 // Required parameters
@@ -35,8 +42,16 @@ var (
 	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
 	omsKey         = os.Getenv("OMS_KEY")
 	omsPostTimeout = os.Getenv("OMS_POST_TIMEOUT_SEC")
+	omsTypePrefix  = os.Getenv("OMS_TYPE_PREFIX")
+	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
+	eventFilter = os.Getenv("EVENT_FILTER")
+
 	// TODO add parm
 	sslSkipVerify = true
+	// TODO revisit if this the right granularity
+	excludeMetricEvents = false
+	excludeLogEvents    = false
+	excludeHTTPEvents   = false
 )
 
 func main() {
@@ -75,7 +90,28 @@ func main() {
 			}
 		}
 	}
+	if len(omsTypePrefix) > 0 {
+		fmt.Printf("OMS_TYPE_PREFIX is:%s\n", omsTypePrefix)
+	} else {
+		fmt.Print("No OMS_TYPE_PREFIX provided.  Default Event Type names will be used.\n")
+	}
 
+	if len(eventFilter) > 0 {
+		eventFilter = strings.ToUpper(eventFilter)
+		// by default we don't filter any events
+		if strings.Contains(eventFilter, metricEventType) {
+			excludeMetricEvents = true
+		}
+		if strings.Contains(eventFilter, logEventType) {
+			excludeLogEvents = true
+		}
+		if strings.Contains(eventFilter, httpEventType) {
+			excludeHTTPEvents = true
+		}
+		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", eventFilter, excludeMetricEvents, excludeLogEvents, excludeHTTPEvents)
+	} else {
+		fmt.Print("No value for EVENT_FILTER evironment variable.  All events will be published\n")
+	}
 	// counters
 	var msgReceivedCount = 0
 	var msgSentCount = 0
@@ -137,7 +173,10 @@ func main() {
 				} else {
 					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
 					requestStartTime := time.Now()
-					err = client.PostData(&msgAsJSON, "PCF_"+k+"_v1")
+					if len(omsTypePrefix) > 0 {
+						k = omsTypePrefix + k
+					}
+					err = client.PostData(&msgAsJSON, k)
 					elapsedTime := time.Since(requestStartTime)
 					if err != nil {
 						msgSendErrorCount++
@@ -156,38 +195,51 @@ func main() {
 			switch msg.GetEventType() {
 			// Metrics
 			case events.Envelope_ValueMetric:
-				omsMessage = messages.NewValueMetric(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-
+				if !excludeMetricEvents {
+					omsMessage = messages.NewValueMetric(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 			case events.Envelope_CounterEvent:
-				omsMessage = messages.NewCounterEvent(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				if !excludeMetricEvents {
+					omsMessage = messages.NewCounterEvent(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 
 			case events.Envelope_ContainerMetric:
-				omsMessage = messages.NewContainerMetric(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				if !excludeMetricEvents {
+					omsMessage = messages.NewContainerMetric(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 
 			// Logs Errors
 			case events.Envelope_LogMessage:
-				omsMessage = messages.NewLogMessage(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				if !excludeLogEvents {
+					omsMessage = messages.NewLogMessage(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 
 			case events.Envelope_Error:
-				omsMessage = messages.NewError(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				if !excludeLogEvents {
+					omsMessage = messages.NewError(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 
 			// HTTP Start/Stop
 			case events.Envelope_HttpStart:
-				omsMessage = messages.NewHTTPStart(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-
+				if !excludeHTTPEvents {
+					omsMessage = messages.NewHTTPStart(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 			case events.Envelope_HttpStartStop:
-				omsMessage = messages.NewHTTPStartStop(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-
+				if !excludeHTTPEvents {
+					omsMessage = messages.NewHTTPStartStop(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 			case events.Envelope_HttpStop:
-				omsMessage = messages.NewHTTPStop(msg)
-				pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				if !excludeHTTPEvents {
+					omsMessage = messages.NewHTTPStop(msg)
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+				}
 			// Unknown
 			default:
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
@@ -200,6 +252,7 @@ func main() {
 	}
 }
 
+// OMSMessage is a marker inteface for JSON formatted messages published to OMS
 type OMSMessage interface{}
 
 // ConsoleDebugPrinter for debug logging
