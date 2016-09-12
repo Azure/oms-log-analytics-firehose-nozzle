@@ -171,6 +171,7 @@ func main() {
 				if err != nil {
 					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
 				} else {
+					//fmt.Printf(string(msgAsJSON) + "\n")
 					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
 					requestStartTime := time.Now()
 					if len(omsTypePrefix) > 0 {
@@ -246,8 +247,7 @@ func main() {
 				continue
 			}
 			//Only use this when testing local.  Otherwise you're generate events to yourself
-			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", msgType, msgReceivedCount, msgSentCount, msgSendErrorCount)
-			//fmt.Printf(string(msgAsJSON) + "\n")
+			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", omsMessageType, msgReceivedCount, msgSentCount, msgSendErrorCount)
 		}
 	}
 }
