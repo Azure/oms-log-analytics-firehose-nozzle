@@ -8,9 +8,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cloudfoundry-community/go-cfclient"
 	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/dave-read/pcf-oms-poc/client"
 )
+
+var AppNamesByGUID = make(map[string]string)
+var CfClient *cfclient.Client
 
 // BaseMessage contains common data elements
 type BaseMessage struct {
@@ -74,6 +78,7 @@ type HTTPStart struct {
 	UserAgent       string
 	ParentRequestID string
 	ApplicationID   string
+	ApplicationName string
 	InstanceIndex   int32
 	InstanceID      string
 }
@@ -105,19 +110,22 @@ func NewHTTPStart(e *events.Envelope) *HTTPStart {
 	if m.ApplicationId != nil {
 		r.ApplicationID = m.GetApplicationId().String()
 	}
+	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+
 	return &r
 }
 
 // An HTTPStop event is emitted when a client receives a response to its request (or when a server completes its handling and returns a response).
 type HTTPStop struct {
 	BaseMessage
-	Timestamp     time.Time
-	URI           string
-	RequestID     string
-	PeerType      string // Client/Server
-	StatusCode    int32  // HTTP Status
-	ContentLength int64
-	ApplicationID string
+	Timestamp       time.Time
+	URI             string
+	RequestID       string
+	PeerType        string // Client/Server
+	StatusCode      int32  // HTTP Status
+	ContentLength   int64
+	ApplicationID   string
+	ApplicationName string
 }
 
 // NewHTTPStop creates a new NewHTTPStop
@@ -139,26 +147,28 @@ func NewHTTPStop(e *events.Envelope) *HTTPStop {
 	if m.ApplicationId != nil {
 		r.ApplicationID = m.GetApplicationId().String()
 	}
+	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	return &r
 }
 
 // An HTTPStartStop event represents the whole lifecycle of an HTTP request.
 type HTTPStartStop struct {
 	BaseMessage
-	StartTimestamp time.Time
-	StopTimestamp  time.Time
-	RequestID      string
-	PeerType       string // Client/Server
-	Method         string // HTTP method
-	URI            string
-	RemoteAddress  string
-	UserAgent      string
-	StatusCode     int32
-	ContentLength  int64
-	ApplicationID  string
-	InstanceIndex  int32
-	InstanceID     string
-	Forwarded      string
+	StartTimestamp  time.Time
+	StopTimestamp   time.Time
+	RequestID       string
+	PeerType        string // Client/Server
+	Method          string // HTTP method
+	URI             string
+	RemoteAddress   string
+	UserAgent       string
+	StatusCode      int32
+	ContentLength   int64
+	ApplicationID   string
+	ApplicationName string
+	InstanceIndex   int32
+	InstanceID      string
+	Forwarded       string
 }
 
 // NewHTTPStartStop creates a new NewHTTPStartStop
@@ -193,19 +203,21 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 	if e.HttpStartStop.GetForwarded() != nil {
 		r.Forwarded = strings.Join(e.GetHttpStartStop().GetForwarded(), ",")
 	}
+	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	return &r
 }
 
 //A LogMessage contains a "log line" and associated metadata.
 type LogMessage struct {
 	BaseMessage
-	Message        string
-	MessageType    string // OUT or ERROR
-	Timestamp      time.Time
-	AppID          string
-	SourceType     string // APP,RTR,DEA,STG,etc
-	SourceInstance string
-	SourceTypeKey  string // Key for aggregation until multiple levels of grouping supported
+	Message         string
+	MessageType     string // OUT or ERROR
+	Timestamp       time.Time
+	AppID           string
+	ApplicationName string
+	SourceType      string // APP,RTR,DEA,STG,etc
+	SourceInstance  string
+	SourceTypeKey   string // Key for aggregation until multiple levels of grouping supported
 }
 
 // NewLogMessage creates a new NewLogMessage
@@ -225,6 +237,8 @@ func NewLogMessage(e *events.Envelope) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
+	// FIX ME
+	r.ApplicationName, _ = GetApplicationName(r.AppID)
 	return &r
 }
 
@@ -249,16 +263,17 @@ func NewError(e *events.Envelope) *Error {
 // A ContainerMetric records resource usage of an app in a container.
 type ContainerMetric struct {
 	BaseMessage
-	ApplicationID string
-	InstanceIndex int32
-	CPUPercentage float64 `json:",omitempty"`
-	MemoryBytes   uint64  `json:",omitempty"`
-	DiskBytes     uint64  `json:",omitempty"`
+	ApplicationID   string
+	ApplicationName string
+	InstanceIndex   int32
+	CPUPercentage   float64 `json:",omitempty"`
+	MemoryBytes     uint64  `json:",omitempty"`
+	DiskBytes       uint64  `json:",omitempty"`
 }
 
 // NewContainerMetric creates a new Container Metric
 func NewContainerMetric(e *events.Envelope) *ContainerMetric {
-	return &ContainerMetric{
+	var r = ContainerMetric{
 		BaseMessage:   *NewBaseMessage(e),
 		ApplicationID: *e.ContainerMetric.ApplicationId,
 		InstanceIndex: *e.ContainerMetric.InstanceIndex,
@@ -266,6 +281,8 @@ func NewContainerMetric(e *events.Envelope) *ContainerMetric {
 		MemoryBytes:   *e.ContainerMetric.MemoryBytes,
 		DiskBytes:     *e.ContainerMetric.DiskBytes,
 	}
+	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+	return &r
 }
 
 // A CounterEvent represents the increment of a counter. It contains only the change in the value; it is the responsibility of downstream consumers to maintain the value of the counter.
@@ -311,4 +328,22 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	return &r
+}
+
+// GetApplicationName returns name from guid
+func GetApplicationName(appGUID string) (string, error) {
+	if appName, ok := AppNamesByGUID[appGUID]; ok {
+		return appName, nil
+	} else {
+		// call the client api to get the name for this app
+		app, err := CfClient.AppByGuid(appGUID)
+		if err != nil {
+			return "", err
+		} else {
+			// store appname in map
+			AppNamesByGUID[app.Guid] = app.Name
+			// return the app name
+			return app.Name, nil
+		}
+	}
 }

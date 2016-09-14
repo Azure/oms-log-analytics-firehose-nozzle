@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
@@ -35,6 +36,7 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
+	apiAddress     = os.Getenv("API_ADDR")
 	dopplerAddress = os.Getenv("DOPPLER_ADDR")
 	uaaAddress     = os.Getenv("UAA_ADDR")
 	pcfUser        = os.Getenv("PCF_USER")
@@ -59,6 +61,9 @@ func main() {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGTERM, syscall.SIGINT)
 	// check required parms
+	if len(apiAddress) == 0 {
+		panic("API_ADDR env var not provided")
+	}
 	if len(dopplerAddress) == 0 {
 		panic("DOPPLER_ADDR env var not provided")
 	}
@@ -117,11 +122,36 @@ func main() {
 	var msgSentCount = 0
 	var msgSendErrorCount = 0
 
+	//FIXME: Need to resolve how to get description rather the guid for apps
+	cfClientConfig := cfclient.Config{
+		ApiAddress:        apiAddress,
+		Username:          "admin",
+		Password:          pcfPassword,
+		SkipSslValidation: true,
+	}
+
+	var newClientError error
+	messages.CfClient, newClientError = cfclient.NewClient(&cfClientConfig)
+	if newClientError != nil {
+		panic("Error creating cfclient:" + newClientError.Error())
+	}
+
+	apps, err := messages.CfClient.ListApps()
+	if err != nil {
+		panic("Error getting app list:" + err.Error())
+	}
+	//appNamesByGUID = make(map[string]string)
+	for _, app := range apps {
+		//fmt.Printf("App guid:%s name:%s\n", app.Guid, app.Name)
+		messages.AppNamesByGUID[app.Guid] = app.Name
+	}
+
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
 	client := client.New(omsWorkspace, omsKey)
 	if client == nil {
-
+		panic("Error creating cf client:" + err.Error())
 	}
+
 	// connect to PCF
 	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", uaaAddress, dopplerAddress)
 
