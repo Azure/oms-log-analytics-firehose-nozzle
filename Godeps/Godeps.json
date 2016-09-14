@@ -7,6 +7,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/cloudfoundry-community/go-cfclient",
+			"Rev": "26989ee78631a7be131c8b9f34aa6ab68760c166"
+		},
+		{
 			"ImportPath": "github.com/cloudfoundry-incubator/uaago",
 			"Rev": "5253fdf54e4a464366e5ffa8e5f456f5f1e50a2f"
 		},
@@ -49,6 +53,18 @@
 			"ImportPath": "github.com/gorilla/websocket",
 			"Comment": "v1.0.0-12-ga687089",
 			"Rev": "a68708917c6a4f06314ab4e52493cc61359c9d42"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/internal",
+			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
 		}
 	]
 }
