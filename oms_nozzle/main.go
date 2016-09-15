@@ -142,7 +142,7 @@ func main() {
 	}
 	//appNamesByGUID = make(map[string]string)
 	for _, app := range apps {
-		//fmt.Printf("App guid:%s name:%s\n", app.Guid, app.Name)
+		fmt.Printf("Adding to AppName cache.  App guid:%s name:%s\n", app.Guid, app.Name)
 		messages.AppNamesByGUID[app.Guid] = app.Name
 	}
 

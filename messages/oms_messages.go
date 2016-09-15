@@ -109,8 +109,8 @@ func NewHTTPStart(e *events.Envelope) *HTTPStart {
 	}
 	if m.ApplicationId != nil {
 		r.ApplicationID = m.GetApplicationId().String()
+		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	}
-	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 
 	return &r
 }
@@ -146,8 +146,8 @@ func NewHTTPStop(e *events.Envelope) *HTTPStop {
 	}
 	if m.ApplicationId != nil {
 		r.ApplicationID = m.GetApplicationId().String()
+		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	}
-	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	return &r
 }
 
@@ -198,12 +198,12 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 	}
 	if m.ApplicationId != nil {
 		r.ApplicationID = m.GetApplicationId().String()
+		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	}
 
 	if e.HttpStartStop.GetForwarded() != nil {
 		r.Forwarded = strings.Join(e.GetHttpStartStop().GetForwarded(), ",")
 	}
-	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
 	return &r
 }
 
