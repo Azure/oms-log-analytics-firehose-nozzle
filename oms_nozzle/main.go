@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
@@ -60,6 +61,12 @@ func main() {
 	// setup for termination signal from CF
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGTERM, syscall.SIGINT)
+
+	// enable thread dump
+	threadDumpChan := registerGoRoutineDumpSignalChannel()
+	defer close(threadDumpChan)
+	go dumpGoRoutine(threadDumpChan)
+
 	// check required parms
 	if len(apiAddress) == 0 {
 		panic("API_ADDR env var not provided")
@@ -145,6 +152,7 @@ func main() {
 		fmt.Printf("Adding to AppName cache.  App guid:%s name:%s\n", app.Guid, app.Name)
 		messages.AppNamesByGUID[app.Guid] = app.Name
 	}
+	fmt.Printf("Size of appNamesGUID:%d\n", len(messages.AppNamesByGUID))
 
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
 	client := client.New(omsWorkspace, omsKey)
@@ -182,7 +190,8 @@ func main() {
 	}()
 	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
-	ticker := time.NewTicker(time.Duration(10) * time.Second)
+	// TOD: make batching time configurable
+	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	for {
 		// loop over message and signal channel
 		select {
@@ -194,8 +203,13 @@ func main() {
 			}
 			os.Exit(1)
 		case <-ticker.C:
+			// get the pending as current
+			currentEvents := pendingEvents
+			// reset the pending events
+			pendingEvents = make(map[string][]interface{})
+			go func() {
 			fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
-			for k, v := range pendingEvents {
+			for k, v := range currentEvents {
 				// OMS message as JSON
 				msgAsJSON, err := json.Marshal(&v)
 				if err != nil {
@@ -217,8 +231,8 @@ func main() {
 					}
 				}
 			}
-			pendingEvents = make(map[string][]interface{})
 			fmt.Print("Finished processing events.\n")
+			}()
 		case msg := <-msgChan:
 			// process message
 			msgReceivedCount++
@@ -279,10 +293,26 @@ func main() {
 			}
 			//Only use this when testing local.  Otherwise you're generate events to yourself
 			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", omsMessageType, msgReceivedCount, msgSentCount, msgSendErrorCount)
+		default:
 		}
 	}
 }
 
+func registerGoRoutineDumpSignalChannel() chan os.Signal {
+	threadDumpChan := make(chan os.Signal, 1)
+	signal.Notify(threadDumpChan, syscall.SIGUSR1)
+
+	return threadDumpChan
+}
+
+func dumpGoRoutine(dumpChan chan os.Signal) {
+	for range dumpChan {
+		goRoutineProfiles := pprof.Lookup("goroutine")
+		if goRoutineProfiles != nil {
+			goRoutineProfiles.WriteTo(os.Stdout, 2)
+		}
+	}
+}
 // OMSMessage is a marker inteface for JSON formatted messages published to OMS
 type OMSMessage interface{}
 

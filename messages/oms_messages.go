@@ -335,13 +335,16 @@ func GetApplicationName(appGUID string) (string, error) {
 	if appName, ok := AppNamesByGUID[appGUID]; ok {
 		return appName, nil
 	} else {
+		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n",appGUID,len(AppNamesByGUID))
 		// call the client api to get the name for this app
 		app, err := CfClient.AppByGuid(appGUID)
 		if err != nil {
+			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n",appGUID,err)
 			return "", err
 		} else {
 			// store appname in map
 			AppNamesByGUID[app.Guid] = app.Name
+			fmt.Printf("After add size of map:%d\n",(AppNamesByGUID))
 			// return the app name
 			return app.Name, nil
 		}
