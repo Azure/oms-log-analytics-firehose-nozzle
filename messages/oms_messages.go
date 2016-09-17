@@ -108,8 +108,9 @@ func NewHTTPStart(e *events.Envelope) *HTTPStart {
 		r.ParentRequestID = m.GetParentRequestId().String()
 	}
 	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
-		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+		id := cfUUIDToString(*m.GetApplicationId())
+		r.ApplicationID = id
+		r.ApplicationName, _ = GetApplicationName(id)
 	}
 
 	return &r
@@ -145,8 +146,9 @@ func NewHTTPStop(e *events.Envelope) *HTTPStop {
 		r.PeerType = m.GetPeerType().String() // Client/Server
 	}
 	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
-		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+		id := cfUUIDToString(*m.GetApplicationId())
+		r.ApplicationID = id
+		r.ApplicationName, _ = GetApplicationName(id)
 	}
 	return &r
 }
@@ -197,8 +199,9 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 		r.Method = m.GetMethod().String() // HTTP method
 	}
 	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
-		r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+		id := cfUUIDToString(*m.GetApplicationId())
+		r.ApplicationID = id
+		r.ApplicationName, _ = GetApplicationName(id)
 	}
 
 	if e.HttpStartStop.GetForwarded() != nil {
@@ -330,21 +333,30 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	return &r
 }
 
+func cfUUIDToString(uuid events.UUID) string {
+	bytes, err := uuid.Marshal()
+	if err != nil {
+		fmt.Printf("Error marshalling guid.  Error was %v\n", err)
+		return "NA"
+	}
+	return fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:])
+}
+
 // GetApplicationName returns name from guid
 func GetApplicationName(appGUID string) (string, error) {
 	if appName, ok := AppNamesByGUID[appGUID]; ok {
 		return appName, nil
 	} else {
-		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n",appGUID,len(AppNamesByGUID))
+		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGUID, len(AppNamesByGUID))
 		// call the client api to get the name for this app
 		app, err := CfClient.AppByGuid(appGUID)
 		if err != nil {
-			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n",appGUID,err)
+			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n", appGUID, err)
 			return "", err
 		} else {
 			// store appname in map
 			AppNamesByGUID[app.Guid] = app.Name
-			fmt.Printf("After add size of map:%d\n",(AppNamesByGUID))
+			fmt.Printf("After add size of map:%d\n", (AppNamesByGUID))
 			// return the app name
 			return app.Name, nil
 		}
