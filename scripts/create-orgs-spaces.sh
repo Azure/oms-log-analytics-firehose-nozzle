@@ -1,4 +1,3 @@
-ENDPOINT_IP=13.88.22.143
 ENDPOINT=${ENDPOINT_IP}.cf.pcfazure.com
 cf login --skip-ssl-validation -a https://api.${ENDPOINT}
 cf create-org azcat

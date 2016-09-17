@@ -194,7 +194,7 @@ func main() {
 			}
 			os.Exit(1)
 		case <-ticker.C:
-			//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
+			fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
 			for k, v := range pendingEvents {
 				// OMS message as JSON
 				msgAsJSON, err := json.Marshal(&v)
@@ -202,7 +202,7 @@ func main() {
 					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
 				} else {
 					//fmt.Printf(string(msgAsJSON) + "\n")
-					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+					fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
 					requestStartTime := time.Now()
 					if len(omsTypePrefix) > 0 {
 						k = omsTypePrefix + k
@@ -218,6 +218,7 @@ func main() {
 				}
 			}
 			pendingEvents = make(map[string][]interface{})
+			fmt.Print("Finished processing events.\n")
 		case msg := <-msgChan:
 			// process message
 			msgReceivedCount++
