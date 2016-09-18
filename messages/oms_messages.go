@@ -1,7 +1,9 @@
 package messages
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/binary"
 	hex "encoding/hex"
 	"fmt"
 	"os"
@@ -334,12 +336,11 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 }
 
 func cfUUIDToString(uuid events.UUID) string {
-	bytes, err := uuid.Marshal()
-	if err != nil {
-		fmt.Printf("Error marshalling guid.  Error was %v\n", err)
-		return "NA"
-	}
-	return fmt.Sprintf("%x-%x-%x-%x-%x", bytes[0:4], bytes[4:6], bytes[6:8], bytes[8:10], bytes[10:])
+	lowBytes := new(bytes.Buffer)
+	binary.Read(lowBytes, binary.LittleEndian, &uuid.Low)
+	highBytes := new(bytes.Buffer)
+	binary.Read(highBytes, binary.LittleEndian, &uuid.High)
+	return fmt.Sprintf("%x-%x-%x-%x-%x", lowBytes.Bytes()[0:4], lowBytes.Bytes()[4:6], lowBytes.Bytes()[6:8], highBytes.Bytes()[8:10], highBytes.Bytes()[10:])
 }
 
 // GetApplicationName returns name from guid
@@ -356,7 +357,7 @@ func GetApplicationName(appGUID string) (string, error) {
 		} else {
 			// store appname in map
 			AppNamesByGUID[app.Guid] = app.Name
-			fmt.Printf("After add size of map:%d\n", (AppNamesByGUID))
+			fmt.Printf("After add size of map:%d\n", len(AppNamesByGUID))
 			// return the app name
 			return app.Name, nil
 		}
