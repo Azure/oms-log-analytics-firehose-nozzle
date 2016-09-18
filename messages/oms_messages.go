@@ -110,7 +110,7 @@ func NewHTTPStart(e *events.Envelope) *HTTPStart {
 		r.ParentRequestID = m.GetParentRequestId().String()
 	}
 	if m.ApplicationId != nil {
-		id := cfUUIDToString(*m.GetApplicationId())
+		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
 		r.ApplicationName, _ = GetApplicationName(id)
 	}
@@ -148,7 +148,7 @@ func NewHTTPStop(e *events.Envelope) *HTTPStop {
 		r.PeerType = m.GetPeerType().String() // Client/Server
 	}
 	if m.ApplicationId != nil {
-		id := cfUUIDToString(*m.GetApplicationId())
+		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
 		r.ApplicationName, _ = GetApplicationName(id)
 	}
@@ -201,7 +201,7 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 		r.Method = m.GetMethod().String() // HTTP method
 	}
 	if m.ApplicationId != nil {
-		id := cfUUIDToString(*m.GetApplicationId())
+		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
 		r.ApplicationName, _ = GetApplicationName(id)
 	}
@@ -335,12 +335,12 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	return &r
 }
 
-func cfUUIDToString(uuid events.UUID) string {
+func cfUUIDToString(uuid *events.UUID) string {
 	lowBytes := new(bytes.Buffer)
-	binary.Read(lowBytes, binary.LittleEndian, &uuid.Low)
+	binary.Write(lowBytes, binary.LittleEndian, uuid.Low)
 	highBytes := new(bytes.Buffer)
-	binary.Read(highBytes, binary.LittleEndian, &uuid.High)
-	return fmt.Sprintf("%x-%x-%x-%x-%x", lowBytes.Bytes()[0:4], lowBytes.Bytes()[4:6], lowBytes.Bytes()[6:8], highBytes.Bytes()[8:10], highBytes.Bytes()[10:])
+	binary.Write(highBytes, binary.LittleEndian, uuid.High)
+	return fmt.Sprintf("%x-%x-%x-%x-%x", lowBytes.Bytes()[0:4], lowBytes.Bytes()[4:6], lowBytes.Bytes()[6:8], highBytes.Bytes()[0:2], highBytes.Bytes()[2:])
 }
 
 // GetApplicationName returns name from guid
