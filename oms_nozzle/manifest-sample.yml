@@ -8,15 +8,18 @@ applications:
   no-route: true
   health-check-type: none
   env:
-    OMS_WORKSPACE: CHANGE_ME
+    OMS_WORKSPACE: CHANGE_ME 
     OMS_KEY: CHANGE_ME
-    DOPPLER_ADDR: wss://CHANGE_ME
-    UAA_ADDR: https://CHANGE_ME
-    PCF_USER: ADD_ME
-    PCF_PASSWORD: SET_ME
+    API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
+    DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443 
+    UAA_ADDR: https://uaa.<CF_SYSTEM_DOMAIN> 
+    UAA_CLIENT_NAME: CHANGE_ME
+    UAA_CLIENT_SECRET: CHANGE_ME
+    CF_USER: CHANGE_ME
+    CF_PASSWORD: CHANGE_ME
 #   This string will be added as a prefix to the PCF log events. 
 #   May make it easier to identify the PCF related messages in OMS
-    OMS_TYPE_PREFIX: "PCF_"
+    OMS_TYPE_PREFIX: "CF_"
 #   EVENT_FILTER causes the nozzle to drop rather than forward events of 
 #   matching types (a comma separated list) to OMS.  
 #   The three event types are METRIC,LOG,HTTP

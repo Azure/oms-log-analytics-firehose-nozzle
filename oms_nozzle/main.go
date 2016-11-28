@@ -37,15 +37,17 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	apiAddress     = os.Getenv("API_ADDR")
-	dopplerAddress = os.Getenv("DOPPLER_ADDR")
-	uaaAddress     = os.Getenv("UAA_ADDR")
-	pcfUser        = os.Getenv("PCF_USER")
-	pcfPassword    = os.Getenv("PCF_PASSWORD")
-	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
-	omsKey         = os.Getenv("OMS_KEY")
-	omsPostTimeout = os.Getenv("OMS_POST_TIMEOUT_SEC")
-	omsTypePrefix  = os.Getenv("OMS_TYPE_PREFIX")
+	apiAddress      = os.Getenv("API_ADDR")
+	dopplerAddress  = os.Getenv("DOPPLER_ADDR")
+	uaaAddress      = os.Getenv("UAA_ADDR")
+	uaaClientName   = os.Getenv("UAA_CLIENT_NAME")
+	uaaClientSecret = os.Getenv("UAA_CLIENT_SECRET")
+	cfUser          = os.Getenv("CF_USER")
+	cfPassword      = os.Getenv("CF_PASSWORD")
+	omsWorkspace    = os.Getenv("OMS_WORKSPACE")
+	omsKey          = os.Getenv("OMS_KEY")
+	omsPostTimeout  = os.Getenv("OMS_POST_TIMEOUT_SEC")
+	omsTypePrefix   = os.Getenv("OMS_TYPE_PREFIX")
 	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
 	eventFilter = os.Getenv("EVENT_FILTER")
 
@@ -68,27 +70,27 @@ func main() {
 	go dumpGoRoutine(threadDumpChan)
 
 	// check required parms
-	if len(apiAddress) == 0 {
+	switch {
+	case len(apiAddress) == 0:
 		panic("API_ADDR env var not provided")
-	}
-	if len(dopplerAddress) == 0 {
+	case len(dopplerAddress) == 0:
 		panic("DOPPLER_ADDR env var not provided")
-	}
-	if len(uaaAddress) == 0 {
+	case len(uaaAddress) == 0:
 		panic("UAA_ADDR env var not provided")
-	}
-	if len(omsWorkspace) == 0 {
+	case len(uaaClientName) == 0:
+		panic("UAA_CLIENT_NAME env var not provided")
+	case len(uaaClientSecret) == 0:
+		panic("UAA_CLIENT_SECRET env var not provided")
+	case len(omsWorkspace) == 0:
 		panic("OMS_WORKSPACE env var not provided")
-	}
-	if len(omsKey) == 0 {
+	case len(omsKey) == 0:
 		panic("OMS_KEY env var not provided")
+	case len(cfUser) == 0:
+		panic("CF_USER env var not provided")
+	case len(cfPassword) == 0:
+		panic("CF_PASSWORD env var not provided")
 	}
-	if len(pcfUser) == 0 {
-		panic("PCF_USER env var not provided")
-	}
-	if len(pcfPassword) == 0 {
-		panic("PCF_PASSWORD env var not provided")
-	}
+
 	if len(omsPostTimeout) != 0 {
 		i, err := strconv.Atoi(omsPostTimeout)
 		if err != nil {
@@ -132,8 +134,8 @@ func main() {
 	//FIXME: Need to resolve how to get description rather the guid for apps
 	cfClientConfig := cfclient.Config{
 		ApiAddress:        apiAddress,
-		Username:          "admin",
-		Password:          pcfPassword,
+		Username:          cfUser,
+		Password:          cfPassword,
 		SkipSslValidation: true,
 	}
 
@@ -169,7 +171,7 @@ func main() {
 	}
 
 	var authToken string
-	authToken, err = uaaClient.GetAuthToken(pcfUser, pcfPassword, true)
+	authToken, err = uaaClient.GetAuthToken(uaaClientName, uaaClientSecret, true)
 	if err != nil {
 		panic("Error getting Auth Token" + err.Error())
 	}
