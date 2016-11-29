@@ -16,7 +16,7 @@ import (
 )
 
 var AppNamesByGUID = make(map[string]string)
-var CfClient *cfclient.Client
+var CfClientConfig *cfclient.Config
 
 // BaseMessage contains common data elements
 type BaseMessage struct {
@@ -350,7 +350,11 @@ func GetApplicationName(appGUID string) (string, error) {
 	} else {
 		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGUID, len(AppNamesByGUID))
 		// call the client api to get the name for this app
-		app, err := CfClient.AppByGuid(appGUID)
+		cfClient, err := cfclient.NewClient(CfClientConfig)
+		if err != nil {
+			fmt.Printf("Error creating cfclient:%s\n", err)
+		}
+		app, err := cfClient.AppByGuid(appGUID)
 		if err != nil {
 			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n", appGUID, err)
 			return "", err

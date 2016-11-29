@@ -71,24 +71,24 @@ func main() {
 
 	// check required parms
 	switch {
-	case len(apiAddress) == 0:
-		panic("API_ADDR env var not provided")
-	case len(dopplerAddress) == 0:
-		panic("DOPPLER_ADDR env var not provided")
-	case len(uaaAddress) == 0:
-		panic("UAA_ADDR env var not provided")
-	case len(uaaClientName) == 0:
-		panic("UAA_CLIENT_NAME env var not provided")
-	case len(uaaClientSecret) == 0:
-		panic("UAA_CLIENT_SECRET env var not provided")
-	case len(omsWorkspace) == 0:
-		panic("OMS_WORKSPACE env var not provided")
-	case len(omsKey) == 0:
-		panic("OMS_KEY env var not provided")
-	case len(cfUser) == 0:
-		panic("CF_USER env var not provided")
-	case len(cfPassword) == 0:
-		panic("CF_PASSWORD env var not provided")
+		case len(apiAddress) == 0:
+			panic("API_ADDR env var not provided")
+		case len(dopplerAddress) == 0:
+			panic("DOPPLER_ADDR env var not provided")
+		case len(uaaAddress) == 0:
+			panic("UAA_ADDR env var not provided")
+		case len(uaaClientName) == 0:
+			panic("UAA_CLIENT_NAME env var not provided")
+		case len(uaaClientSecret) == 0:
+			panic("UAA_CLIENT_SECRET env var not provided")
+		case len(omsWorkspace) == 0:
+			panic("OMS_WORKSPACE env var not provided")
+		case len(omsKey) == 0:
+			panic("OMS_KEY env var not provided")
+		case len(cfUser) == 0:
+			panic("CF_USER env var not provided")
+		case len(cfPassword) == 0:
+			panic("CF_PASSWORD env var not provided")
 	}
 
 	if len(omsPostTimeout) != 0 {
@@ -131,21 +131,19 @@ func main() {
 	var msgSentCount = 0
 	var msgSendErrorCount = 0
 
-	//FIXME: Need to resolve how to get description rather the guid for apps
-	cfClientConfig := cfclient.Config{
+	messages.CfClientConfig = &cfclient.Config{
 		ApiAddress:        apiAddress,
 		Username:          cfUser,
 		Password:          cfPassword,
 		SkipSslValidation: true,
 	}
 
-	var newClientError error
-	messages.CfClient, newClientError = cfclient.NewClient(&cfClientConfig)
-	if newClientError != nil {
-		panic("Error creating cfclient:" + newClientError.Error())
+	cfClient, err := cfclient.NewClient(messages.CfClientConfig)
+	if err != nil {
+		panic("Error creating cfclient:" + err.Error())
 	}
 
-	apps, err := messages.CfClient.ListApps()
+	apps, err := cfClient.ListApps()
 	if err != nil {
 		panic("Error getting app list:" + err.Error())
 	}
@@ -210,7 +208,7 @@ func main() {
 			// reset the pending events
 			pendingEvents = make(map[string][]interface{})
 			go func() {
-			fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
+			//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
 			for k, v := range currentEvents {
 				// OMS message as JSON
 				msgAsJSON, err := json.Marshal(&v)
@@ -218,7 +216,7 @@ func main() {
 					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
 				} else {
 					//fmt.Printf(string(msgAsJSON) + "\n")
-					fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
 					requestStartTime := time.Now()
 					if len(omsTypePrefix) > 0 {
 						k = omsTypePrefix + k
@@ -233,7 +231,7 @@ func main() {
 					}
 				}
 			}
-			fmt.Print("Finished processing events.\n")
+			//fmt.Print("Finished processing events.\n")
 			}()
 		case msg := <-msgChan:
 			// process message
