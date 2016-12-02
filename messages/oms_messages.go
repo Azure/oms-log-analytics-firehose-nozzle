@@ -242,7 +242,6 @@ func NewLogMessage(e *events.Envelope) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
-	// FIX ME
 	r.ApplicationName, _ = GetApplicationName(r.AppID)
 	return &r
 }
@@ -352,7 +351,8 @@ func GetApplicationName(appGUID string) (string, error) {
 		// call the client api to get the name for this app
 		cfClient, err := cfclient.NewClient(CfClientConfig)
 		if err != nil {
-			fmt.Printf("Error creating cfclient:%s\n", err)
+			fmt.Printf("Error creating cfclient:%v\n", err)
+			return "", err
 		}
 		app, err := cfClient.AppByGuid(appGUID)
 		if err != nil {
@@ -361,7 +361,7 @@ func GetApplicationName(appGUID string) (string, error) {
 		} else {
 			// store appname in map
 			AppNamesByGUID[app.Guid] = app.Name
-			fmt.Printf("After add size of map:%d\n", len(AppNamesByGUID))
+			fmt.Printf("Adding to AppName cache. App guid:%s name:%s. New size of AppNamesByGUID:%d\n", app.Guid, app.Name, len(AppNamesByGUID))
 			// return the app name
 			return app.Name, nil
 		}

@@ -8,7 +8,7 @@ applications:
   no-route: true
   health-check-type: none
   env:
-    OMS_WORKSPACE: CHANGE_ME
+    OMS_WORKSPACE: CHANGE_ME 
     OMS_KEY: CHANGE_ME
     API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
     DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443 
@@ -25,3 +25,5 @@ applications:
 #   The three event types are METRIC,LOG,HTTP
     EVENT_FILTER: "METRIC,HTTP"    
     OMS_POST_TIMEOUT_SEC: 10
+    SKIP_SSL_VALIDATION: true
+    IDLE_TIMEOUT_SEC: 25
