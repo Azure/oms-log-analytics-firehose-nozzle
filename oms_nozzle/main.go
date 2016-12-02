@@ -187,7 +187,7 @@ func main() {
 	if len(idleTimeoutSec) != 0 {
 		i, err := strconv.Atoi(idleTimeoutSec)
 		if err != nil {
-			fmt.Printf("Ignoring IDLE_TIMEOUT_SEC valud %s. Error converting to int. Error:%s\n", idleTimeoutSec, err)
+			fmt.Printf("Ignoring IDLE_TIMEOUT_SEC value %s. Error converting to int. Error:%s\n", idleTimeoutSec, err)
 		} else {
 			consumer.SetIdleTimeout(time.Duration(i) * time.Second)
 			fmt.Printf("IDLE_TIMEOUT_SEC value:%d\n", i)
