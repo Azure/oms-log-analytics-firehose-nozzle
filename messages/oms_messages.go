@@ -1,16 +1,22 @@
 package messages
 
 import (
+	"bytes"
 	"crypto/md5"
+	"encoding/binary"
 	hex "encoding/hex"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/cloudfoundry-community/go-cfclient"
 	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/dave-read/pcf-oms-poc/client"
 )
+
+var AppNamesByGUID = make(map[string]string)
+var CfClientConfig *cfclient.Config
 
 // BaseMessage contains common data elements
 type BaseMessage struct {
@@ -62,103 +68,24 @@ func NewBaseMessage(e *events.Envelope) *BaseMessage {
 	return &b
 }
 
-// An HTTPStart event is emitted when a client sends a request (or immediately when a server receives the request).
-type HTTPStart struct {
-	BaseMessage
-	Timestamp       time.Time
-	RequestID       string
-	PeerType        string // Client/Server
-	Method          string // HTTP Method
-	URI             string
-	RemoteAddress   string
-	UserAgent       string
-	ParentRequestID string
-	ApplicationID   string
-	InstanceIndex   int32
-	InstanceID      string
-}
-
-// NewHTTPStart creates a new NewHTTPStart
-func NewHTTPStart(e *events.Envelope) *HTTPStart {
-	var m = e.GetHttpStart()
-	var r = HTTPStart{
-		Timestamp:     time.Unix(0, m.GetTimestamp()),
-		BaseMessage:   *NewBaseMessage(e),
-		URI:           m.GetUri(),
-		RemoteAddress: m.GetRemoteAddress(),
-		UserAgent:     m.GetUserAgent(),
-		InstanceIndex: m.GetInstanceIndex(),
-		InstanceID:    m.GetInstanceId(),
-	}
-	if m.RequestId != nil {
-		r.RequestID = m.GetRequestId().String()
-	}
-	if m.PeerType != nil {
-		r.PeerType = m.GetPeerType().String() // Client/Server
-	}
-	if m.Method != nil {
-		r.Method = m.GetMethod().String() // HTTP method
-	}
-	if m.ParentRequestId != nil {
-		r.ParentRequestID = m.GetParentRequestId().String()
-	}
-	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
-	}
-	return &r
-}
-
-// An HTTPStop event is emitted when a client receives a response to its request (or when a server completes its handling and returns a response).
-type HTTPStop struct {
-	BaseMessage
-	Timestamp     time.Time
-	URI           string
-	RequestID     string
-	PeerType      string // Client/Server
-	StatusCode    int32  // HTTP Status
-	ContentLength int64
-	ApplicationID string
-}
-
-// NewHTTPStop creates a new NewHTTPStop
-func NewHTTPStop(e *events.Envelope) *HTTPStop {
-	var m = e.GetHttpStop()
-	var r = HTTPStop{
-		BaseMessage:   *NewBaseMessage(e),
-		Timestamp:     time.Unix(0, m.GetTimestamp()),
-		URI:           m.GetUri(),
-		StatusCode:    m.GetStatusCode(),
-		ContentLength: m.GetContentLength(),
-	}
-	if m.RequestId != nil {
-		r.RequestID = m.GetRequestId().String()
-	}
-	if m.PeerType != nil {
-		r.PeerType = m.GetPeerType().String() // Client/Server
-	}
-	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
-	}
-	return &r
-}
-
 // An HTTPStartStop event represents the whole lifecycle of an HTTP request.
 type HTTPStartStop struct {
 	BaseMessage
-	StartTimestamp time.Time
-	StopTimestamp  time.Time
-	RequestID      string
-	PeerType       string // Client/Server
-	Method         string // HTTP method
-	URI            string
-	RemoteAddress  string
-	UserAgent      string
-	StatusCode     int32
-	ContentLength  int64
-	ApplicationID  string
-	InstanceIndex  int32
-	InstanceID     string
-	Forwarded      string
+	StartTimestamp  time.Time
+	StopTimestamp   time.Time
+	RequestID       string
+	PeerType        string // Client/Server
+	Method          string // HTTP method
+	URI             string
+	RemoteAddress   string
+	UserAgent       string
+	StatusCode      int32
+	ContentLength   int64
+	ApplicationID   string
+	ApplicationName string
+	InstanceIndex   int32
+	InstanceID      string
+	Forwarded       string
 }
 
 // NewHTTPStartStop creates a new NewHTTPStartStop
@@ -187,7 +114,9 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 		r.Method = m.GetMethod().String() // HTTP method
 	}
 	if m.ApplicationId != nil {
-		r.ApplicationID = m.GetApplicationId().String()
+		id := cfUUIDToString(m.ApplicationId)
+		r.ApplicationID = id
+		r.ApplicationName, _ = GetApplicationName(id)
 	}
 
 	if e.HttpStartStop.GetForwarded() != nil {
@@ -199,13 +128,14 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 //A LogMessage contains a "log line" and associated metadata.
 type LogMessage struct {
 	BaseMessage
-	Message        string
-	MessageType    string // OUT or ERROR
-	Timestamp      time.Time
-	AppID          string
-	SourceType     string // APP,RTR,DEA,STG,etc
-	SourceInstance string
-	SourceTypeKey  string // Key for aggregation until multiple levels of grouping supported
+	Message         string
+	MessageType     string // OUT or ERROR
+	Timestamp       time.Time
+	AppID           string
+	ApplicationName string
+	SourceType      string // APP,RTR,DEA,STG,etc
+	SourceInstance  string
+	SourceTypeKey   string // Key for aggregation until multiple levels of grouping supported
 }
 
 // NewLogMessage creates a new NewLogMessage
@@ -225,6 +155,7 @@ func NewLogMessage(e *events.Envelope) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
+	r.ApplicationName, _ = GetApplicationName(r.AppID)
 	return &r
 }
 
@@ -249,16 +180,17 @@ func NewError(e *events.Envelope) *Error {
 // A ContainerMetric records resource usage of an app in a container.
 type ContainerMetric struct {
 	BaseMessage
-	ApplicationID string
-	InstanceIndex int32
-	CPUPercentage float64 `json:",omitempty"`
-	MemoryBytes   uint64  `json:",omitempty"`
-	DiskBytes     uint64  `json:",omitempty"`
+	ApplicationID   string
+	ApplicationName string
+	InstanceIndex   int32
+	CPUPercentage   float64 `json:",omitempty"`
+	MemoryBytes     uint64  `json:",omitempty"`
+	DiskBytes       uint64  `json:",omitempty"`
 }
 
 // NewContainerMetric creates a new Container Metric
 func NewContainerMetric(e *events.Envelope) *ContainerMetric {
-	return &ContainerMetric{
+	var r = ContainerMetric{
 		BaseMessage:   *NewBaseMessage(e),
 		ApplicationID: *e.ContainerMetric.ApplicationId,
 		InstanceIndex: *e.ContainerMetric.InstanceIndex,
@@ -266,6 +198,8 @@ func NewContainerMetric(e *events.Envelope) *ContainerMetric {
 		MemoryBytes:   *e.ContainerMetric.MemoryBytes,
 		DiskBytes:     *e.ContainerMetric.DiskBytes,
 	}
+	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+	return &r
 }
 
 // A CounterEvent represents the increment of a counter. It contains only the change in the value; it is the responsibility of downstream consumers to maintain the value of the counter.
@@ -311,4 +245,39 @@ func NewValueMetric(e *events.Envelope) *ValueMetric {
 	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	return &r
+}
+
+func cfUUIDToString(uuid *events.UUID) string {
+	lowBytes := new(bytes.Buffer)
+	binary.Write(lowBytes, binary.LittleEndian, uuid.Low)
+	highBytes := new(bytes.Buffer)
+	binary.Write(highBytes, binary.LittleEndian, uuid.High)
+	return fmt.Sprintf("%x-%x-%x-%x-%x", lowBytes.Bytes()[0:4], lowBytes.Bytes()[4:6], lowBytes.Bytes()[6:8], highBytes.Bytes()[0:2], highBytes.Bytes()[2:])
+}
+
+// GetApplicationName returns name from guid
+func GetApplicationName(appGUID string) (string, error) {
+	if appName, ok := AppNamesByGUID[appGUID]; ok {
+		return appName, nil
+	} else {
+		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGUID, len(AppNamesByGUID))
+		// call the client api to get the name for this app
+		// TODO: refresh token instead of creating a new client
+		cfClient, err := cfclient.NewClient(CfClientConfig)
+		if err != nil {
+			fmt.Printf("Error creating cfclient:%v\n", err)
+			return "", err
+		}
+		app, err := cfClient.AppByGuid(appGUID)
+		if err != nil {
+			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n", appGUID, err)
+			return "", err
+		} else {
+			// store appname in map
+			AppNamesByGUID[app.Guid] = app.Name
+			fmt.Printf("Adding to AppName cache. App guid:%s name:%s. New size of AppNamesByGUID:%d\n", app.Guid, app.Name, len(AppNamesByGUID))
+			// return the app name
+			return app.Name, nil
+		}
+	}
 }

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
@@ -35,19 +37,21 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	dopplerAddress = os.Getenv("DOPPLER_ADDR")
-	uaaAddress     = os.Getenv("UAA_ADDR")
-	pcfUser        = os.Getenv("PCF_USER")
-	pcfPassword    = os.Getenv("PCF_PASSWORD")
-	omsWorkspace   = os.Getenv("OMS_WORKSPACE")
-	omsKey         = os.Getenv("OMS_KEY")
-	omsPostTimeout = os.Getenv("OMS_POST_TIMEOUT_SEC")
-	omsTypePrefix  = os.Getenv("OMS_TYPE_PREFIX")
+	apiAddress      = os.Getenv("API_ADDR")
+	dopplerAddress  = os.Getenv("DOPPLER_ADDR")
+	uaaAddress      = os.Getenv("UAA_ADDR")
+	uaaClientName   = os.Getenv("UAA_CLIENT_NAME")
+	uaaClientSecret = os.Getenv("UAA_CLIENT_SECRET")
+	cfUser          = os.Getenv("CF_USER")
+	cfPassword      = os.Getenv("CF_PASSWORD")
+	omsWorkspace    = os.Getenv("OMS_WORKSPACE")
+	omsKey          = os.Getenv("OMS_KEY")
+	omsPostTimeout  = os.Getenv("OMS_POST_TIMEOUT_SEC")
+	omsTypePrefix   = os.Getenv("OMS_TYPE_PREFIX")
 	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
-	eventFilter = os.Getenv("EVENT_FILTER")
-
-	// TODO add parm
-	sslSkipVerify = true
+	eventFilter     = os.Getenv("EVENT_FILTER")
+	skipSslValidation   = os.Getenv("SKIP_SSL_VALIDATION")
+	idleTimeoutSec  = os.Getenv("IDLE_TIMEOUT_SEC")
 	// TODO revisit if this the right granularity
 	excludeMetricEvents = false
 	excludeLogEvents    = false
@@ -58,25 +62,34 @@ func main() {
 	// setup for termination signal from CF
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGTERM, syscall.SIGINT)
+
+	// enable thread dump
+	threadDumpChan := registerGoRoutineDumpSignalChannel()
+	defer close(threadDumpChan)
+	go dumpGoRoutine(threadDumpChan)
+
 	// check required parms
-	if len(dopplerAddress) == 0 {
+	switch {
+	case len(apiAddress) == 0:
+		panic("API_ADDR env var not provided")
+	case len(dopplerAddress) == 0:
 		panic("DOPPLER_ADDR env var not provided")
-	}
-	if len(uaaAddress) == 0 {
+	case len(uaaAddress) == 0:
 		panic("UAA_ADDR env var not provided")
-	}
-	if len(omsWorkspace) == 0 {
+	case len(uaaClientName) == 0:
+		panic("UAA_CLIENT_NAME env var not provided")
+	case len(uaaClientSecret) == 0:
+		panic("UAA_CLIENT_SECRET env var not provided")
+	case len(omsWorkspace) == 0:
 		panic("OMS_WORKSPACE env var not provided")
-	}
-	if len(omsKey) == 0 {
+	case len(omsKey) == 0:
 		panic("OMS_KEY env var not provided")
+	case len(cfUser) == 0:
+		panic("CF_USER env var not provided")
+	case len(cfPassword) == 0:
+		panic("CF_PASSWORD env var not provided")
 	}
-	if len(pcfUser) == 0 {
-		panic("PCF_USER env var not provided")
-	}
-	if len(pcfPassword) == 0 {
-		panic("PCF_PASSWORD env var not provided")
-	}
+
 	if len(omsPostTimeout) != 0 {
 		i, err := strconv.Atoi(omsPostTimeout)
 		if err != nil {
@@ -86,14 +99,14 @@ func main() {
 				fmt.Printf("Ignoring OMS_POST_TIMEOUT_SEC value %d. Min value is %d, max value is %d\n", i, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
 			} else {
 				client.HTTPPostTimeout = time.Second * time.Duration(i)
-				fmt.Printf("OMS_POST_TIMEOUT_SEC overriden.  New value:%s\n", client.HTTPPostTimeout)
+				fmt.Printf("OMS_POST_TIMEOUT_SEC overriden. New value:%s\n", client.HTTPPostTimeout)
 			}
 		}
 	}
 	if len(omsTypePrefix) > 0 {
 		fmt.Printf("OMS_TYPE_PREFIX is:%s\n", omsTypePrefix)
 	} else {
-		fmt.Print("No OMS_TYPE_PREFIX provided.  Default Event Type names will be used.\n")
+		fmt.Print("No OMS_TYPE_PREFIX provided. Default Event Type names will be used.\n")
 	}
 
 	if len(eventFilter) > 0 {
@@ -112,17 +125,50 @@ func main() {
 	} else {
 		fmt.Print("No value for EVENT_FILTER evironment variable.  All events will be published\n")
 	}
+
+	sslSkipValidation := false
+	if len(skipSslValidation) > 0 {
+		b, err := strconv.ParseBool(skipSslValidation)
+		if err != nil {
+			fmt.Printf("Ignoring SKIP_SSL_VALIDATION value %s. Error converting to bool. Error:%s\n", skipSslValidation, err)
+		} else {
+			sslSkipValidation = b
+		}
+		fmt.Printf("SKIP_SSL_VALIDATION:%v\n", sslSkipValidation)
+	}
+
 	// counters
 	var msgReceivedCount = 0
 	var msgSentCount = 0
 	var msgSendErrorCount = 0
 
+	messages.CfClientConfig = &cfclient.Config{
+		ApiAddress:        apiAddress,
+		Username:          cfUser,
+		Password:          cfPassword,
+		SkipSslValidation: sslSkipValidation,
+	}
+
+	cfClient, err := cfclient.NewClient(messages.CfClientConfig)
+	if err != nil {
+		panic("Error creating cfclient:" + err.Error())
+	}
+
+	apps, err := cfClient.ListApps()
+	if err != nil {
+		panic("Error getting app list:" + err.Error())
+	}
+
+	for _, app := range apps {
+		fmt.Printf("Adding to AppName cache. App guid:%s name:%s\n", app.Guid, app.Name)
+		messages.AppNamesByGUID[app.Guid] = app.Name
+	}
+	fmt.Printf("Size of AppNamesByGUID:%d\n", len(messages.AppNamesByGUID))
+
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
 	client := client.New(omsWorkspace, omsKey)
-	if client == nil {
 
-	}
-	// connect to PCF
+	// connect to CF
 	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", uaaAddress, dopplerAddress)
 
 	uaaClient, err := uaago.NewClient(uaaAddress)
@@ -131,14 +177,23 @@ func main() {
 	}
 
 	var authToken string
-	authToken, err = uaaClient.GetAuthToken(pcfUser, pcfPassword, true)
+	authToken, err = uaaClient.GetAuthToken(uaaClientName, uaaClientSecret, true)
 	if err != nil {
 		panic("Error getting Auth Token" + err.Error())
 	}
 	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
 
-	// TODO: Verify and make configurable.  See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
-	consumer.SetIdleTimeout(25 * time.Second)
+	// See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
+	if len(idleTimeoutSec) != 0 {
+		i, err := strconv.Atoi(idleTimeoutSec)
+		if err != nil {
+			fmt.Printf("Ignoring IDLE_TIMEOUT_SEC value %s. Error converting to int. Error:%s\n", idleTimeoutSec, err)
+		} else {
+			consumer.SetIdleTimeout(time.Duration(i) * time.Second)
+			fmt.Printf("IDLE_TIMEOUT_SEC value:%d\n", i)
+		}
+	}
+
 	//consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// Create firehose connection
 	msgChan, errorChan := consumer.Firehose(firehoseSubscriptionID, authToken)
@@ -152,7 +207,8 @@ func main() {
 	}()
 	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
-	ticker := time.NewTicker(time.Duration(10) * time.Second)
+	// TOD: make batching time configurable
+	ticker := time.NewTicker(time.Duration(5) * time.Second)
 	for {
 		// loop over message and signal channel
 		select {
@@ -164,30 +220,36 @@ func main() {
 			}
 			os.Exit(1)
 		case <-ticker.C:
-			//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
-			for k, v := range pendingEvents {
-				// OMS message as JSON
-				msgAsJSON, err := json.Marshal(&v)
-				if err != nil {
-					fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
-				} else {
-					//fmt.Printf(string(msgAsJSON) + "\n")
-					//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
-					requestStartTime := time.Now()
-					if len(omsTypePrefix) > 0 {
-						k = omsTypePrefix + k
-					}
-					err = client.PostData(&msgAsJSON, k)
-					elapsedTime := time.Since(requestStartTime)
+			// get the pending as current
+			currentEvents := pendingEvents
+			// reset the pending events
+			pendingEvents = make(map[string][]interface{})
+			go func() {
+				//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
+				for k, v := range currentEvents {
+					// OMS message as JSON
+					msgAsJSON, err := json.Marshal(&v)
 					if err != nil {
-						msgSendErrorCount++
-						fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d\n", k, err, elapsedTime.String(), len(msgAsJSON))
+						fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
 					} else {
-						msgSentCount++
+						//fmt.Printf(string(msgAsJSON) + "\n")
+						//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+						requestStartTime := time.Now()
+						if len(omsTypePrefix) > 0 {
+							k = omsTypePrefix + k
+						}
+						err = client.PostData(&msgAsJSON, k)
+						elapsedTime := time.Since(requestStartTime)
+						if err != nil {
+							msgSendErrorCount++
+							fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d\n", k, err, elapsedTime.String(), len(msgAsJSON))
+						} else {
+							msgSentCount++
+						}
 					}
 				}
-			}
-			pendingEvents = make(map[string][]interface{})
+				//fmt.Print("Finished processing events.\n")
+			}()
 		case msg := <-msgChan:
 			// process message
 			msgReceivedCount++
@@ -226,32 +288,37 @@ func main() {
 				}
 
 			// HTTP Start/Stop
-			case events.Envelope_HttpStart:
-				if !excludeHTTPEvents {
-					omsMessage = messages.NewHTTPStart(msg)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-				}
 			case events.Envelope_HttpStartStop:
 				if !excludeHTTPEvents {
 					omsMessage = messages.NewHTTPStartStop(msg)
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
-			case events.Envelope_HttpStop:
-				if !excludeHTTPEvents {
-					omsMessage = messages.NewHTTPStop(msg)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-				}
-			// Unknown
 			default:
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
 				continue
 			}
 			//Only use this when testing local.  Otherwise you're generate events to yourself
 			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", omsMessageType, msgReceivedCount, msgSentCount, msgSendErrorCount)
+		default:
 		}
 	}
 }
 
+func registerGoRoutineDumpSignalChannel() chan os.Signal {
+	threadDumpChan := make(chan os.Signal, 1)
+	signal.Notify(threadDumpChan, syscall.SIGUSR1)
+
+	return threadDumpChan
+}
+
+func dumpGoRoutine(dumpChan chan os.Signal) {
+	for range dumpChan {
+		goRoutineProfiles := pprof.Lookup("goroutine")
+		if goRoutineProfiles != nil {
+			goRoutineProfiles.WriteTo(os.Stdout, 2)
+		}
+	}
+}
 // OMSMessage is a marker inteface for JSON formatted messages published to OMS
 type OMSMessage interface{}
 
