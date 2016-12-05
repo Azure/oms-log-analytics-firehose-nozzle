@@ -1,70 +1,70 @@
 {
 	"ImportPath": "github.com/dave-read/pcf-oms-poc",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v75",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/cloudfoundry-community/go-cfclient",
-			"Rev": "26989ee78631a7be131c8b9f34aa6ab68760c166"
+			"Rev": "c783aa0efe78706e9d98ffc4a84f0d42cd322ac8"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry-incubator/uaago",
-			"Rev": "5253fdf54e4a464366e5ffa8e5f456f5f1e50a2f"
+			"Rev": "1db9cfd27865007e07ffd5914c0fdf5fb7fc09ba"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa",
-			"Rev": "75f17396a9775320dabb89682c68255e5d68a9b8"
+			"Rev": "1939b6e4d6d76b2ee8541befd6a8fb8aa076933e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa/consumer",
-			"Rev": "75f17396a9775320dabb89682c68255e5d68a9b8"
+			"Rev": "1939b6e4d6d76b2ee8541befd6a8fb8aa076933e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa/consumer/internal",
-			"Rev": "75f17396a9775320dabb89682c68255e5d68a9b8"
+			"Rev": "1939b6e4d6d76b2ee8541befd6a8fb8aa076933e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/noaa/errors",
-			"Rev": "75f17396a9775320dabb89682c68255e5d68a9b8"
+			"Rev": "1939b6e4d6d76b2ee8541befd6a8fb8aa076933e"
 		},
 		{
 			"ImportPath": "github.com/cloudfoundry/sonde-go/events",
-			"Rev": "d6ed492b509e180ee7675ed15237906041e53a6e"
+			"Rev": "04fbe57ef6878d0050682b5b0697091003ebf960"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/gogoproto",
-			"Comment": "v0.2-20-g318371c",
-			"Rev": "318371cbef6bab80e8d1c69b470fffa79eebfb54"
+			"Comment": "v0.3-129-g70d0d0c",
+			"Rev": "70d0d0c9d3f673c850388c410e27ebb77ee21578"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/proto",
-			"Comment": "v0.2-20-g318371c",
-			"Rev": "318371cbef6bab80e8d1c69b470fffa79eebfb54"
+			"Comment": "v0.3-129-g70d0d0c",
+			"Rev": "70d0d0c9d3f673c850388c410e27ebb77ee21578"
 		},
 		{
 			"ImportPath": "github.com/gogo/protobuf/protoc-gen-gogo/descriptor",
-			"Comment": "v0.2-20-g318371c",
-			"Rev": "318371cbef6bab80e8d1c69b470fffa79eebfb54"
+			"Comment": "v0.3-129-g70d0d0c",
+			"Rev": "70d0d0c9d3f673c850388c410e27ebb77ee21578"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Comment": "v1.0.0-12-ga687089",
-			"Rev": "a68708917c6a4f06314ab4e52493cc61359c9d42"
+			"Comment": "v1.0.0-39-ge8f0f8a",
+			"Rev": "e8f0f8aaa98dfb6586cbdf2978d511e3199a960a"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "07b51741c1d6423d4a6abab1c49940ec09cb1aaf"
+			"Rev": "6cdc0daab091c43fc46193327e0047b4f883c613"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+			"Rev": "f6093e37b6cb4092101a298aba5d794eb570757f"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+			"Rev": "f6093e37b6cb4092101a298aba5d794eb570757f"
 		}
 	]
 }

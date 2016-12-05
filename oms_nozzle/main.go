@@ -288,22 +288,11 @@ func main() {
 				}
 
 			// HTTP Start/Stop
-			case events.Envelope_HttpStart:
-				if !excludeHTTPEvents {
-					omsMessage = messages.NewHTTPStart(msg)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-				}
 			case events.Envelope_HttpStartStop:
 				if !excludeHTTPEvents {
 					omsMessage = messages.NewHTTPStartStop(msg)
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
-			case events.Envelope_HttpStop:
-				if !excludeHTTPEvents {
-					omsMessage = messages.NewHTTPStop(msg)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
-				}
-			// Unknown
 			default:
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
 				continue
