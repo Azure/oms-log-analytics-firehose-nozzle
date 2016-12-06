@@ -17,8 +17,8 @@ applications:
     UAA_CLIENT_SECRET: CHANGE_ME
     CF_USER: CHANGE_ME
     CF_PASSWORD: CHANGE_ME
-#   This string will be added as a prefix to the PCF log events. 
-#   May make it easier to identify the PCF related messages in OMS
+#   This string will be added as a prefix to the CF log events. 
+#   May make it easier to identify the CF related messages in OMS
     OMS_TYPE_PREFIX: "CF_"
 #   EVENT_FILTER causes the nozzle to drop rather than forward events of 
 #   matching types (a comma separated list) to OMS.  
