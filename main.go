@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime/pprof"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -18,6 +17,7 @@ import (
 	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/dave-read/pcf-oms-poc/client"
 	"github.com/dave-read/pcf-oms-poc/messages"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 const (
@@ -32,33 +32,38 @@ const (
 	logEventType = "LOG"
 	// filter http start/stop events
 	httpEventType = "HTTP"
+
+	version = "0.1.0"
 )
 
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	apiAddress      = os.Getenv("API_ADDR")
-	dopplerAddress  = os.Getenv("DOPPLER_ADDR")
-	uaaAddress      = os.Getenv("UAA_ADDR")
-	uaaClientName   = os.Getenv("UAA_CLIENT_NAME")
-	uaaClientSecret = os.Getenv("UAA_CLIENT_SECRET")
-	cfUser          = os.Getenv("CF_USER")
-	cfPassword      = os.Getenv("CF_PASSWORD")
-	omsWorkspace    = os.Getenv("OMS_WORKSPACE")
-	omsKey          = os.Getenv("OMS_KEY")
-	omsPostTimeout  = os.Getenv("OMS_POST_TIMEOUT_SEC")
-	omsTypePrefix   = os.Getenv("OMS_TYPE_PREFIX")
+	apiAddress        = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").String()
+	dopplerAddress    = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").String()
+	uaaAddress        = kingpin.Flag("uaa-addr", "UAA URL").OverrideDefaultFromEnvar("UAA_ADDR").String()
+	uaaClientName     = kingpin.Flag("uaa-client-name", "UAA client name").OverrideDefaultFromEnvar("UAA_CLIENT_NAME").String()
+	uaaClientSecret   = kingpin.Flag("uaa-client-secret", "UAA client secret").OverrideDefaultFromEnvar("UAA_CLIENT_SECRET").String()
+	cfUser            = kingpin.Flag("cf-user", "CF user name").OverrideDefaultFromEnvar("CF_USER").String()
+	cfPassword        = kingpin.Flag("cf-password", "Password of the CF user").OverrideDefaultFromEnvar("CF_PASSWORD").String()
+	omsWorkspace      = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").String()
+	omsKey            = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").String()
+	omsPostTimeout    = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
+	omsTypePrefix     = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
 	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
-	eventFilter     = os.Getenv("EVENT_FILTER")
-	skipSslValidation   = os.Getenv("SKIP_SSL_VALIDATION")
-	idleTimeoutSec  = os.Getenv("IDLE_TIMEOUT_SEC")
-	// TODO revisit if this the right granularity
+	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
+	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
+	idleTimeout       = kingpin.Flag("idle-timeout", "Keep Alive duration for the firehose consumer").Default("25s").OverrideDefaultFromEnvar("IDLE_TIMEOUT").Duration()
+
 	excludeMetricEvents = false
 	excludeLogEvents    = false
-	excludeHTTPEvents   = false
+	excludeHttpEvents   = false
 )
 
 func main() {
+	kingpin.Version(version)
+	kingpin.Parse()
+
 	// setup for termination signal from CF
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, syscall.SIGTERM, syscall.SIGINT)
@@ -70,71 +75,50 @@ func main() {
 
 	// check required parms
 	switch {
-	case len(apiAddress) == 0:
+	case len(*apiAddress) == 0:
 		panic("API_ADDR env var not provided")
-	case len(dopplerAddress) == 0:
+	case len(*dopplerAddress) == 0:
 		panic("DOPPLER_ADDR env var not provided")
-	case len(uaaAddress) == 0:
+	case len(*uaaAddress) == 0:
 		panic("UAA_ADDR env var not provided")
-	case len(uaaClientName) == 0:
+	case len(*uaaClientName) == 0:
 		panic("UAA_CLIENT_NAME env var not provided")
-	case len(uaaClientSecret) == 0:
+	case len(*uaaClientSecret) == 0:
 		panic("UAA_CLIENT_SECRET env var not provided")
-	case len(omsWorkspace) == 0:
+	case len(*omsWorkspace) == 0:
 		panic("OMS_WORKSPACE env var not provided")
-	case len(omsKey) == 0:
+	case len(*omsKey) == 0:
 		panic("OMS_KEY env var not provided")
-	case len(cfUser) == 0:
+	case len(*cfUser) == 0:
 		panic("CF_USER env var not provided")
-	case len(cfPassword) == 0:
+	case len(*cfPassword) == 0:
 		panic("CF_PASSWORD env var not provided")
 	}
 
-	if len(omsPostTimeout) != 0 {
-		i, err := strconv.Atoi(omsPostTimeout)
-		if err != nil {
-			fmt.Printf("Ignoring OMS_POST_TIMEOUT_SEC value %s. Error converting to int. Error:%s\n", omsPostTimeout, err)
-		} else {
-			if i > maxOMSPostTimeoutSeconds || i < minOMSPostTimeoutSeconds {
-				fmt.Printf("Ignoring OMS_POST_TIMEOUT_SEC value %d. Min value is %d, max value is %d\n", i, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
-			} else {
-				client.HTTPPostTimeout = time.Second * time.Duration(i)
-				fmt.Printf("OMS_POST_TIMEOUT_SEC overriden. New value:%s\n", client.HTTPPostTimeout)
-			}
-		}
-	}
-	if len(omsTypePrefix) > 0 {
-		fmt.Printf("OMS_TYPE_PREFIX is:%s\n", omsTypePrefix)
+	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
+		fmt.Printf("OMS_POST_TIMEOUT:%s\n", *omsPostTimeout)
 	} else {
-		fmt.Print("No OMS_TYPE_PREFIX provided. Default Event Type names will be used.\n")
+		fmt.Printf("Ignoring OMS_POST_TIMEOUT value %s. Min value is %d, max value is %d\n. Set to default 5s.", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
 	}
+	client.HTTPPostTimeout = *omsPostTimeout
 
-	if len(eventFilter) > 0 {
-		eventFilter = strings.ToUpper(eventFilter)
+	fmt.Printf("OMS_TYPE_PREFIX:%s\n", *omsTypePrefix)
+	fmt.Printf("SKIP_SSL_VALIDATION:%v\n", *skipSslValidation)
+	if len(*eventFilter) > 0 {
+		*eventFilter = strings.ToUpper(*eventFilter)
 		// by default we don't filter any events
-		if strings.Contains(eventFilter, metricEventType) {
+		if strings.Contains(*eventFilter, metricEventType) {
 			excludeMetricEvents = true
 		}
-		if strings.Contains(eventFilter, logEventType) {
+		if strings.Contains(*eventFilter, logEventType) {
 			excludeLogEvents = true
 		}
-		if strings.Contains(eventFilter, httpEventType) {
-			excludeHTTPEvents = true
+		if strings.Contains(*eventFilter, httpEventType) {
+			excludeHttpEvents = true
 		}
-		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", eventFilter, excludeMetricEvents, excludeLogEvents, excludeHTTPEvents)
+		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", eventFilter, excludeMetricEvents, excludeLogEvents, excludeHttpEvents)
 	} else {
 		fmt.Print("No value for EVENT_FILTER evironment variable.  All events will be published\n")
-	}
-
-	sslSkipValidation := false
-	if len(skipSslValidation) > 0 {
-		b, err := strconv.ParseBool(skipSslValidation)
-		if err != nil {
-			fmt.Printf("Ignoring SKIP_SSL_VALIDATION value %s. Error converting to bool. Error:%s\n", skipSslValidation, err)
-		} else {
-			sslSkipValidation = b
-		}
-		fmt.Printf("SKIP_SSL_VALIDATION:%v\n", sslSkipValidation)
 	}
 
 	// counters
@@ -143,10 +127,10 @@ func main() {
 	var msgSendErrorCount = 0
 
 	messages.CfClientConfig = &cfclient.Config{
-		ApiAddress:        apiAddress,
-		Username:          cfUser,
-		Password:          cfPassword,
-		SkipSslValidation: sslSkipValidation,
+		ApiAddress:        *apiAddress,
+		Username:          *cfUser,
+		Password:          *cfPassword,
+		SkipSslValidation: *skipSslValidation,
 	}
 
 	cfClient, err := cfclient.NewClient(messages.CfClientConfig)
@@ -166,33 +150,26 @@ func main() {
 	fmt.Printf("Size of AppNamesByGUID:%d\n", len(messages.AppNamesByGUID))
 
 	//TODO: should have a ping to make sure connection to OMS is good before subscribing to PCF logs
-	client := client.New(omsWorkspace, omsKey)
+	client := client.New(*omsWorkspace, *omsKey)
 
 	// connect to CF
-	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", uaaAddress, dopplerAddress)
+	fmt.Printf("Starting with uaaAddress:%s dopplerAddress:%s\n", *uaaAddress, *dopplerAddress)
 
-	uaaClient, err := uaago.NewClient(uaaAddress)
+	uaaClient, err := uaago.NewClient(*uaaAddress)
 	if err != nil {
 		panic("Error creating uaa client:" + err.Error())
 	}
 
 	var authToken string
-	authToken, err = uaaClient.GetAuthToken(uaaClientName, uaaClientSecret, true)
+	authToken, err = uaaClient.GetAuthToken(*uaaClientName, *uaaClientSecret, *skipSslValidation)
 	if err != nil {
 		panic("Error getting Auth Token" + err.Error())
 	}
-	consumer := consumer.New(dopplerAddress, &tls.Config{InsecureSkipVerify: true}, nil)
+	consumer := consumer.New(*dopplerAddress, &tls.Config{InsecureSkipVerify: *skipSslValidation}, nil)
 
 	// See https://github.com/cloudfoundry-community/firehose-to-syslog/issues/82
-	if len(idleTimeoutSec) != 0 {
-		i, err := strconv.Atoi(idleTimeoutSec)
-		if err != nil {
-			fmt.Printf("Ignoring IDLE_TIMEOUT_SEC value %s. Error converting to int. Error:%s\n", idleTimeoutSec, err)
-		} else {
-			consumer.SetIdleTimeout(time.Duration(i) * time.Second)
-			fmt.Printf("IDLE_TIMEOUT_SEC value:%d\n", i)
-		}
-	}
+	fmt.Printf("IDLE_TIMEOUT:%v\n", *idleTimeout)
+	consumer.SetIdleTimeout(*idleTimeout)
 
 	//consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// Create firehose connection
@@ -235,9 +212,7 @@ func main() {
 						//fmt.Printf(string(msgAsJSON) + "\n")
 						//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
 						requestStartTime := time.Now()
-						if len(omsTypePrefix) > 0 {
-							k = omsTypePrefix + k
-						}
+						k = *omsTypePrefix + k
 						err = client.PostData(&msgAsJSON, k)
 						elapsedTime := time.Since(requestStartTime)
 						if err != nil {
@@ -289,7 +264,7 @@ func main() {
 
 			// HTTP Start/Stop
 			case events.Envelope_HttpStartStop:
-				if !excludeHTTPEvents {
+				if !excludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg)
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}

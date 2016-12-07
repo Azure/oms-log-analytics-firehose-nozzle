@@ -262,6 +262,7 @@ func GetApplicationName(appGUID string) (string, error) {
 	} else {
 		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGUID, len(AppNamesByGUID))
 		// call the client api to get the name for this app
+		// TODO: refresh token instead of creating a new client
 		cfClient, err := cfclient.NewClient(CfClientConfig)
 		if err != nil {
 			fmt.Printf("Error creating cfclient:%v\n", err)

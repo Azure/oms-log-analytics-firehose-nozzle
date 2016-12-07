@@ -4,14 +4,14 @@ applications:
   memory: 512M
   instances: 2
   buildpack: https://github.com/cloudfoundry/go-buildpack.git
-  command: oms_nozzle
+  command: pcf-oms-poc
   no-route: true
   health-check-type: none
   env:
     OMS_WORKSPACE: CHANGE_ME
     OMS_KEY: CHANGE_ME
     OMS_TYPE_PREFIX: "CF_"
-    OMS_POST_TIMEOUT_SEC: 10
+    OMS_POST_TIMEOUT: 10s
     CF_USER: CHANGE_ME
     CF_PASSWORD: CHANGE_ME
     API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
@@ -21,4 +21,4 @@ applications:
     UAA_CLIENT_SECRET: CHANGE_ME
     SKIP_SSL_VALIDATION: true
     EVENT_FILTER: "METRIC,HTTP" # A comma separated list to be exclued. The valid event types are METRIC,LOG,HTTP
-    IDLE_TIMEOUT_SEC: 60
+    IDLE_TIMEOUT: 60s
