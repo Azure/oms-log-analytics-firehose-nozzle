@@ -116,7 +116,7 @@ func main() {
 		if strings.Contains(*eventFilter, httpEventType) {
 			excludeHttpEvents = true
 		}
-		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", eventFilter, excludeMetricEvents, excludeLogEvents, excludeHttpEvents)
+		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", *eventFilter, excludeMetricEvents, excludeLogEvents, excludeHttpEvents)
 	} else {
 		fmt.Print("No value for EVENT_FILTER evironment variable.  All events will be published\n")
 	}
