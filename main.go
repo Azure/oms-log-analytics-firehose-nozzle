@@ -97,10 +97,10 @@ func main() {
 
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		fmt.Printf("OMS_POST_TIMEOUT:%s\n", *omsPostTimeout)
+		client.HTTPPostTimeout = *omsPostTimeout
 	} else {
 		fmt.Printf("Ignoring OMS_POST_TIMEOUT value %s. Min value is %d, max value is %d\n. Set to default 5s.", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
 	}
-	client.HTTPPostTimeout = *omsPostTimeout
 
 	fmt.Printf("OMS_TYPE_PREFIX:%s\n", *omsTypePrefix)
 	fmt.Printf("SKIP_SSL_VALIDATION:%v\n", *skipSslValidation)
