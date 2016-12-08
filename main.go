@@ -7,6 +7,7 @@ import (
 	"runtime/pprof"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/dave-read/pcf-oms-poc/caching"
@@ -91,7 +92,8 @@ func main() {
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		fmt.Printf("OMS_POST_TIMEOUT:%s\n", *omsPostTimeout)
 	} else {
-		fmt.Printf("Ignoring OMS_POST_TIMEOUT value %s. Min value is %d, max value is %d\n. Set to default 5s.", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
+		fmt.Printf("Ignoring OMS_POST_TIMEOUT value %s. Min value is %d, max value is %d. Set to default 5s.\n", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
+		*omsPostTimeout = time.Duration(5) * time.Second
 	}
 	fmt.Printf("OMS_TYPE_PREFIX:%s\n", *omsTypePrefix)
 	fmt.Printf("SKIP_SSL_VALIDATION:%v\n", *skipSslValidation)
