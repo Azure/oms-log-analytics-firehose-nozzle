@@ -23,7 +23,7 @@ cd oms-log-analytics-nozzle
 cf login -a https://api.${ENDPOINT} -u ${CF_USER} --skip-ssl-validation
 ```
 
-### 4. Set environment variables in [oms_nozzle/manifest.yml](./oms_nozzle/manifest.yml)
+### 4. Set environment variables in [manifest.yml](./manifest.yml)
 ```
 OMS_WORKSPACE        : OMS workspace ID
 OMS_KEY              : OMS key
@@ -44,5 +44,5 @@ IDLE_TIMEOUT_SEC     : Keep Alive duration for the firehose consumer
 
 ### 5. Push the app
 ```
-cf push -f oms_nozzle/manifest.yml
+cf push
 ```
