@@ -35,18 +35,18 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	apiAddress     = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").String()
-	dopplerAddress = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").String()
-	uaaAddress        = kingpin.Flag("uaa-addr", "UAA URL").OverrideDefaultFromEnvar("UAA_ADDR").String()
-	uaaClientName     = kingpin.Flag("uaa-client-name", "UAA client name").OverrideDefaultFromEnvar("UAA_CLIENT_NAME").String()
-	uaaClientSecret   = kingpin.Flag("uaa-client-secret", "UAA client secret").OverrideDefaultFromEnvar("UAA_CLIENT_SECRET").String()
-	cfUser         = kingpin.Flag("cf-user", "CF user name").OverrideDefaultFromEnvar("CF_USER").String()
-	cfPassword     = kingpin.Flag("cf-password", "Password of the CF user").OverrideDefaultFromEnvar("CF_PASSWORD").String()
-	omsWorkspace   = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").String()
-	omsKey         = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").String()
-	omsPostTimeout = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
-	omsTypePrefix  = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
-	omsBatchTime = kingpin.Flag("oms-batch-time", "Interval to post an OMS batch").Default("5s").OverrideDefaultFromEnvar("OMS_BATCH_TIME").Duration()
+	apiAddress      = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").String()
+	dopplerAddress  = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").String()
+	uaaAddress      = kingpin.Flag("uaa-addr", "UAA URL").OverrideDefaultFromEnvar("UAA_ADDR").String()
+	uaaClientName   = kingpin.Flag("uaa-client-name", "UAA client name").OverrideDefaultFromEnvar("UAA_CLIENT_NAME").String()
+	uaaClientSecret = kingpin.Flag("uaa-client-secret", "UAA client secret").OverrideDefaultFromEnvar("UAA_CLIENT_SECRET").String()
+	cfUser          = kingpin.Flag("cf-user", "CF user name").OverrideDefaultFromEnvar("CF_USER").String()
+	cfPassword      = kingpin.Flag("cf-password", "Password of the CF user").OverrideDefaultFromEnvar("CF_PASSWORD").String()
+	omsWorkspace    = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").String()
+	omsKey          = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").String()
+	omsPostTimeout  = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
+	omsTypePrefix   = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
+	omsBatchTime    = kingpin.Flag("oms-batch-time", "Interval to post an OMS batch").Default("5s").OverrideDefaultFromEnvar("OMS_BATCH_TIME").Duration()
 	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
 	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
 	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
@@ -124,18 +124,18 @@ func main() {
 	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout)
 
 	nozzleConfig := &omsnozzle.NozzleConfig{
-		UaaAddress: *uaaAddress,
-		UaaClientName: *uaaClientName,
-		UaaClientSecret: *uaaClientSecret,
+		UaaAddress:             *uaaAddress,
+		UaaClientName:          *uaaClientName,
+		UaaClientSecret:        *uaaClientSecret,
 		TrafficControllerUrl:   *dopplerAddress,
-                SkipSslValidation:      *skipSslValidation,
-                IdleTimeout:            *idleTimeout,
-                FirehoseSubscriptionId: firehoseSubscriptionID,
-		OmsTypePrefix:       *omsTypePrefix,
-		OmsBatchTime: *omsBatchTime,
-		ExcludeMetricEvents: excludeMetricEvents,
-		ExcludeLogEvents:    excludeLogEvents,
-		ExcludeHttpEvents:   excludeHttpEvents,
+		SkipSslValidation:      *skipSslValidation,
+		IdleTimeout:            *idleTimeout,
+		FirehoseSubscriptionId: firehoseSubscriptionID,
+		OmsTypePrefix:          *omsTypePrefix,
+		OmsBatchTime:           *omsBatchTime,
+		ExcludeMetricEvents:    excludeMetricEvents,
+		ExcludeLogEvents:       excludeLogEvents,
+		ExcludeHttpEvents:      excludeHttpEvents,
 	}
 
 	nozzle := omsnozzle.NewOmsNozzle(cfClientConfig, omsClient, nozzleConfig)

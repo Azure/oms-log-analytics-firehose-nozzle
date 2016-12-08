@@ -32,15 +32,15 @@ type NozzleConfig struct {
 	UaaAddress             string
 	UaaClientName          string
 	UaaClientSecret        string
-        TrafficControllerUrl   string
-        SkipSslValidation      bool
-        IdleTimeout            time.Duration
-        FirehoseSubscriptionId string
-	OmsTypePrefix       string
-	OmsBatchTime        time.Duration
-	ExcludeMetricEvents bool
-	ExcludeLogEvents    bool
-	ExcludeHttpEvents   bool
+	TrafficControllerUrl   string
+	SkipSslValidation      bool
+	IdleTimeout            time.Duration
+	FirehoseSubscriptionId string
+	OmsTypePrefix          string
+	OmsBatchTime           time.Duration
+	ExcludeMetricEvents    bool
+	ExcludeLogEvents       bool
+	ExcludeHttpEvents      bool
 }
 
 type CfClientTokenRefresh struct {
@@ -89,8 +89,8 @@ func (o *OmsNozzle) initialize() {
 	}
 	authToken, err := uaaClient.GetAuthToken(o.nozzleConfig.UaaClientName, o.nozzleConfig.UaaClientSecret, o.nozzleConfig.SkipSslValidation)
 	if err != nil {
-                panic("Error getting auth token:" + err.Error())
-        }
+		panic("Error getting auth token:" + err.Error())
+	}
 
 	o.consumer = consumer.New(
 		o.nozzleConfig.TrafficControllerUrl,
