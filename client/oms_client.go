@@ -14,10 +14,10 @@ import (
 
 // Client posts messages to OMS
 type Client struct {
-	customerID       string
-	sharedKey        string
-	url              string
-	httpPostTimeout  time.Duration
+	customerID      string
+	sharedKey       string
+	url             string
+	httpPostTimeout time.Duration
 }
 
 const (

@@ -167,10 +167,10 @@ type Error struct {
 // NewError creates a new NewError
 func NewError(e *events.Envelope, nozzleInstanceName string) *Error {
 	return &Error{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		Source:         *e.Error.Source,
-		Code:           *e.Error.Code,
-		Message:        *e.Error.Message,
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
+		Source:      *e.Error.Source,
+		Code:        *e.Error.Code,
+		Message:     *e.Error.Message,
 	}
 }
 
@@ -188,12 +188,12 @@ type ContainerMetric struct {
 // NewContainerMetric creates a new Container Metric
 func NewContainerMetric(e *events.Envelope, nozzleInstanceName string) *ContainerMetric {
 	var r = ContainerMetric{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		ApplicationID:  *e.ContainerMetric.ApplicationId,
-		InstanceIndex:  *e.ContainerMetric.InstanceIndex,
-		CPUPercentage:  *e.ContainerMetric.CpuPercentage,
-		MemoryBytes:    *e.ContainerMetric.MemoryBytes,
-		DiskBytes:      *e.ContainerMetric.DiskBytes,
+		BaseMessage:   *NewBaseMessage(e, nozzleInstanceName),
+		ApplicationID: *e.ContainerMetric.ApplicationId,
+		InstanceIndex: *e.ContainerMetric.InstanceIndex,
+		CPUPercentage: *e.ContainerMetric.CpuPercentage,
+		MemoryBytes:   *e.ContainerMetric.MemoryBytes,
+		DiskBytes:     *e.ContainerMetric.DiskBytes,
 	}
 	r.ApplicationName, _ = Caching.GetAppName(r.ApplicationID)
 	return &r
@@ -211,9 +211,9 @@ type CounterEvent struct {
 // NewCounterEvent creates a new CounterEvent
 func NewCounterEvent(e *events.Envelope, nozzleInstanceName string) *CounterEvent {
 	var r = CounterEvent{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		Delta:          *e.CounterEvent.Delta,
-		Total:          *e.CounterEvent.Total,
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
+		Delta:       *e.CounterEvent.Delta,
+		Total:       *e.CounterEvent.Total,
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
@@ -235,9 +235,9 @@ type ValueMetric struct {
 // NewValueMetric creates a new ValueMetric
 func NewValueMetric(e *events.Envelope, nozzleInstanceName string) *ValueMetric {
 	var r = ValueMetric{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		Value:          *e.ValueMetric.Value,
-		Unit:           *e.ValueMetric.Unit,
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
+		Value:       *e.ValueMetric.Value,
+		Unit:        *e.ValueMetric.Unit,
 	}
 	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
 	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)

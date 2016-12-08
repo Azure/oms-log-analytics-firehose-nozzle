@@ -10,51 +10,51 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-community/go-cfclient"
+	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/dave-read/pcf-oms-poc/messages"
 	"github.com/dave-read/pcf-oms-poc/client"
+	"github.com/dave-read/pcf-oms-poc/messages"
 )
 
-type OmsNozzle struct {	
+type OmsNozzle struct {
 	errChan            <-chan error
 	msgChan            <-chan *events.Envelope
 	signalChan         chan os.Signal
 	consumer           *consumer.Consumer
 	omsClient          *client.Client
-	firehoseConfig     *FirehoseConfig
 	cfClientConfig     *cfclient.Config
 	nozzleConfig       *NozzleConfig
 	nozzleInstanceName string
 }
 
-type FirehoseConfig struct {
-	TrafficControllerURL	string
-	SkipSslValidation       bool
-	IdleTimeout             time.Duration
-	FirehoseSubscriptionId	string
-}
-
 type NozzleConfig struct {
-	OmsTypePrefix		string
-	ExcludeMetricEvents	bool
-	ExcludeLogEvents	bool
-	ExcludeHttpEvents	bool	
+	UaaAddress             string
+	UaaClientName          string
+	UaaClientSecret        string
+        TrafficControllerUrl   string
+        SkipSslValidation      bool
+        IdleTimeout            time.Duration
+        FirehoseSubscriptionId string
+	OmsTypePrefix       string
+	OmsBatchTime        time.Duration
+	ExcludeMetricEvents bool
+	ExcludeLogEvents    bool
+	ExcludeHttpEvents   bool
 }
 
 type CfClientTokenRefresh struct {
 	cfClient *cfclient.Client
 }
 
-func NewOmsNozzle(cfClientConfig *cfclient.Config, omsClient *client.Client, firehoseConfig *FirehoseConfig, nozzleConfig *NozzleConfig) *OmsNozzle {
+func NewOmsNozzle(cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
 	return &OmsNozzle{
-		errChan:	make(<-chan error),
-		msgChan:	make(<-chan *events.Envelope),
-		signalChan:	make(chan os.Signal, 1),
-		omsClient:	omsClient,
-		firehoseConfig:	firehoseConfig,
-		cfClientConfig:	cfClientConfig,
-		nozzleConfig:	nozzleConfig,
+		errChan:        make(<-chan error),
+		msgChan:        make(<-chan *events.Envelope),
+		signalChan:     make(chan os.Signal, 1),
+		omsClient:      omsClient,
+		cfClientConfig: cfClientConfig,
+		nozzleConfig:   nozzleConfig,
 	}
 }
 
@@ -64,7 +64,7 @@ func (o *OmsNozzle) Start() error {
 	return err
 }
 
-func (o *OmsNozzle) setInstanceName() error{
+func (o *OmsNozzle) setInstanceName() error {
 	// instance id to track multiple nozzles, used for logging
 	hostName, err := os.Hostname()
 	if err != nil {
@@ -82,19 +82,23 @@ func (o *OmsNozzle) initialize() {
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
 	o.setInstanceName()
 
-	cfClient, err := cfclient.NewClient(o.cfClientConfig)
+	fmt.Printf("Starting with uaaAddress:%s, dopplerAddress:%s\n", o.nozzleConfig.UaaAddress, o.nozzleConfig.TrafficControllerUrl)
+	uaaClient, err := uaago.NewClient(o.nozzleConfig.UaaAddress)
 	if err != nil {
-		panic("Error creating cfclient:" + err.Error())
+		panic("Error creating uaa client:" + err.Error())
 	}
+	authToken, err := uaaClient.GetAuthToken(o.nozzleConfig.UaaClientName, o.nozzleConfig.UaaClientSecret, o.nozzleConfig.SkipSslValidation)
+	if err != nil {
+                panic("Error getting auth token:" + err.Error())
+        }
 
 	o.consumer = consumer.New(
-		o.firehoseConfig.TrafficControllerURL,
-		&tls.Config{InsecureSkipVerify: o.firehoseConfig.SkipSslValidation},
+		o.nozzleConfig.TrafficControllerUrl,
+		&tls.Config{InsecureSkipVerify: o.nozzleConfig.SkipSslValidation},
 		nil)
-	refresher := CfClientTokenRefresh{cfClient: cfClient}
-	o.consumer.RefreshTokenFrom(&refresher)
-	o.consumer.SetIdleTimeout(o.firehoseConfig.IdleTimeout)
-	o.msgChan, o.errChan = o.consumer.Firehose(o.firehoseConfig.FirehoseSubscriptionId, "")
+
+	o.consumer.SetIdleTimeout(o.nozzleConfig.IdleTimeout)
+	o.msgChan, o.errChan = o.consumer.Firehose(o.nozzleConfig.FirehoseSubscriptionId, authToken)
 
 	//o.consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// async error channel
@@ -108,15 +112,14 @@ func (o *OmsNozzle) initialize() {
 }
 
 func (o *OmsNozzle) routeEvents() error {
-		// counters
+	// counters
 	var msgReceivedCount = 0
 	var msgSentCount = 0
 	var msgSendErrorCount = 0
 
 	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
-	// TOD: make batching time configurable
-	ticker := time.NewTicker(time.Duration(5) * time.Second)
+	ticker := time.NewTicker(o.nozzleConfig.OmsBatchTime)
 	for {
 		// loop over message and signal channel
 		select {
@@ -226,4 +229,3 @@ type ConsoleDebugPrinter struct{}
 func (c ConsoleDebugPrinter) Print(title, dump string) {
 	fmt.Printf("Consumer debug.  title:%s detail:%s", title, dump)
 }
-
