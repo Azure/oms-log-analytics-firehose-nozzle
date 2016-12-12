@@ -11,7 +11,7 @@ import (
 	"time"
 
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/dave-read/pcf-oms-poc/caching"
+	"github.com/lizzha/pcf-oms-poc/caching"
 )
 
 var Caching *caching.Caching

@@ -13,8 +13,8 @@ import (
 	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/dave-read/pcf-oms-poc/client"
-	"github.com/dave-read/pcf-oms-poc/messages"
+	"github.com/lizzha/pcf-oms-poc/client"
+	"github.com/lizzha/pcf-oms-poc/messages"
 )
 
 type OmsNozzle struct {
@@ -93,6 +93,13 @@ func (o *OmsNozzle) initialize() {
 		&tls.Config{InsecureSkipVerify: o.nozzleConfig.SkipSslValidation},
 		nil)
 
+	refresher := tokenRefresher{
+		uaaClient:           uaaClient,
+		clientName:          o.nozzleConfig.UaaClientName,
+		clientSecret:        o.nozzleConfig.UaaClientSecret,
+		skipSslVerification: o.nozzleConfig.SkipSslValidation,
+	}
+	o.consumer.RefreshTokenFrom(&refresher)
 	o.consumer.SetIdleTimeout(o.nozzleConfig.IdleTimeout)
 	o.msgChan, o.errChan = o.consumer.Firehose(o.nozzleConfig.FirehoseSubscriptionId, authToken)
 
@@ -220,4 +227,19 @@ type ConsoleDebugPrinter struct{}
 // Print debug logging
 func (c ConsoleDebugPrinter) Print(title, dump string) {
 	fmt.Printf("Consumer debug.  title:%s detail:%s", title, dump)
+}
+
+type tokenRefresher struct {
+	uaaClient           *uaago.Client
+	clientName          string
+	clientSecret        string
+	skipSslVerification bool
+}
+
+func (t *tokenRefresher) RefreshAuthToken() (string, error) {
+	token, err := t.uaaClient.GetAuthToken(t.clientName, t.clientSecret, t.skipSslVerification)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }

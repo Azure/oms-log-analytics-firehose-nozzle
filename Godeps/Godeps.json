@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/dave-read/pcf-oms-poc",
+	"ImportPath": "github.com/lizzha/pcf-oms-poc",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v75",
 	"Packages": [

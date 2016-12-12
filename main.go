@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/dave-read/pcf-oms-poc/caching"
-	"github.com/dave-read/pcf-oms-poc/client"
-	"github.com/dave-read/pcf-oms-poc/messages"
-	"github.com/dave-read/pcf-oms-poc/omsnozzle"
+	"github.com/lizzha/pcf-oms-poc/caching"
+	"github.com/lizzha/pcf-oms-poc/client"
+	"github.com/lizzha/pcf-oms-poc/messages"
+	"github.com/lizzha/pcf-oms-poc/omsnozzle"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
