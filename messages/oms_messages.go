@@ -10,13 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudfoundry-community/go-cfclient"
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/dave-read/pcf-oms-poc/client"
+	"github.com/lizzha/pcf-oms-poc/caching"
 )
 
-var AppNamesByGUID = make(map[string]string)
-var CfClientConfig *cfclient.Config
+var Caching *caching.Caching
 
 // BaseMessage contains common data elements
 type BaseMessage struct {
@@ -35,14 +33,14 @@ type BaseMessage struct {
 }
 
 // NewBaseMessage Creates the common attributes of messages
-func NewBaseMessage(e *events.Envelope) *BaseMessage {
+func NewBaseMessage(e *events.Envelope, nozzleInstanceName string) *BaseMessage {
 	var b = BaseMessage{
 		EventType:      e.GetEventType().String(),
 		Deployment:     e.GetDeployment(),
 		Job:            e.GetJob(),
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),
-		NozzleInstance: client.NozzleInstance,
+		NozzleInstance: nozzleInstanceName,
 	}
 	if e.Timestamp != nil {
 		b.Timestamp = time.Unix(0, *e.Timestamp)
@@ -89,11 +87,10 @@ type HTTPStartStop struct {
 }
 
 // NewHTTPStartStop creates a new NewHTTPStartStop
-func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
-
+func NewHTTPStartStop(e *events.Envelope, nozzleInstanceName string) *HTTPStartStop {
 	var m = e.GetHttpStartStop()
 	var r = HTTPStartStop{
-		BaseMessage:    *NewBaseMessage(e),
+		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
 		StartTimestamp: time.Unix(0, m.GetStartTimestamp()),
 		StopTimestamp:  time.Unix(0, m.GetStopTimestamp()),
 		URI:            m.GetUri(),
@@ -116,7 +113,7 @@ func NewHTTPStartStop(e *events.Envelope) *HTTPStartStop {
 	if m.ApplicationId != nil {
 		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
-		r.ApplicationName, _ = GetApplicationName(id)
+		r.ApplicationName, _ = Caching.GetAppName(id)
 	}
 
 	if e.HttpStartStop.GetForwarded() != nil {
@@ -139,10 +136,10 @@ type LogMessage struct {
 }
 
 // NewLogMessage creates a new NewLogMessage
-func NewLogMessage(e *events.Envelope) *LogMessage {
+func NewLogMessage(e *events.Envelope, nozzleInstanceName string) *LogMessage {
 	var m = e.GetLogMessage()
 	var r = LogMessage{
-		BaseMessage:    *NewBaseMessage(e),
+		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
 		Timestamp:      time.Unix(0, *e.LogMessage.Timestamp),
 		AppID:          m.GetAppId(),
 		SourceType:     m.GetSourceType(),
@@ -155,7 +152,7 @@ func NewLogMessage(e *events.Envelope) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
-	r.ApplicationName, _ = GetApplicationName(r.AppID)
+	r.ApplicationName, _ = Caching.GetAppName(r.AppID)
 	return &r
 }
 
@@ -168,9 +165,9 @@ type Error struct {
 }
 
 // NewError creates a new NewError
-func NewError(e *events.Envelope) *Error {
+func NewError(e *events.Envelope, nozzleInstanceName string) *Error {
 	return &Error{
-		BaseMessage: *NewBaseMessage(e),
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
 		Source:      *e.Error.Source,
 		Code:        *e.Error.Code,
 		Message:     *e.Error.Message,
@@ -189,16 +186,16 @@ type ContainerMetric struct {
 }
 
 // NewContainerMetric creates a new Container Metric
-func NewContainerMetric(e *events.Envelope) *ContainerMetric {
+func NewContainerMetric(e *events.Envelope, nozzleInstanceName string) *ContainerMetric {
 	var r = ContainerMetric{
-		BaseMessage:   *NewBaseMessage(e),
+		BaseMessage:   *NewBaseMessage(e, nozzleInstanceName),
 		ApplicationID: *e.ContainerMetric.ApplicationId,
 		InstanceIndex: *e.ContainerMetric.InstanceIndex,
 		CPUPercentage: *e.ContainerMetric.CpuPercentage,
 		MemoryBytes:   *e.ContainerMetric.MemoryBytes,
 		DiskBytes:     *e.ContainerMetric.DiskBytes,
 	}
-	r.ApplicationName, _ = GetApplicationName(r.ApplicationID)
+	r.ApplicationName, _ = Caching.GetAppName(r.ApplicationID)
 	return &r
 }
 
@@ -212,9 +209,9 @@ type CounterEvent struct {
 }
 
 // NewCounterEvent creates a new CounterEvent
-func NewCounterEvent(e *events.Envelope) *CounterEvent {
+func NewCounterEvent(e *events.Envelope, nozzleInstanceName string) *CounterEvent {
 	var r = CounterEvent{
-		BaseMessage: *NewBaseMessage(e),
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
 		Delta:       *e.CounterEvent.Delta,
 		Total:       *e.CounterEvent.Total,
 	}
@@ -236,9 +233,9 @@ type ValueMetric struct {
 }
 
 // NewValueMetric creates a new ValueMetric
-func NewValueMetric(e *events.Envelope) *ValueMetric {
+func NewValueMetric(e *events.Envelope, nozzleInstanceName string) *ValueMetric {
 	var r = ValueMetric{
-		BaseMessage: *NewBaseMessage(e),
+		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
 		Value:       *e.ValueMetric.Value,
 		Unit:        *e.ValueMetric.Unit,
 	}
@@ -253,31 +250,4 @@ func cfUUIDToString(uuid *events.UUID) string {
 	highBytes := new(bytes.Buffer)
 	binary.Write(highBytes, binary.LittleEndian, uuid.High)
 	return fmt.Sprintf("%x-%x-%x-%x-%x", lowBytes.Bytes()[0:4], lowBytes.Bytes()[4:6], lowBytes.Bytes()[6:8], highBytes.Bytes()[0:2], highBytes.Bytes()[2:])
-}
-
-// GetApplicationName returns name from guid
-func GetApplicationName(appGUID string) (string, error) {
-	if appName, ok := AppNamesByGUID[appGUID]; ok {
-		return appName, nil
-	} else {
-		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGUID, len(AppNamesByGUID))
-		// call the client api to get the name for this app
-		// TODO: refresh token instead of creating a new client
-		cfClient, err := cfclient.NewClient(CfClientConfig)
-		if err != nil {
-			fmt.Printf("Error creating cfclient:%v\n", err)
-			return "", err
-		}
-		app, err := cfClient.AppByGuid(appGUID)
-		if err != nil {
-			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n", appGUID, err)
-			return "", err
-		} else {
-			// store appname in map
-			AppNamesByGUID[app.Guid] = app.Name
-			fmt.Printf("Adding to AppName cache. App guid:%s name:%s. New size of AppNamesByGUID:%d\n", app.Guid, app.Name, len(AppNamesByGUID))
-			// return the app name
-			return app.Name, nil
-		}
-	}
 }

@@ -7,35 +7,17 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// HTTPPostTimeout defaults to 5 seconds
-var HTTPPostTimeout = time.Duration(5 * time.Second)
-
-//NozzleInstance identifies this instance of a firehose nozzle. Used for logging
-var NozzleInstance string
-
-func init() {
-	// instance id to track multiple nozzles
-	hostName, err := os.Hostname()
-	if err != nil {
-		fmt.Printf("Error getting hostname for NozzleInstance: %s\n", err)
-		NozzleInstance = fmt.Sprintf("pid-%d", os.Getpid())
-	} else {
-		NozzleInstance = fmt.Sprintf("pid-%d@%s", os.Getpid(), hostName)
-		fmt.Printf("Nozzle instance name: %s\n", NozzleInstance)
-	}
-}
-
 // Client posts messages to OMS
 type Client struct {
-	customerID string
-	sharedKey  string
-	url        string
+	customerID      string
+	sharedKey       string
+	url             string
+	httpPostTimeout time.Duration
 }
 
 const (
@@ -49,11 +31,12 @@ func init() {
 }
 
 // New instance of the Client
-func New(customerID string, sharedKey string) *Client {
+func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration) *Client {
 	return &Client{
-		customerID: customerID,
-		sharedKey:  sharedKey,
-		url:        "https://" + customerID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01",
+		customerID:      customerID,
+		sharedKey:       sharedKey,
+		url:             "https://" + customerID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01",
+		httpPostTimeout: postTimeout,
 	}
 }
 
@@ -85,7 +68,7 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 
 	//TODO make timeout external config value
 	client := http.Client{
-		Timeout: HTTPPostTimeout,
+		Timeout: c.httpPostTimeout,
 	}
 	resp, err := client.Do(req)
 	if err != nil {
