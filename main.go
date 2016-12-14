@@ -36,18 +36,19 @@ const (
 // Required parameters
 var (
 	//TODO: query info endpoint for URLs
-	apiAddress      = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").String()
-	dopplerAddress  = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").String()
-	uaaAddress      = kingpin.Flag("uaa-addr", "UAA URL").OverrideDefaultFromEnvar("UAA_ADDR").String()
-	uaaClientName   = kingpin.Flag("uaa-client-name", "UAA client name").OverrideDefaultFromEnvar("UAA_CLIENT_NAME").String()
-	uaaClientSecret = kingpin.Flag("uaa-client-secret", "UAA client secret").OverrideDefaultFromEnvar("UAA_CLIENT_SECRET").String()
-	cfUser          = kingpin.Flag("cf-user", "CF user name").OverrideDefaultFromEnvar("CF_USER").String()
-	cfPassword      = kingpin.Flag("cf-password", "Password of the CF user").OverrideDefaultFromEnvar("CF_PASSWORD").String()
-	omsWorkspace    = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").String()
-	omsKey          = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").String()
-	omsPostTimeout  = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
-	omsTypePrefix   = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
-	omsBatchTime    = kingpin.Flag("oms-batch-time", "Interval to post an OMS batch").Default("5s").OverrideDefaultFromEnvar("OMS_BATCH_TIME").Duration()
+	apiAddress           = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").Required().String()
+	dopplerAddress       = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").Required().String()
+	uaaAddress           = kingpin.Flag("uaa-addr", "UAA URL").OverrideDefaultFromEnvar("UAA_ADDR").Required().String()
+	uaaClientName        = kingpin.Flag("uaa-client-name", "UAA client name").OverrideDefaultFromEnvar("UAA_CLIENT_NAME").Required().String()
+	uaaClientSecret      = kingpin.Flag("uaa-client-secret", "UAA client secret").OverrideDefaultFromEnvar("UAA_CLIENT_SECRET").Required().String()
+	cfUser               = kingpin.Flag("cf-user", "CF user name").OverrideDefaultFromEnvar("CF_USER").Required().String()
+	cfPassword           = kingpin.Flag("cf-password", "Password of the CF user").OverrideDefaultFromEnvar("CF_PASSWORD").Required().String()
+	omsWorkspace         = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").Required().String()
+	omsKey               = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").Required().String()
+	omsPostTimeout       = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
+	omsTypePrefix        = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
+	omsBatchTime         = kingpin.Flag("oms-batch-time", "Interval to post an OMS batch").Default("5s").OverrideDefaultFromEnvar("OMS_BATCH_TIME").Duration()
+	omsMaxMsgNumPerBatch = kingpin.Flag("oms-max-msg-num-per-batch", "Max number of messages per OMS batch").Default("1000").OverrideDefaultFromEnvar("OMS_MAX_MSG_NUM_PER_BATCH").Int()
 	// comma separated list of types to exclude.  For now use metric,log,http and revisit later
 	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
 	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
@@ -67,28 +68,6 @@ func main() {
 	defer close(threadDumpChan)
 	go dumpGoRoutine(threadDumpChan)
 
-	// check required parms
-	switch {
-	case len(*apiAddress) == 0:
-		panic("API_ADDR env var not provided")
-	case len(*dopplerAddress) == 0:
-		panic("DOPPLER_ADDR env var not provided")
-	case len(*uaaAddress) == 0:
-		panic("UAA_ADDR env var not provided")
-	case len(*uaaClientName) == 0:
-		panic("UAA_CLIENT_NAME env var not provided")
-	case len(*uaaClientSecret) == 0:
-		panic("UAA_CLIENT_SECRET env var not provided")
-	case len(*omsWorkspace) == 0:
-		panic("OMS_WORKSPACE env var not provided")
-	case len(*omsKey) == 0:
-		panic("OMS_KEY env var not provided")
-	case len(*cfUser) == 0:
-		panic("CF_USER env var not provided")
-	case len(*cfPassword) == 0:
-		panic("CF_PASSWORD env var not provided")
-	}
-
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		fmt.Printf("OMS_POST_TIMEOUT:%s\n", *omsPostTimeout)
 	} else {
@@ -99,6 +78,7 @@ func main() {
 	fmt.Printf("SKIP_SSL_VALIDATION:%v\n", *skipSslValidation)
 	fmt.Printf("IDLE_TIMEOUT:%v\n", *idleTimeout)
 	fmt.Printf("OMS_BATCH_TIME:%v\n", *omsBatchTime)
+	fmt.Printf("OMS_MAX_MSG_NUM_PER_BATCH:%d\n", *omsMaxMsgNumPerBatch)
 	if len(*eventFilter) > 0 {
 		*eventFilter = strings.ToUpper(*eventFilter)
 		// by default we don't filter any events
@@ -135,6 +115,7 @@ func main() {
 		FirehoseSubscriptionId: firehoseSubscriptionID,
 		OmsTypePrefix:          *omsTypePrefix,
 		OmsBatchTime:           *omsBatchTime,
+		OmsMaxMsgNumPerBatch:   *omsMaxMsgNumPerBatch,
 		ExcludeMetricEvents:    excludeMetricEvents,
 		ExcludeLogEvents:       excludeLogEvents,
 		ExcludeHttpEvents:      excludeHttpEvents,

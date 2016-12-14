@@ -20,7 +20,7 @@ var Caching *caching.Caching
 type BaseMessage struct {
 	EventType      string
 	Deployment     string
-	Timestamp      time.Time
+	EventTime      time.Time
 	Job            string
 	Index          string
 	IP             string
@@ -43,7 +43,7 @@ func NewBaseMessage(e *events.Envelope, nozzleInstanceName string) *BaseMessage 
 		NozzleInstance: nozzleInstanceName,
 	}
 	if e.Timestamp != nil {
-		b.Timestamp = time.Unix(0, *e.Timestamp)
+		b.EventTime = time.Unix(0, *e.Timestamp)
 	} else {
 		fmt.Printf("Message did not have timestamp. EventType:%s Event:%s\n", b.EventType, e.String())
 	}
@@ -69,8 +69,8 @@ func NewBaseMessage(e *events.Envelope, nozzleInstanceName string) *BaseMessage 
 // An HTTPStartStop event represents the whole lifecycle of an HTTP request.
 type HTTPStartStop struct {
 	BaseMessage
-	StartTimestamp  time.Time
-	StopTimestamp   time.Time
+	StartTimestamp  int64
+	StopTimestamp   int64
 	RequestID       string
 	PeerType        string // Client/Server
 	Method          string // HTTP method
@@ -91,8 +91,8 @@ func NewHTTPStartStop(e *events.Envelope, nozzleInstanceName string) *HTTPStartS
 	var m = e.GetHttpStartStop()
 	var r = HTTPStartStop{
 		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		StartTimestamp: time.Unix(0, m.GetStartTimestamp()),
-		StopTimestamp:  time.Unix(0, m.GetStopTimestamp()),
+		StartTimestamp: m.GetStartTimestamp(),
+		StopTimestamp:  m.GetStopTimestamp(),
 		URI:            m.GetUri(),
 		RemoteAddress:  m.GetRemoteAddress(),
 		UserAgent:      m.GetUserAgent(),
@@ -127,7 +127,7 @@ type LogMessage struct {
 	BaseMessage
 	Message         string
 	MessageType     string // OUT or ERROR
-	Timestamp       time.Time
+	Timestamp       int64
 	AppID           string
 	ApplicationName string
 	SourceType      string // APP,RTR,DEA,STG,etc
@@ -140,7 +140,7 @@ func NewLogMessage(e *events.Envelope, nozzleInstanceName string) *LogMessage {
 	var m = e.GetLogMessage()
 	var r = LogMessage{
 		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
-		Timestamp:      time.Unix(0, *e.LogMessage.Timestamp),
+		Timestamp:      m.GetTimestamp(),
 		AppID:          m.GetAppId(),
 		SourceType:     m.GetSourceType(),
 		SourceInstance: m.GetSourceInstance(),
@@ -177,23 +177,27 @@ func NewError(e *events.Envelope, nozzleInstanceName string) *Error {
 // A ContainerMetric records resource usage of an app in a container.
 type ContainerMetric struct {
 	BaseMessage
-	ApplicationID   string
-	ApplicationName string
-	InstanceIndex   int32
-	CPUPercentage   float64 `json:",omitempty"`
-	MemoryBytes     uint64  `json:",omitempty"`
-	DiskBytes       uint64  `json:",omitempty"`
+	ApplicationID    string
+	ApplicationName  string
+	InstanceIndex    int32
+	CPUPercentage    float64 `json:",omitempty"`
+	MemoryBytes      uint64  `json:",omitempty"`
+	DiskBytes        uint64  `json:",omitempty"`
+	MemoryBytesQuota uint64  `json:",omitempty"`
+	DiskBytesQuota   uint64  `json:",omitempty"`
 }
 
 // NewContainerMetric creates a new Container Metric
 func NewContainerMetric(e *events.Envelope, nozzleInstanceName string) *ContainerMetric {
 	var r = ContainerMetric{
-		BaseMessage:   *NewBaseMessage(e, nozzleInstanceName),
-		ApplicationID: *e.ContainerMetric.ApplicationId,
-		InstanceIndex: *e.ContainerMetric.InstanceIndex,
-		CPUPercentage: *e.ContainerMetric.CpuPercentage,
-		MemoryBytes:   *e.ContainerMetric.MemoryBytes,
-		DiskBytes:     *e.ContainerMetric.DiskBytes,
+		BaseMessage:      *NewBaseMessage(e, nozzleInstanceName),
+		ApplicationID:    *e.ContainerMetric.ApplicationId,
+		InstanceIndex:    *e.ContainerMetric.InstanceIndex,
+		CPUPercentage:    *e.ContainerMetric.CpuPercentage,
+		MemoryBytes:      *e.ContainerMetric.MemoryBytes,
+		DiskBytes:        *e.ContainerMetric.DiskBytes,
+		MemoryBytesQuota: *e.ContainerMetric.MemoryBytesQuota,
+		DiskBytesQuota:   *e.ContainerMetric.DiskBytesQuota,
 	}
 	r.ApplicationName, _ = Caching.GetAppName(r.ApplicationID)
 	return &r

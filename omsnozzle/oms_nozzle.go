@@ -17,6 +17,10 @@ import (
 	"github.com/lizzha/pcf-oms-poc/messages"
 )
 
+const (
+	maxPostGoroutines = 1000
+)
+
 type OmsNozzle struct {
 	errChan            <-chan error
 	msgChan            <-chan *events.Envelope
@@ -26,6 +30,8 @@ type OmsNozzle struct {
 	cfClientConfig     *cfclient.Config
 	nozzleConfig       *NozzleConfig
 	nozzleInstanceName string
+	goroutineSem       chan int // to control the number of active post goroutines
+	postSem            chan int // trigger the post when pending message number reaches the max
 }
 
 type NozzleConfig struct {
@@ -38,6 +44,7 @@ type NozzleConfig struct {
 	FirehoseSubscriptionId string
 	OmsTypePrefix          string
 	OmsBatchTime           time.Duration
+	OmsMaxMsgNumPerBatch   int
 	ExcludeMetricEvents    bool
 	ExcludeLogEvents       bool
 	ExcludeHttpEvents      bool
@@ -51,6 +58,8 @@ func NewOmsNozzle(cfClientConfig *cfclient.Config, omsClient *client.Client, noz
 		omsClient:      omsClient,
 		cfClientConfig: cfClientConfig,
 		nozzleConfig:   nozzleConfig,
+		goroutineSem:   make(chan int, maxPostGoroutines),
+		postSem:        make(chan int, 1),
 	}
 }
 
@@ -114,12 +123,35 @@ func (o *OmsNozzle) initialize() {
 	}()
 }
 
-func (o *OmsNozzle) routeEvents() error {
-	// counters
-	var msgReceivedCount = 0
-	var msgSentCount = 0
-	var msgSendErrorCount = 0
+func (o *OmsNozzle) postData(events *map[string][]interface{}) {
+	for k, v := range *events {
+		// OMS message as JSON
+		msgAsJSON, err := json.Marshal(&v)
+		if err != nil {
+			fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
+		} else {
+			// fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+			if len(o.nozzleConfig.OmsTypePrefix) > 0 {
+				k = o.nozzleConfig.OmsTypePrefix + k
+			}
+			nRetries := 4
+			for nRetries > 0 {
+				requestStartTime := time.Now()
+				if err = o.omsClient.PostData(&msgAsJSON, k); err != nil {
+					nRetries--
+					elapsedTime := time.Since(requestStartTime)
+					fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d. remaining attempts=%d\n", k, err, elapsedTime.String(), len(msgAsJSON), nRetries)
+					time.Sleep(time.Second * 1)
+				} else {
+					break
+				}
+			}
+		}
+	}
+	<-o.goroutineSem
+}
 
+func (o *OmsNozzle) routeEvents() error {
 	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
 	ticker := time.NewTicker(o.nozzleConfig.OmsBatchTime)
@@ -133,40 +165,21 @@ func (o *OmsNozzle) routeEvents() error {
 				fmt.Printf("Error closing consumer:%v\n", err)
 			}
 			os.Exit(1)
+		// the message number reaches the max per batch, as well as the ticker, will trigger the post
+		case <-o.postSem:
+			currentEvents := pendingEvents
+			pendingEvents = make(map[string][]interface{})
+			o.goroutineSem <- 1
+			go o.postData(&currentEvents)
 		case <-ticker.C:
 			// get the pending as current
 			currentEvents := pendingEvents
 			// reset the pending events
 			pendingEvents = make(map[string][]interface{})
-			go func() {
-				//fmt.Printf("Timer fired ... processing events.  Total events:%d\n", msgReceivedCount)
-				for k, v := range currentEvents {
-					// OMS message as JSON
-					msgAsJSON, err := json.Marshal(&v)
-					if err != nil {
-						fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
-					} else {
-						//fmt.Printf(string(msgAsJSON) + "\n")
-						//fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
-						requestStartTime := time.Now()
-						if len(o.nozzleConfig.OmsTypePrefix) > 0 {
-							k = o.nozzleConfig.OmsTypePrefix + k
-						}
-						err = o.omsClient.PostData(&msgAsJSON, k)
-						elapsedTime := time.Since(requestStartTime)
-						if err != nil {
-							msgSendErrorCount++
-							fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d\n", k, err, elapsedTime.String(), len(msgAsJSON))
-						} else {
-							msgSentCount++
-						}
-					}
-				}
-				//fmt.Print("Finished processing events.\n")
-			}()
+			o.goroutineSem <- 1
+			go o.postData(&currentEvents)
 		case msg := <-o.msgChan:
 			// process message
-			msgReceivedCount++
 			var omsMessage OMSMessage
 			var omsMessageType = msg.GetEventType().String()
 			switch msg.GetEventType() {
@@ -211,8 +224,13 @@ func (o *OmsNozzle) routeEvents() error {
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
 				continue
 			}
-			//Only use this when testing local.  Otherwise you're generate events to yourself
-			//fmt.Printf("Current type:%s \ttotal recieved:%d\tsent:%d\terrors:%d\n", omsMessageType, msgReceivedCount, msgSentCount, msgSendErrorCount)
+			// When the message number of one type reaches the max per batch, trigger the post
+			for _, v := range pendingEvents {
+				if len(v) == o.nozzleConfig.OmsMaxMsgNumPerBatch {
+					o.postSem <- 1
+					break
+				}
+			}
 		default:
 		}
 	}
