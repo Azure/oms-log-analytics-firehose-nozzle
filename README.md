@@ -1,5 +1,5 @@
 # Summary
-The oms-log-analytics-nozzle is a CF component which forwards metrics from the Loggregator Firehose to [OMS Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/).
+The oms-log-analytics-nozzle is a CF component which forwards metrics from the [Loggregator](https://docs.cloudfoundry.org/loggregator/architecture.html) Firehose to [OMS Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/).
 > Note this is in developing phase and not for production use. It is based on private preview version of the OMS API and there may be changes before the API goes public.
 
 # Prerequisites
@@ -7,7 +7,6 @@ The oms-log-analytics-nozzle is a CF component which forwards metrics from the L
 
 * [Deploy Cloud Foundry on Azure](https://github.com/cloudfoundry-incubator/bosh-azure-cpi-release/blob/master/docs/guidance.md)
 * [Deploy Pivotal Cloud Foundry on Azure](https://docs.pivotal.io/pivotalcf/1-8/customizing/azure.html)
-* (optional) [Configure Logging on PCF](http://docs.pivotal.io/pivotalcf/1-8/opsguide/logging-config-opsman.html)
 
 ### 2. Install CLIs on your dev box
 
