@@ -1,6 +1,21 @@
 # Summary
 The oms-log-analytics-nozzle is a CF component which forwards metrics from the Loggregator Firehose to [OMS Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/).
-> Note this is based on private preview version of the API and there may be changes before the API goes public.
+> Note this is in development phase and not for production use. It is based on private preview version of the OMS API and there may be changes before the API goes public.
+
+# Prerequisites
+### 1. Deploy an CF/PCF environment in Azure
+
+* [Deploy Cloud Foundry on Azure](https://github.com/cloudfoundry-incubator/bosh-azure-cpi-release/blob/master/docs/guidance.md)
+* [Deploy Pivotal Cloud Foundry on Azure](https://docs.pivotal.io/pivotalcf/1-8/customizing/azure.html)
+
+### 2. Install CLIs on your dev box
+
+* [Install Cloud Foundry CLI](https://github.com/cloudfoundry/cli#downloads)
+* [Install Cloud Foundry UAA Command Line Client](https://github.com/cloudfoundry/cf-uaac/blob/master/README.md)
+
+### 3. Create an OMS Workspace in Azure
+
+* [Get started with Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-get-started)
 
 # Deploy
 ## Push as an App to Cloud Foundry
@@ -12,10 +27,10 @@ uaac token client get admin
 uaac client add ${ID} --name ${UAA_CLIENT_NAME} --scope openid,oauth.approvals,doppler.firehose --authorized_grant_types authorization_code,client_credentials,refresh_token --authorities oauth.login,doppler.firehose --access_token_validity 31557600 --refresh_token_validity 31557600
 ```
 
-### 2. Download the latest code of oms-log-analytics-nozzle
+### 2. Download the latest code of oms-log-analytics-tools
 ```
-git clone https://github.com/Azure/oms-log-analytics-nozzle
-cd oms-log-analytics-nozzle
+git clone https://github.com/Azure/oms-log-analytics-tools
+cd oms-log-analytics-tools
 ```
 
 ### 3. Utilize the CF CLI to authenticate with your CF instance
