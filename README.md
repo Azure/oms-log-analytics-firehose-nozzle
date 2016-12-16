@@ -17,8 +17,7 @@ The oms-log-analytics-nozzle is a CF component which forwards metrics from the [
 
 * [Get started with Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-get-started)
 
-# Deploy
-## Push the Nozzle as an App to Cloud Foundry
+# Deploy - Push the Nozzle as an App to Cloud Foundry
 ### 1. Create a UAA client and grant required privileges
 The OMS Log Analytics nozzle requires a UUA user who is authorized to access the loggregator firehose. You can add a user using UAA CLI.
 ```
