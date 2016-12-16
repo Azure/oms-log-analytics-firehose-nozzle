@@ -3,7 +3,7 @@ The oms-log-analytics-nozzle is a CF component which forwards metrics from the [
 > Note this is in developing phase and not for production use. It is based on private preview version of the OMS API and there may be changes before the API goes public.
 
 # Prerequisites
-### 1. Deploy an CF/PCF environment in Azure
+### 1. Deploy a CF or PCF environment in Azure
 
 * [Deploy Cloud Foundry on Azure](https://github.com/cloudfoundry-incubator/bosh-azure-cpi-release/blob/master/docs/guidance.md)
 * [Deploy Pivotal Cloud Foundry on Azure](https://docs.pivotal.io/pivotalcf/1-8/customizing/azure.html)
