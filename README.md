@@ -30,7 +30,6 @@ OMS_KEY                   : OMS key
 OMS_TYPE_PREFIX           : String helps to identify the CF related messags in OMS Log Analytics
 OMS_POST_TIMEOUT_SEC      : HTTP post timeout seconds for sending events to OMS Log Analytics
 OMS_BATCH_TIME            : Interval for posing a batch to OMS
-OMS_MAX_MSG_NUM_PER_BATCH : The max number of messages in an OMS batch
 API_ADDR                  : The api URL of the CF environment
 DOPPLER_ADDR              : Loggregator's traffic controller URL
 UAA_ADDR                  : UAA URL which the nozzle uses to get an authentication token for the firehose

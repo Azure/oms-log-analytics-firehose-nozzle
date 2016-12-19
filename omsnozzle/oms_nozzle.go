@@ -19,6 +19,8 @@ import (
 
 const (
 	maxPostGoroutines = 1000
+	// A sigle post to OMS has a size limit of 30 MB, we pick an approximate value
+	maxSizePerBatch = 30000000
 )
 
 type OmsNozzle struct {
@@ -31,7 +33,6 @@ type OmsNozzle struct {
 	nozzleConfig       *NozzleConfig
 	nozzleInstanceName string
 	goroutineSem       chan int // to control the number of active post goroutines
-	postSem            chan int // trigger the post when pending message number reaches the max
 }
 
 type NozzleConfig struct {
@@ -44,7 +45,6 @@ type NozzleConfig struct {
 	FirehoseSubscriptionId string
 	OmsTypePrefix          string
 	OmsBatchTime           time.Duration
-	OmsMaxMsgNumPerBatch   int
 	ExcludeMetricEvents    bool
 	ExcludeLogEvents       bool
 	ExcludeHttpEvents      bool
@@ -59,7 +59,6 @@ func NewOmsNozzle(cfClientConfig *cfclient.Config, omsClient *client.Client, noz
 		cfClientConfig: cfClientConfig,
 		nozzleConfig:   nozzleConfig,
 		goroutineSem:   make(chan int, maxPostGoroutines),
-		postSem:        make(chan int, 1),
 	}
 }
 
@@ -123,24 +122,20 @@ func (o *OmsNozzle) initialize() {
 	}()
 }
 
-func (o *OmsNozzle) postData(events *map[string][]interface{}) {
+func (o *OmsNozzle) postData(events *map[string][]byte) {
 	for k, v := range *events {
-		// OMS message as JSON
-		msgAsJSON, err := json.Marshal(&v)
-		if err != nil {
-			fmt.Printf("Error marshalling message type %s to JSON. error: %s", k, err)
-		} else {
-			// fmt.Printf("   EventType:%s\tEventCount:%d\tJSONSize:%d\n", k, len(v), len(msgAsJSON))
+		if len(v) > 0 {
+			v = append(v, ']')
 			if len(o.nozzleConfig.OmsTypePrefix) > 0 {
 				k = o.nozzleConfig.OmsTypePrefix + k
 			}
 			nRetries := 4
 			for nRetries > 0 {
 				requestStartTime := time.Now()
-				if err = o.omsClient.PostData(&msgAsJSON, k); err != nil {
+				if err := o.omsClient.PostData(&v, k); err != nil {
 					nRetries--
 					elapsedTime := time.Since(requestStartTime)
-					fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d. remaining attempts=%d\n", k, err, elapsedTime.String(), len(msgAsJSON), nRetries)
+					fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d. remaining attempts=%d\n", k, err, elapsedTime.String(), len(v), nRetries)
 					time.Sleep(time.Second * 1)
 				} else {
 					break
@@ -151,8 +146,27 @@ func (o *OmsNozzle) postData(events *map[string][]interface{}) {
 	<-o.goroutineSem
 }
 
+func marshalAsJson(m *OMSMessage) []byte {
+	if j, err := json.Marshal(&m); err != nil {
+		fmt.Printf("Error marshalling message to JSON. error: %s. message: %s\n", err, *m)
+		return nil
+	} else {
+		return j
+	}
+}
+
+func pushMsgAsJson(eventType string, events *map[string][]byte, msg *[]byte) {
+	// Push json messages to json array format
+	if len((*events)[eventType]) == 0 {
+		(*events)[eventType] = append((*events)[eventType], '[')
+	} else {
+		(*events)[eventType] = append((*events)[eventType], ',')
+	}
+	(*events)[eventType] = append((*events)[eventType], *msg...)
+}
+
 func (o *OmsNozzle) routeEvents() error {
-	pendingEvents := make(map[string][]interface{})
+	pendingEvents := make(map[string][]byte)
 	// Firehose message processing loop
 	ticker := time.NewTicker(o.nozzleConfig.OmsBatchTime)
 	for {
@@ -165,17 +179,11 @@ func (o *OmsNozzle) routeEvents() error {
 				fmt.Printf("Error closing consumer:%v\n", err)
 			}
 			os.Exit(1)
-		// the message number reaches the max per batch, as well as the ticker, will trigger the post
-		case <-o.postSem:
-			currentEvents := pendingEvents
-			pendingEvents = make(map[string][]interface{})
-			o.goroutineSem <- 1
-			go o.postData(&currentEvents)
 		case <-ticker.C:
 			// get the pending as current
 			currentEvents := pendingEvents
 			// reset the pending events
-			pendingEvents = make(map[string][]interface{})
+			pendingEvents = make(map[string][]byte)
 			o.goroutineSem <- 1
 			go o.postData(&currentEvents)
 		case msg := <-o.msgChan:
@@ -187,49 +195,68 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_ValueMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewValueMetric(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 			case events.Envelope_CounterEvent:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewCounterEvent(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 
 			case events.Envelope_ContainerMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewContainerMetric(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 
 			// Logs Errors
 			case events.Envelope_LogMessage:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewLogMessage(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 
 			case events.Envelope_Error:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewError(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 
 			// HTTP Start/Stop
 			case events.Envelope_HttpStartStop:
 				if !o.nozzleConfig.ExcludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg, o.nozzleInstanceName)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if m := marshalAsJson(&omsMessage); m != nil {
+						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+					}
 				}
 			default:
 				fmt.Println("Unexpected message type" + msg.GetEventType().String())
 				continue
 			}
-			// When the message number of one type reaches the max per batch, trigger the post
+			// When the size of one type reaches the max per batch, trigger the post immediately
+			doPost := false
 			for _, v := range pendingEvents {
-				if len(v) == o.nozzleConfig.OmsMaxMsgNumPerBatch {
-					o.postSem <- 1
+				if len(v) >= maxSizePerBatch {
+					doPost = true
 					break
 				}
+			}
+			if doPost {
+				currentEvents := pendingEvents
+				pendingEvents = make(map[string][]byte)
+				o.goroutineSem <- 1
+				go o.postData(&currentEvents)
 			}
 		default:
 		}
