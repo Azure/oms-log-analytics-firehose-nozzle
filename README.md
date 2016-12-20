@@ -39,21 +39,21 @@ cf login -a https://api.${ENDPOINT} -u ${CF_USER} --skip-ssl-validation
 
 ### 4. Set environment variables in [manifest.yml](./manifest.yml)
 ```
-OMS_WORKSPACE        : OMS workspace ID
-OMS_KEY              : OMS key
-OMS_TYPE_PREFIX      : String helps to identify the CF related messags in OMS Log Analytics
-OMS_POST_TIMEOUT_SEC : HTTP post timeout seconds for sending events to OMS Log Analytics
-OMS_BATCH_TIME       : Interval for posing a batch to OMS
-API_ADDR             : The api URL of the CF environment
-DOPPLER_ADDR         : Loggregator's traffic controller URL
-UAA_ADDR             : UAA URL which the nozzle uses to get an authentication token for the firehose
-UAA_CLIENT_NAME      : Client who has access to the firehose
-UAA_CLIENT_SECRET    : Secret for the client
-CF_USER              : CF user who has admin access
-CF_PASSWORD          : Password of the CF user
-EVENT_FILTER         : If set, the specified types of events will be dropped
-SKIP_SSL_VALIDATION  : If true, allows insecure connections to the UAA and the Trafficcontroller
-IDLE_TIMEOUT_SEC     : Keep Alive duration for the firehose consumer
+OMS_WORKSPACE             : OMS workspace ID
+OMS_KEY                   : OMS key
+OMS_TYPE_PREFIX           : String helps to identify the CF related messags in OMS Log Analytics
+OMS_POST_TIMEOUT_SEC      : HTTP post timeout seconds for sending events to OMS Log Analytics
+OMS_BATCH_TIME            : Interval for posing a batch to OMS
+API_ADDR                  : The api URL of the CF environment
+DOPPLER_ADDR              : Loggregator's traffic controller URL
+UAA_ADDR                  : UAA URL which the nozzle uses to get an authentication token for the firehose
+UAA_CLIENT_NAME           : Client who has access to the firehose
+UAA_CLIENT_SECRET         : Secret for the client
+CF_USER                   : CF user who has admin access
+CF_PASSWORD               : Password of the CF user
+EVENT_FILTER              : If set, the specified types of events will be dropped
+SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
+IDLE_TIMEOUT_SEC          : Keep Alive duration for the firehose consumer
 ```
 Operators should run at least two instances of the nozzle to reduce message loss. The Firehose will evenly distribute events across all instances of the nozzle. Scale to more instances if the nozzle cannot handle the workload.
 

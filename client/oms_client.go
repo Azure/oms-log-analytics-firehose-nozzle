@@ -66,7 +66,6 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 	req.Header["x-ms-date"] = []string{rfc1123date}
 	req.Header.Set("Content-Type", "application/json")
 
-	//TODO make timeout external config value
 	client := http.Client{
 		Timeout: c.httpPostTimeout,
 	}
