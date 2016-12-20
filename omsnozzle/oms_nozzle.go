@@ -19,8 +19,8 @@ import (
 
 const (
 	maxPostGoroutines = 1000
-	// A sigle post to OMS has a size limit of 30 MB, we pick an approximate value
-	maxSizePerBatch = 30000000
+	// Max message size of a sigle post
+	maxSizePerBatch = 20000000
 )
 
 type OmsNozzle struct {
