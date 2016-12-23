@@ -50,13 +50,11 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 	//Signature
 	signature, err := c.buildSignature(rfc1123date, contentLength, method, contentType, resource)
 	if err != nil {
-		fmt.Println("Error building signature")
 		return err
 	}
 	// Create request
 	req, err := http.NewRequest("POST", c.url, bytes.NewBuffer(*msg))
 	if err != nil {
-		fmt.Println("Error creating HTTP Request")
 		return err
 	}
 	req.Header.Set("Authorization", signature)
@@ -87,7 +85,6 @@ func (c *Client) buildSignature(date string, contentLength int, method string, c
 	bytesToHash := []byte(stringToHash)
 	keyBytes, err := base64.StdEncoding.DecodeString(c.sharedKey)
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 	hasher := hmac.New(sha256.New, keyBytes)

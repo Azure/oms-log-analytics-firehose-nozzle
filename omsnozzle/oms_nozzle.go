@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
@@ -24,6 +26,7 @@ const (
 )
 
 type OmsNozzle struct {
+	logger             lager.Logger
 	errChan            <-chan error
 	msgChan            <-chan *events.Envelope
 	signalChan         chan os.Signal
@@ -50,8 +53,9 @@ type NozzleConfig struct {
 	ExcludeHttpEvents      bool
 }
 
-func NewOmsNozzle(cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
+func NewOmsNozzle(logger lager.Logger, cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
 	return &OmsNozzle{
+		logger:         logger,
 		errChan:        make(<-chan error),
 		msgChan:        make(<-chan *events.Envelope),
 		signalChan:     make(chan os.Signal, 1),
@@ -72,12 +76,12 @@ func (o *OmsNozzle) setInstanceName() error {
 	// instance id to track multiple nozzles, used for logging
 	hostName, err := os.Hostname()
 	if err != nil {
-		fmt.Printf("Error getting hostname for NozzleInstance: %s\n", err)
+		o.logger.Error("failed to get hostname for nozzle instance", err)
 		o.nozzleInstanceName = fmt.Sprintf("pid-%d", os.Getpid())
 	} else {
 		o.nozzleInstanceName = fmt.Sprintf("pid-%d@%s", os.Getpid(), hostName)
 	}
-	fmt.Printf("Nozzle instance name: %s\n", o.nozzleInstanceName)
+	o.logger.Info("getting nozzle instance name", lager.Data{"name": o.nozzleInstanceName})
 	return err
 }
 
@@ -86,14 +90,14 @@ func (o *OmsNozzle) initialize() {
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
 	o.setInstanceName()
 
-	fmt.Printf("Starting with uaaAddress:%s, dopplerAddress:%s\n", o.nozzleConfig.UaaAddress, o.nozzleConfig.TrafficControllerUrl)
+	o.logger.Info("initialize", lager.Data{"uaaAddress": o.nozzleConfig.UaaAddress}, lager.Data{"dopplerAddress": o.nozzleConfig.TrafficControllerUrl})
 	uaaClient, err := uaago.NewClient(o.nozzleConfig.UaaAddress)
 	if err != nil {
-		panic("Error creating uaa client:" + err.Error())
+		o.logger.Fatal("error creating uaa client", err)
 	}
 	authToken, err := uaaClient.GetAuthToken(o.nozzleConfig.UaaClientName, o.nozzleConfig.UaaClientSecret, o.nozzleConfig.SkipSslValidation)
 	if err != nil {
-		panic("Error getting auth token:" + err.Error())
+		o.logger.Fatal("error getting auth token", err)
 	}
 
 	o.consumer = consumer.New(
@@ -117,7 +121,7 @@ func (o *OmsNozzle) initialize() {
 		var errorChannelCount = 0
 		for err := range o.errChan {
 			errorChannelCount++
-			fmt.Fprintf(os.Stderr, "Firehose channel error.  Date:%v errorCount:%d error:%v\n", time.Now(), errorChannelCount, err.Error())
+			o.logger.Error("firehose channel error", err, lager.Data{"error count": errorChannelCount})
 		}
 	}()
 }
@@ -135,7 +139,11 @@ func (o *OmsNozzle) postData(events *map[string][]byte) {
 				if err := o.omsClient.PostData(&v, k); err != nil {
 					nRetries--
 					elapsedTime := time.Since(requestStartTime)
-					fmt.Printf("Error posting message type %s to OMS. error: %s elapseTime:%s msgSize:%d. remaining attempts=%d\n", k, err, elapsedTime.String(), len(v), nRetries)
+					o.logger.Error("error posting message to OMS", err,
+						lager.Data{"msg type": k},
+						lager.Data{"elapse time": elapsedTime.String()},
+						lager.Data{"msg size": len(v)},
+						lager.Data{"remaining attempts": nRetries})
 					time.Sleep(time.Second * 1)
 				} else {
 					break
@@ -146,9 +154,9 @@ func (o *OmsNozzle) postData(events *map[string][]byte) {
 	<-o.goroutineSem
 }
 
-func marshalAsJson(m *OMSMessage) []byte {
+func (o *OmsNozzle) marshalAsJson(m *OMSMessage) []byte {
 	if j, err := json.Marshal(&m); err != nil {
-		fmt.Printf("Error marshalling message to JSON. error: %s. message: %s\n", err, *m)
+		o.logger.Error("error marshalling message to JSON", err, lager.Data{"message": *m})
 		return nil
 	} else {
 		return j
@@ -173,10 +181,10 @@ func (o *OmsNozzle) routeEvents() error {
 		// loop over message and signal channel
 		select {
 		case s := <-o.signalChan:
-			fmt.Printf("Signal caught:%s Exiting\n", s.String())
+			o.logger.Info("exiting", lager.Data{"signal caught": s.String()})
 			err := o.consumer.Close()
 			if err != nil {
-				fmt.Printf("Error closing consumer:%v\n", err)
+				o.logger.Error("error closing consumer", err)
 			}
 			os.Exit(1)
 		case <-ticker.C:
@@ -195,14 +203,18 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_ValueMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewValueMetric(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 			case events.Envelope_CounterEvent:
 				if !o.nozzleConfig.ExcludeMetricEvents {
-					omsMessage = messages.NewCounterEvent(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					m := messages.NewCounterEvent(msg, o.nozzleInstanceName)
+					if strings.Contains(m.Name, "TruncatingBuffer.DroppedMessage") {
+						o.logger.Error("received TruncatingBuffer alert", nil)
+					}
+					omsMessage = m
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
@@ -210,7 +222,7 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_ContainerMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewContainerMetric(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
@@ -219,7 +231,7 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_LogMessage:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewLogMessage(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
@@ -227,7 +239,7 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_Error:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewError(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
@@ -236,12 +248,12 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_HttpStartStop:
 				if !o.nozzleConfig.ExcludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg, o.nozzleInstanceName)
-					if m := marshalAsJson(&omsMessage); m != nil {
+					if m := o.marshalAsJson(&omsMessage); m != nil {
 						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 			default:
-				fmt.Println("Unexpected message type" + msg.GetEventType().String())
+				o.logger.Info("uncategorized message", lager.Data{"message": msg.String()})
 				continue
 			}
 			// When the size of one type reaches the max per batch, trigger the post immediately

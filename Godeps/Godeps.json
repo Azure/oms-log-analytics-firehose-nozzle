@@ -7,6 +7,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.cloudfoundry.org/lager",
+			"Rev": "6cfe365fb6bb84343f0034b4a53cd250d173b61f"
+		},
+		{
 			"ImportPath": "github.com/alecthomas/template",
 			"Rev": "a0175ee3bccc567396460bf5acd36800cb10c49c"
 		},

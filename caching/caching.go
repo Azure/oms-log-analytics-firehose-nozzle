@@ -1,61 +1,71 @@
 package caching
 
 import (
-	"fmt"
+	"code.cloudfoundry.org/lager"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
 
 type Caching struct {
 	cfClientConfig *cfclient.Config
 	appNamesByGuid map[string]string
+	logger         lager.Logger
 }
 
-func NewCaching(config *cfclient.Config) *Caching {
+func NewCaching(config *cfclient.Config, logger lager.Logger) *Caching {
 	return &Caching{
 		cfClientConfig: config,
 		appNamesByGuid: make(map[string]string),
+		logger:         logger,
 	}
 }
 
 func (c *Caching) Initialize() {
 	cfClient, err := cfclient.NewClient(c.cfClientConfig)
 	if err != nil {
-		panic("Error creating cfclient:" + err.Error())
+		c.logger.Fatal("error creating cfclient", err)
 	}
 
 	apps, err := cfClient.ListApps()
 	if err != nil {
-		panic("Error getting app list:" + err.Error())
+		c.logger.Fatal("error getting app list", err)
 	}
 
 	for _, app := range apps {
-		fmt.Printf("Adding to AppName cache. App guid:%s name:%s\n", app.Guid, app.Name)
 		c.appNamesByGuid[app.Guid] = app.Name
+		c.logger.Info("adding to app name cache",
+			lager.Data{"guid": app.Guid},
+			lager.Data{"name": app.Name},
+			lager.Data{"cache size": len(c.appNamesByGuid)})
 	}
-	fmt.Printf("Size of appNamesByGuid:%d\n", len(c.appNamesByGuid))
 }
 
-func (c *Caching) GetAppName(appGuid string) (string, error) {
+func (c *Caching) GetAppName(appGuid string) string {
 	if appName, ok := c.appNamesByGuid[appGuid]; ok {
-		return appName, nil
+		return appName
 	} else {
-		fmt.Printf("Appname not found for GUID:%s Current size of map:%d\n", appGuid, len(c.appNamesByGuid))
+		c.logger.Info("App name not found for GUID",
+			lager.Data{"guid": appGuid},
+			lager.Data{"app name cache size": len(c.appNamesByGuid)})
 		// call the client api to get the name for this app
+		// purposely create a new client due to issue in using a single client
 		cfClient, err := cfclient.NewClient(c.cfClientConfig)
 		if err != nil {
-			fmt.Printf("Error creating cfclient:%v\n", err)
-			return "", err
+			c.logger.Error("error creating cfclient", err)
+			return ""
 		}
 		app, err := cfClient.AppByGuid(appGuid)
 		if err != nil {
-			fmt.Printf("Error getting appname for GUID:%s Error was:%v\n", appGuid, err)
-			return "", err
+			c.logger.Error("error getting appname", err, lager.Data{"guid": appGuid})
+			return ""
 		} else {
 			// store appname in map
 			c.appNamesByGuid[app.Guid] = app.Name
-			fmt.Printf("Adding to AppName cache. App guid:%s name:%s. New size of appNamesByGuid:%d\n", app.Guid, app.Name, len(c.appNamesByGuid))
+			c.logger.Info("adding to app name cache",
+				lager.Data{"guid": app.Guid},
+				lager.Data{"name": app.Name},
+				lager.Data{"cache size": len(c.appNamesByGuid)})
 			// return the app name
-			return app.Name, nil
+			return app.Name
 		}
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	hex "encoding/hex"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -44,8 +43,6 @@ func NewBaseMessage(e *events.Envelope, nozzleInstanceName string) *BaseMessage 
 	}
 	if e.Timestamp != nil {
 		b.EventTime = time.Unix(0, *e.Timestamp)
-	} else {
-		fmt.Printf("Message did not have timestamp. EventType:%s Event:%s\n", b.EventType, e.String())
 	}
 	if e.Origin != nil {
 		b.Origin = e.GetOrigin()
@@ -113,7 +110,7 @@ func NewHTTPStartStop(e *events.Envelope, nozzleInstanceName string) *HTTPStartS
 	if m.ApplicationId != nil {
 		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
-		r.ApplicationName, _ = Caching.GetAppName(id)
+		r.ApplicationName = Caching.GetAppName(id)
 	}
 
 	if e.HttpStartStop.GetForwarded() != nil {
@@ -152,7 +149,7 @@ func NewLogMessage(e *events.Envelope, nozzleInstanceName string) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
-	r.ApplicationName, _ = Caching.GetAppName(r.AppID)
+	r.ApplicationName = Caching.GetAppName(r.AppID)
 	return &r
 }
 
@@ -199,7 +196,7 @@ func NewContainerMetric(e *events.Envelope, nozzleInstanceName string) *Containe
 		MemoryBytesQuota: *e.ContainerMetric.MemoryBytesQuota,
 		DiskBytesQuota:   *e.ContainerMetric.DiskBytesQuota,
 	}
-	r.ApplicationName, _ = Caching.GetAppName(r.ApplicationID)
+	r.ApplicationName = Caching.GetAppName(r.ApplicationID)
 	return &r
 }
 
@@ -221,9 +218,6 @@ func NewCounterEvent(e *events.Envelope, nozzleInstanceName string) *CounterEven
 	}
 	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
 	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
-	if strings.Contains(r.Name, "TruncatingBuffer.DroppedMessage") {
-		fmt.Fprintln(os.Stderr, "Received Dropped Message Event")
-	}
 	return &r
 }
 
