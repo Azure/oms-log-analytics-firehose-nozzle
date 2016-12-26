@@ -64,11 +64,11 @@ func main() {
 	kingpin.Parse()
 
 	logger := lager.NewLogger("oms-nozzle")
+	logLevel := lager.INFO
 	if *debug {
-		logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
-	} else {
-		logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.INFO))
+		logLevel = lager.DEBUG
 	}
+	logger.RegisterSink(lager.NewWriterSink(os.Stdout, logLevel))
 
 	// enable thread dump
 	threadDumpChan := registerGoRoutineDumpSignalChannel()
