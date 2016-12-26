@@ -54,6 +54,7 @@ CF_PASSWORD               : Password of the CF user
 EVENT_FILTER              : If set, the specified types of events will be dropped
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
 IDLE_TIMEOUT_SEC          : Keep Alive duration for the firehose consumer
+DEBUG                     : Print debug logs, default is false
 ```
 Operators should run at least two instances of the nozzle to reduce message loss. The Firehose will evenly distribute events across all instances of the nozzle. Scale to more instances if the nozzle cannot handle the workload.
 

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -9,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/lizzha/pcf-oms-poc/caching"
 	"github.com/lizzha/pcf-oms-poc/client"
@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	firehoseSubscriptionID = "oms-poc"
+	firehoseSubscriptionID = "oms-nozzle"
 	// lower limit for override
 	minOMSPostTimeoutSeconds = 1
 	// upper limit for override
@@ -52,6 +52,7 @@ var (
 	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
 	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
 	idleTimeout       = kingpin.Flag("idle-timeout", "Keep Alive duration for the firehose consumer").Default("25s").OverrideDefaultFromEnvar("IDLE_TIMEOUT").Duration()
+	debug             = kingpin.Flag("debug", "Print debug logs").Default("false").OverrideDefaultFromEnvar("DEBUG").Bool()
 
 	excludeMetricEvents = false
 	excludeLogEvents    = false
@@ -62,21 +63,32 @@ func main() {
 	kingpin.Version(version)
 	kingpin.Parse()
 
+	logger := lager.NewLogger("oms-nozzle")
+	logLevel := lager.INFO
+	if *debug {
+		logLevel = lager.DEBUG
+	}
+	logger.RegisterSink(lager.NewWriterSink(os.Stdout, logLevel))
+
 	// enable thread dump
 	threadDumpChan := registerGoRoutineDumpSignalChannel()
 	defer close(threadDumpChan)
 	go dumpGoRoutine(threadDumpChan)
 
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
-		fmt.Printf("OMS_POST_TIMEOUT:%s\n", *omsPostTimeout)
+		logger.Info("config", lager.Data{"OMS_POST_TIMEOUT": (*omsPostTimeout).String()})
 	} else {
-		fmt.Printf("Ignoring OMS_POST_TIMEOUT value %s. Min value is %d, max value is %d. Set to default 5s.\n", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds)
+		logger.Info("invalid OMS_POST_TIMEOUT value",
+			lager.Data{"invalid value": (*omsPostTimeout).String()},
+			lager.Data{"min seconds": minOMSPostTimeoutSeconds},
+			lager.Data{"max seconds": maxOMSPostTimeoutSeconds},
+			lager.Data{"default seconds": 5})
 		*omsPostTimeout = time.Duration(5) * time.Second
 	}
-	fmt.Printf("OMS_TYPE_PREFIX:%s\n", *omsTypePrefix)
-	fmt.Printf("SKIP_SSL_VALIDATION:%v\n", *skipSslValidation)
-	fmt.Printf("IDLE_TIMEOUT:%v\n", *idleTimeout)
-	fmt.Printf("OMS_BATCH_TIME:%v\n", *omsBatchTime)
+	logger.Info("config", lager.Data{"OMS_TYPE_PREFIX": *omsTypePrefix})
+	logger.Info("config", lager.Data{"SKIP_SSL_VALIDATION": *skipSslValidation})
+	logger.Info("config", lager.Data{"IDLE_TIMEOUT": (*idleTimeout).String()})
+	logger.Info("config", lager.Data{"OMS_BATCH_TIME": (*omsBatchTime).String()})
 	if len(*eventFilter) > 0 {
 		*eventFilter = strings.ToUpper(*eventFilter)
 		// by default we don't filter any events
@@ -89,9 +101,12 @@ func main() {
 		if strings.Contains(*eventFilter, httpEventType) {
 			excludeHttpEvents = true
 		}
-		fmt.Printf("EVENT_FILTER is:%s filter values are excludeMetricEvents:%t excludeLogEvents:%t excludeHTTPEvents:%t\n", *eventFilter, excludeMetricEvents, excludeLogEvents, excludeHttpEvents)
+		logger.Info("config", lager.Data{"EVENT_FILTER": *eventFilter},
+			lager.Data{"excludeMetricEvents": excludeMetricEvents},
+			lager.Data{"excludeLogEvents": excludeLogEvents},
+			lager.Data{"excludeHTTPEvents": excludeHttpEvents})
 	} else {
-		fmt.Print("No value for EVENT_FILTER evironment variable.  All events will be published\n")
+		logger.Info("config EVENT_FILTER is nil. all events will be published")
 	}
 
 	cfClientConfig := &cfclient.Config{
@@ -101,7 +116,7 @@ func main() {
 		SkipSslValidation: *skipSslValidation,
 	}
 
-	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout)
+	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout, logger)
 
 	nozzleConfig := &omsnozzle.NozzleConfig{
 		UaaAddress:             *uaaAddress,
@@ -118,9 +133,9 @@ func main() {
 		ExcludeHttpEvents:      excludeHttpEvents,
 	}
 
-	nozzle := omsnozzle.NewOmsNozzle(cfClientConfig, omsClient, nozzleConfig)
+	nozzle := omsnozzle.NewOmsNozzle(logger, cfClientConfig, omsClient, nozzleConfig)
 
-	messages.Caching = caching.NewCaching(cfClientConfig)
+	messages.Caching = caching.NewCaching(cfClientConfig, logger)
 	messages.Caching.Initialize()
 	nozzle.Start()
 }

@@ -23,3 +23,4 @@ applications:
     SKIP_SSL_VALIDATION: true
     EVENT_FILTER: "METRIC,HTTP" # A comma separated list to be exclued. The valid event types are METRIC,LOG,HTTP
     IDLE_TIMEOUT: 60s
+    DEBUG: false
