@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -19,7 +18,7 @@ import (
 )
 
 const (
-	firehoseSubscriptionID = "oms-poc"
+	firehoseSubscriptionID = "oms-nozzle"
 	// lower limit for override
 	minOMSPostTimeoutSeconds = 1
 	// upper limit for override
@@ -53,6 +52,7 @@ var (
 	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
 	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
 	idleTimeout       = kingpin.Flag("idle-timeout", "Keep Alive duration for the firehose consumer").Default("25s").OverrideDefaultFromEnvar("IDLE_TIMEOUT").Duration()
+	debug             = kingpin.Flag("debug", "Print debug logs").Default("false").OverrideDefaultFromEnvar("DEBUG").Bool()
 
 	excludeMetricEvents = false
 	excludeLogEvents    = false
@@ -64,7 +64,11 @@ func main() {
 	kingpin.Parse()
 
 	logger := lager.NewLogger("oms-nozzle")
-	logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
+	if *debug {
+		logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.DEBUG))
+	} else {
+		logger.RegisterSink(lager.NewWriterSink(os.Stdout, lager.INFO))
+	}
 
 	// enable thread dump
 	threadDumpChan := registerGoRoutineDumpSignalChannel()
@@ -74,7 +78,11 @@ func main() {
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		logger.Info("config", lager.Data{"OMS_POST_TIMEOUT": (*omsPostTimeout).String()})
 	} else {
-		logger.Info(fmt.Sprintf("ignoring OMS_POST_TIMEOUT value %s. valid value is %ds ~ %ds. set to default 5s", *omsPostTimeout, minOMSPostTimeoutSeconds, maxOMSPostTimeoutSeconds))
+		logger.Info("invalid OMS_POST_TIMEOUT value",
+			lager.Data{"invalid value": (*omsPostTimeout).String()},
+			lager.Data{"min seconds": minOMSPostTimeoutSeconds},
+			lager.Data{"max seconds": maxOMSPostTimeoutSeconds},
+			lager.Data{"default seconds": 5})
 		*omsPostTimeout = time.Duration(5) * time.Second
 	}
 	logger.Info("config", lager.Data{"OMS_TYPE_PREFIX": *omsTypePrefix})
@@ -98,7 +106,7 @@ func main() {
 			lager.Data{"excludeLogEvents": excludeLogEvents},
 			lager.Data{"excludeHTTPEvents": excludeHttpEvents})
 	} else {
-		logger.Info(fmt.Sprint("config EVENT_FILTER is nil. all events will be published"))
+		logger.Info("config EVENT_FILTER is nil. all events will be published")
 	}
 
 	cfClientConfig := &cfclient.Config{
@@ -108,7 +116,7 @@ func main() {
 		SkipSslValidation: *skipSslValidation,
 	}
 
-	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout)
+	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout, logger)
 
 	nozzleConfig := &omsnozzle.NozzleConfig{
 		UaaAddress:             *uaaAddress,

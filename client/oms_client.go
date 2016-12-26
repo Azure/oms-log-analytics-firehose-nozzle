@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"code.cloudfoundry.org/lager"
 )
 
 // Client posts messages to OMS
@@ -18,6 +20,7 @@ type Client struct {
 	sharedKey       string
 	url             string
 	httpPostTimeout time.Duration
+	logger          lager.Logger
 }
 
 const (
@@ -31,12 +34,13 @@ func init() {
 }
 
 // New instance of the Client
-func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration) *Client {
+func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration, logger lager.Logger) *Client {
 	return &Client{
 		customerID:      customerID,
 		sharedKey:       sharedKey,
 		url:             "https://" + customerID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01",
 		httpPostTimeout: postTimeout,
+		logger:          logger,
 	}
 }
 
@@ -50,11 +54,13 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 	//Signature
 	signature, err := c.buildSignature(rfc1123date, contentLength, method, contentType, resource)
 	if err != nil {
+		c.logger.Debug("Error building signature")
 		return err
 	}
 	// Create request
 	req, err := http.NewRequest("POST", c.url, bytes.NewBuffer(*msg))
 	if err != nil {
+		c.logger.Debug("Error creating HTTP request")
 		return err
 	}
 	req.Header.Set("Authorization", signature)

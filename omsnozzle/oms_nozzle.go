@@ -130,6 +130,9 @@ func (o *OmsNozzle) postData(events *map[string][]byte) {
 	for k, v := range *events {
 		if len(v) > 0 {
 			v = append(v, ']')
+			o.logger.Debug("Posting to OMS",
+				lager.Data{"event type": k},
+				lager.Data{"size": len(v)})
 			if len(o.nozzleConfig.OmsTypePrefix) > 0 {
 				k = o.nozzleConfig.OmsTypePrefix + k
 			}
@@ -163,7 +166,7 @@ func (o *OmsNozzle) marshalAsJson(m *OMSMessage) []byte {
 	}
 }
 
-func pushMsgAsJson(eventType string, events *map[string][]byte, msg *[]byte) {
+func (o *OmsNozzle) pushMsgAsJson(eventType string, events *map[string][]byte, msg *[]byte) {
 	// Push json messages to json array format
 	if len((*events)[eventType]) == 0 {
 		(*events)[eventType] = append((*events)[eventType], '[')
@@ -204,7 +207,7 @@ func (o *OmsNozzle) routeEvents() error {
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewValueMetric(msg, o.nozzleInstanceName)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 			case events.Envelope_CounterEvent:
@@ -215,7 +218,7 @@ func (o *OmsNozzle) routeEvents() error {
 					}
 					omsMessage = m
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 
@@ -223,7 +226,7 @@ func (o *OmsNozzle) routeEvents() error {
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewContainerMetric(msg, o.nozzleInstanceName)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 
@@ -232,7 +235,7 @@ func (o *OmsNozzle) routeEvents() error {
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewLogMessage(msg, o.nozzleInstanceName)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 
@@ -240,7 +243,7 @@ func (o *OmsNozzle) routeEvents() error {
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewError(msg, o.nozzleInstanceName)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 
@@ -249,7 +252,7 @@ func (o *OmsNozzle) routeEvents() error {
 				if !o.nozzleConfig.ExcludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg, o.nozzleInstanceName)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
-						pushMsgAsJson(omsMessageType, &pendingEvents, &m)
+						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 			default:
