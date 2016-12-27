@@ -12,7 +12,6 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/cloudfoundry-incubator/uaago"
 	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/lizzha/pcf-oms-poc/client"
@@ -39,9 +38,6 @@ type OmsNozzle struct {
 }
 
 type NozzleConfig struct {
-	UaaAddress             string
-	UaaClientName          string
-	UaaClientSecret        string
 	TrafficControllerUrl   string
 	SkipSslValidation      bool
 	IdleTimeout            time.Duration
@@ -51,6 +47,10 @@ type NozzleConfig struct {
 	ExcludeMetricEvents    bool
 	ExcludeLogEvents       bool
 	ExcludeHttpEvents      bool
+}
+
+type CfClientTokenRefresh struct {
+	cfClient *cfclient.Client
 }
 
 func NewOmsNozzle(logger lager.Logger, cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
@@ -90,14 +90,10 @@ func (o *OmsNozzle) initialize() {
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
 	o.setInstanceName()
 
-	o.logger.Info("initialize", lager.Data{"uaaAddress": o.nozzleConfig.UaaAddress}, lager.Data{"dopplerAddress": o.nozzleConfig.TrafficControllerUrl})
-	uaaClient, err := uaago.NewClient(o.nozzleConfig.UaaAddress)
+	o.logger.Info("initialize", lager.Data{"dopplerAddress": o.nozzleConfig.TrafficControllerUrl})
+	cfClient, err := cfclient.NewClient(o.cfClientConfig)
 	if err != nil {
-		o.logger.Fatal("error creating uaa client", err)
-	}
-	authToken, err := uaaClient.GetAuthToken(o.nozzleConfig.UaaClientName, o.nozzleConfig.UaaClientSecret, o.nozzleConfig.SkipSslValidation)
-	if err != nil {
-		o.logger.Fatal("error getting auth token", err)
+		o.logger.Fatal("error creating cfclient", err)
 	}
 
 	o.consumer = consumer.New(
@@ -105,15 +101,10 @@ func (o *OmsNozzle) initialize() {
 		&tls.Config{InsecureSkipVerify: o.nozzleConfig.SkipSslValidation},
 		nil)
 
-	refresher := tokenRefresher{
-		uaaClient:           uaaClient,
-		clientName:          o.nozzleConfig.UaaClientName,
-		clientSecret:        o.nozzleConfig.UaaClientSecret,
-		skipSslVerification: o.nozzleConfig.SkipSslValidation,
-	}
+	refresher := CfClientTokenRefresh{cfClient: cfClient}
 	o.consumer.RefreshTokenFrom(&refresher)
 	o.consumer.SetIdleTimeout(o.nozzleConfig.IdleTimeout)
-	o.msgChan, o.errChan = o.consumer.Firehose(o.nozzleConfig.FirehoseSubscriptionId, authToken)
+	o.msgChan, o.errChan = o.consumer.Firehose(o.nozzleConfig.FirehoseSubscriptionId, "")
 
 	//o.consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// async error channel
@@ -278,6 +269,10 @@ func (o *OmsNozzle) routeEvents() error {
 	}
 }
 
+func (ct *CfClientTokenRefresh) RefreshAuthToken() (string, error) {
+	return ct.cfClient.GetToken()
+}
+
 // OMSMessage is a marker inteface for JSON formatted messages published to OMS
 type OMSMessage interface{}
 
@@ -287,19 +282,4 @@ type ConsoleDebugPrinter struct{}
 // Print debug logging
 func (c ConsoleDebugPrinter) Print(title, dump string) {
 	fmt.Printf("Consumer debug.  title:%s detail:%s", title, dump)
-}
-
-type tokenRefresher struct {
-	uaaClient           *uaago.Client
-	clientName          string
-	clientSecret        string
-	skipSslVerification bool
-}
-
-func (t *tokenRefresher) RefreshAuthToken() (string, error) {
-	token, err := t.uaaClient.GetAuthToken(t.clientName, t.clientSecret, t.skipSslVerification)
-	if err != nil {
-		return "", err
-	}
-	return token, nil
 }

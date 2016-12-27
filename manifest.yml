@@ -17,9 +17,6 @@ applications:
     CF_PASSWORD: CHANGE_ME
     API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
     DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443
-    UAA_ADDR: https://uaa.<CF_SYSTEM_DOMAIN>
-    UAA_CLIENT_NAME: CHANGE_ME
-    UAA_CLIENT_SECRET: CHANGE_ME
     SKIP_SSL_VALIDATION: true
     EVENT_FILTER: "METRIC,HTTP" # A comma separated list to be exclued. The valid event types are METRIC,LOG,HTTP
     IDLE_TIMEOUT: 60s

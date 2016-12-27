@@ -18,12 +18,14 @@ The oms-log-analytics-nozzle is a CF component which forwards metrics from the [
 * [Get started with Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-get-started)
 
 # Deploy - Push the Nozzle as an App to Cloud Foundry
-### 1. Create a UAA client and grant required privileges
-The OMS Log Analytics nozzle requires a UUA user who is authorized to access the loggregator firehose. You can add a user using UAA CLI.
+### 1. Create a CF user and grant required privileges
+The OMS Log Analytics nozzle requires a CF user who is authorized to access the loggregator firehose.
 ```
 uaac target https://uaa.${ENDPOINT} --skip-ssl-validation
 uaac token client get admin
-uaac client add ${ID} --name ${UAA_CLIENT_NAME} --scope openid,oauth.approvals,doppler.firehose --authorized_grant_types authorization_code,client_credentials,refresh_token --authorities oauth.login,doppler.firehose --access_token_validity 31557600 --refresh_token_validity 31557600
+cf create-user ${CF_USER} ${CF_USER_PASSWORD}
+uaac member add cloud_controller.admin ${CF_USER}
+uaac member add doppler.firehose ${CF_USER}
 ```
 
 ### 2. Download the latest code
@@ -46,10 +48,7 @@ OMS_POST_TIMEOUT_SEC      : HTTP post timeout seconds for sending events to OMS 
 OMS_BATCH_TIME            : Interval for posing a batch to OMS
 API_ADDR                  : The api URL of the CF environment
 DOPPLER_ADDR              : Loggregator's traffic controller URL
-UAA_ADDR                  : UAA URL which the nozzle uses to get an authentication token for the firehose
-UAA_CLIENT_NAME           : Client who has access to the firehose
-UAA_CLIENT_SECRET         : Secret for the client
-CF_USER                   : CF user who has admin access
+CF_USER                   : CF user who has admin and firehose access
 CF_PASSWORD               : Password of the CF user
 EVENT_FILTER              : If set, the specified types of events will be dropped
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
