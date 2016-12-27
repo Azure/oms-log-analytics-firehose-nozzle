@@ -52,7 +52,7 @@ var (
 	eventFilter       = kingpin.Flag("eventFilter", "Comma separated list of types to exclude").Default("").OverrideDefaultFromEnvar("EVENT_FILTER").String()
 	skipSslValidation = kingpin.Flag("skip-ssl-validation", "Skip SSL validation").Default("false").OverrideDefaultFromEnvar("SKIP_SSL_VALIDATION").Bool()
 	idleTimeout       = kingpin.Flag("idle-timeout", "Keep Alive duration for the firehose consumer").Default("25s").OverrideDefaultFromEnvar("IDLE_TIMEOUT").Duration()
-	debug             = kingpin.Flag("debug", "Print debug logs").Default("false").OverrideDefaultFromEnvar("DEBUG").Bool()
+	logLevel          = kingpin.Flag("log-level", "Log level: DEBUG, INFO, ERROR").Default("INFO").OverrideDefaultFromEnvar("LOG_LEVEL").String()
 
 	excludeMetricEvents = false
 	excludeLogEvents    = false
@@ -64,11 +64,14 @@ func main() {
 	kingpin.Parse()
 
 	logger := lager.NewLogger("oms-nozzle")
-	logLevel := lager.INFO
-	if *debug {
-		logLevel = lager.DEBUG
+	level := lager.INFO
+	switch strings.ToUpper(*logLevel) {
+	case "DEBUG":
+		level = lager.DEBUG
+	case "ERROR":
+		level = lager.ERROR
 	}
-	logger.RegisterSink(lager.NewWriterSink(os.Stdout, logLevel))
+	logger.RegisterSink(lager.NewWriterSink(os.Stdout, level))
 
 	// enable thread dump
 	threadDumpChan := registerGoRoutineDumpSignalChannel()
