@@ -27,10 +27,6 @@
 			"Rev": "c783aa0efe78706e9d98ffc4a84f0d42cd322ac8"
 		},
 		{
-			"ImportPath": "github.com/cloudfoundry-incubator/uaago",
-			"Rev": "1db9cfd27865007e07ffd5914c0fdf5fb7fc09ba"
-		},
-		{
 			"ImportPath": "github.com/cloudfoundry/noaa",
 			"Rev": "1939b6e4d6d76b2ee8541befd6a8fb8aa076933e"
 		},
