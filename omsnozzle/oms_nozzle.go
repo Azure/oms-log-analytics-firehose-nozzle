@@ -53,6 +53,10 @@ type CfClientTokenRefresh struct {
 	cfClient *cfclient.Client
 }
 
+func (ct *CfClientTokenRefresh) RefreshAuthToken() (string, error) {
+	return ct.cfClient.GetToken()
+}
+
 func NewOmsNozzle(logger lager.Logger, cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
 	return &OmsNozzle{
 		logger:         logger,
@@ -267,10 +271,6 @@ func (o *OmsNozzle) routeEvents() error {
 		default:
 		}
 	}
-}
-
-func (ct *CfClientTokenRefresh) RefreshAuthToken() (string, error) {
-	return ct.cfClient.GetToken()
 }
 
 // OMSMessage is a marker inteface for JSON formatted messages published to OMS
