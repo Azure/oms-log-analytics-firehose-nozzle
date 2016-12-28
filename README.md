@@ -23,9 +23,9 @@ The OMS Log Analytics nozzle requires a CF user who is authorized to access the 
 ```
 uaac target https://uaa.${ENDPOINT} --skip-ssl-validation
 uaac token client get admin
-cf create-user ${CF_USER} ${CF_USER_PASSWORD}
-uaac member add cloud_controller.admin ${CF_USER}
-uaac member add doppler.firehose ${CF_USER}
+cf create-user ${FIREHOSE_USER} ${FIREHOSE_USER_PASSWORD}
+uaac member add cloud_controller.admin ${FIREHOSE_USER}
+uaac member add doppler.firehose ${FIREHOSE_USER}
 ```
 
 ### 2. Download the latest code
