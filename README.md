@@ -44,7 +44,7 @@ cd pcf-oms-poc
 OMS_WORKSPACE             : OMS workspace ID
 OMS_KEY                   : OMS key
 OMS_TYPE_PREFIX           : String helps to identify the CF related messags in OMS Log Analytics
-OMS_POST_TIMEOUT_SEC      : HTTP post timeout seconds for sending events to OMS Log Analytics
+OMS_POST_TIMEOUT          : HTTP post timeout for sending events to OMS Log Analytics
 OMS_BATCH_TIME            : Interval for posing a batch to OMS
 API_ADDR                  : The api URL of the CF environment
 DOPPLER_ADDR              : Loggregator's traffic controller URL
@@ -52,7 +52,7 @@ FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : If set, the specified types of events will be dropped
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
-IDLE_TIMEOUT_SEC          : Keep Alive duration for the firehose consumer
+IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
 LOG_LEVEL                 : Valid log levels: DEBUG, INFO, ERROR
 ```
 Operators should run at least two instances of the nozzle to reduce message loss. The Firehose will evenly distribute events across all instances of the nozzle. Scale to more instances if the nozzle cannot handle the workload.
