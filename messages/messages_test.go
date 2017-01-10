@@ -2,13 +2,13 @@ package messages_test
 
 import (
 	"crypto/md5"
+	"time"
 	hex "encoding/hex"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/lizzha/pcf-oms-poc/messages"
 	"github.com/lizzha/pcf-oms-poc/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 )
 
 var _ = Describe("Messages", func() {
@@ -16,6 +16,7 @@ var _ = Describe("Messages", func() {
 		instanceName string
 		caching      *mocks.MockCaching
 	)
+	
 	BeforeEach(func() {
 		instanceName = "nozzleinstace"
 		caching = &mocks.MockCaching{
