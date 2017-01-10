@@ -1,7 +1,6 @@
 package omsnozzle
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,10 +10,10 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	"github.com/cloudfoundry-community/go-cfclient"
-	"github.com/cloudfoundry/noaa/consumer"
 	events "github.com/cloudfoundry/sonde-go/events"
+	"github.com/lizzha/pcf-oms-poc/caching"
 	"github.com/lizzha/pcf-oms-poc/client"
+	"github.com/lizzha/pcf-oms-poc/firehose"
 	"github.com/lizzha/pcf-oms-poc/messages"
 )
 
@@ -25,90 +24,51 @@ const (
 )
 
 type OmsNozzle struct {
-	logger             lager.Logger
-	errChan            <-chan error
-	msgChan            <-chan *events.Envelope
-	signalChan         chan os.Signal
-	consumer           *consumer.Consumer
-	omsClient          *client.Client
-	cfClientConfig     *cfclient.Config
-	nozzleConfig       *NozzleConfig
-	nozzleInstanceName string
-	goroutineSem       chan int // to control the number of active post goroutines
+	logger         lager.Logger
+	errChan        <-chan error
+	msgChan        <-chan *events.Envelope
+	signalChan     chan os.Signal
+	omsClient      client.Client
+	firehoseClient firehose.Client
+	nozzleConfig   *NozzleConfig
+	goroutineSem   chan int // to control the number of active post goroutines
+	cachingClient  caching.CachingClient
 }
 
 type NozzleConfig struct {
-	TrafficControllerUrl   string
-	SkipSslValidation      bool
-	IdleTimeout            time.Duration
-	FirehoseSubscriptionId string
-	OmsTypePrefix          string
-	OmsBatchTime           time.Duration
-	ExcludeMetricEvents    bool
-	ExcludeLogEvents       bool
-	ExcludeHttpEvents      bool
+	OmsTypePrefix       string
+	OmsBatchTime        time.Duration
+	ExcludeMetricEvents bool
+	ExcludeLogEvents    bool
+	ExcludeHttpEvents   bool
 }
 
-type CfClientTokenRefresh struct {
-	cfClient *cfclient.Client
-}
-
-func (ct *CfClientTokenRefresh) RefreshAuthToken() (string, error) {
-	return ct.cfClient.GetToken()
-}
-
-func NewOmsNozzle(logger lager.Logger, cfClientConfig *cfclient.Config, omsClient *client.Client, nozzleConfig *NozzleConfig) *OmsNozzle {
+func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient client.Client, nozzleConfig *NozzleConfig, caching caching.CachingClient) *OmsNozzle {
 	return &OmsNozzle{
 		logger:         logger,
 		errChan:        make(<-chan error),
 		msgChan:        make(<-chan *events.Envelope),
-		signalChan:     make(chan os.Signal, 1),
+		signalChan:     make(chan os.Signal, 2),
 		omsClient:      omsClient,
-		cfClientConfig: cfClientConfig,
+		firehoseClient: firehoseClient,
 		nozzleConfig:   nozzleConfig,
 		goroutineSem:   make(chan int, maxPostGoroutines),
+		cachingClient:  caching,
 	}
 }
 
 func (o *OmsNozzle) Start() error {
+	o.cachingClient.Initialize()
 	o.initialize()
 	err := o.routeEvents()
-	return err
-}
-
-func (o *OmsNozzle) setInstanceName() error {
-	// instance id to track multiple nozzles, used for logging
-	hostName, err := os.Hostname()
-	if err != nil {
-		o.logger.Error("failed to get hostname for nozzle instance", err)
-		o.nozzleInstanceName = fmt.Sprintf("pid-%d", os.Getpid())
-	} else {
-		o.nozzleInstanceName = fmt.Sprintf("pid-%d@%s", os.Getpid(), hostName)
-	}
-	o.logger.Info("getting nozzle instance name", lager.Data{"name": o.nozzleInstanceName})
 	return err
 }
 
 func (o *OmsNozzle) initialize() {
 	// setup for termination signal from CF
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
-	o.setInstanceName()
 
-	o.logger.Info("initialize", lager.Data{"dopplerAddress": o.nozzleConfig.TrafficControllerUrl})
-	cfClient, err := cfclient.NewClient(o.cfClientConfig)
-	if err != nil {
-		o.logger.Fatal("error creating cfclient", err)
-	}
-
-	o.consumer = consumer.New(
-		o.nozzleConfig.TrafficControllerUrl,
-		&tls.Config{InsecureSkipVerify: o.nozzleConfig.SkipSslValidation},
-		nil)
-
-	refresher := CfClientTokenRefresh{cfClient: cfClient}
-	o.consumer.RefreshTokenFrom(&refresher)
-	o.consumer.SetIdleTimeout(o.nozzleConfig.IdleTimeout)
-	o.msgChan, o.errChan = o.consumer.Firehose(o.nozzleConfig.FirehoseSubscriptionId, "")
+	o.msgChan, o.errChan = o.firehoseClient.Connect()
 
 	//o.consumer.SetDebugPrinter(ConsoleDebugPrinter{})
 	// async error channel
@@ -180,7 +140,7 @@ func (o *OmsNozzle) routeEvents() error {
 		select {
 		case s := <-o.signalChan:
 			o.logger.Info("exiting", lager.Data{"signal caught": s.String()})
-			err := o.consumer.Close()
+			err := o.firehoseClient.CloseConsumer()
 			if err != nil {
 				o.logger.Error("error closing consumer", err)
 			}
@@ -200,14 +160,14 @@ func (o *OmsNozzle) routeEvents() error {
 			// Metrics
 			case events.Envelope_ValueMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
-					omsMessage = messages.NewValueMetric(msg, o.nozzleInstanceName)
+					omsMessage = messages.NewValueMetric(msg, o.cachingClient)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
 						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
 				}
 			case events.Envelope_CounterEvent:
 				if !o.nozzleConfig.ExcludeMetricEvents {
-					m := messages.NewCounterEvent(msg, o.nozzleInstanceName)
+					m := messages.NewCounterEvent(msg, o.cachingClient)
 					if strings.Contains(m.Name, "TruncatingBuffer.DroppedMessage") {
 						o.logger.Error("received TruncatingBuffer alert", nil)
 					}
@@ -219,7 +179,7 @@ func (o *OmsNozzle) routeEvents() error {
 
 			case events.Envelope_ContainerMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
-					omsMessage = messages.NewContainerMetric(msg, o.nozzleInstanceName)
+					omsMessage = messages.NewContainerMetric(msg, o.cachingClient)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
 						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
@@ -228,7 +188,7 @@ func (o *OmsNozzle) routeEvents() error {
 			// Logs Errors
 			case events.Envelope_LogMessage:
 				if !o.nozzleConfig.ExcludeLogEvents {
-					omsMessage = messages.NewLogMessage(msg, o.nozzleInstanceName)
+					omsMessage = messages.NewLogMessage(msg, o.cachingClient)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
 						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
@@ -236,7 +196,7 @@ func (o *OmsNozzle) routeEvents() error {
 
 			case events.Envelope_Error:
 				if !o.nozzleConfig.ExcludeLogEvents {
-					omsMessage = messages.NewError(msg, o.nozzleInstanceName)
+					omsMessage = messages.NewError(msg, o.cachingClient)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
 						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}
@@ -245,7 +205,7 @@ func (o *OmsNozzle) routeEvents() error {
 			// HTTP Start/Stop
 			case events.Envelope_HttpStartStop:
 				if !o.nozzleConfig.ExcludeHttpEvents {
-					omsMessage = messages.NewHTTPStartStop(msg, o.nozzleInstanceName)
+					omsMessage = messages.NewHTTPStartStop(msg, o.cachingClient)
 					if m := o.marshalAsJson(&omsMessage); m != nil {
 						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
 					}

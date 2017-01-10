@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry-community/go-cfclient"
 	"github.com/lizzha/pcf-oms-poc/caching"
 	"github.com/lizzha/pcf-oms-poc/client"
-	"github.com/lizzha/pcf-oms-poc/messages"
+	"github.com/lizzha/pcf-oms-poc/firehose"
 	"github.com/lizzha/pcf-oms-poc/omsnozzle"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -116,24 +116,27 @@ func main() {
 		SkipSslValidation: *skipSslValidation,
 	}
 
+	firehoseConfig := &firehose.FirehoseConfig{
+		SubscriptionId:       firehoseSubscriptionID,
+		TrafficControllerUrl: *dopplerAddress,
+		IdleTimeout:          *idleTimeout,
+	}
+
+	firehoseClient := firehose.NewClient(cfClientConfig, firehoseConfig, logger)
+
 	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout, logger)
 
 	nozzleConfig := &omsnozzle.NozzleConfig{
-		TrafficControllerUrl:   *dopplerAddress,
-		SkipSslValidation:      *skipSslValidation,
-		IdleTimeout:            *idleTimeout,
-		FirehoseSubscriptionId: firehoseSubscriptionID,
-		OmsTypePrefix:          *omsTypePrefix,
-		OmsBatchTime:           *omsBatchTime,
-		ExcludeMetricEvents:    excludeMetricEvents,
-		ExcludeLogEvents:       excludeLogEvents,
-		ExcludeHttpEvents:      excludeHttpEvents,
+		OmsTypePrefix:       *omsTypePrefix,
+		OmsBatchTime:        *omsBatchTime,
+		ExcludeMetricEvents: excludeMetricEvents,
+		ExcludeLogEvents:    excludeLogEvents,
+		ExcludeHttpEvents:   excludeHttpEvents,
 	}
 
-	nozzle := omsnozzle.NewOmsNozzle(logger, cfClientConfig, omsClient, nozzleConfig)
+	cachingClient := caching.NewCaching(cfClientConfig, logger)
+	nozzle := omsnozzle.NewOmsNozzle(logger, firehoseClient, omsClient, nozzleConfig, cachingClient)
 
-	messages.Caching = caching.NewCaching(cfClientConfig, logger)
-	messages.Caching.Initialize()
 	nozzle.Start()
 }
 

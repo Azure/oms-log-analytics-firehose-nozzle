@@ -2,16 +2,25 @@ package caching
 
 import (
 	"code.cloudfoundry.org/lager"
+	"fmt"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
+	"os"
 )
 
 type Caching struct {
 	cfClientConfig *cfclient.Config
 	appNamesByGuid map[string]string
 	logger         lager.Logger
+	instanceName   string
 }
 
-func NewCaching(config *cfclient.Config, logger lager.Logger) *Caching {
+type CachingClient interface {
+	GetAppName(string) string
+	GetInstanceName() string
+	Initialize()
+}
+
+func NewCaching(config *cfclient.Config, logger lager.Logger) CachingClient {
 	return &Caching{
 		cfClientConfig: config,
 		appNamesByGuid: make(map[string]string),
@@ -20,6 +29,8 @@ func NewCaching(config *cfclient.Config, logger lager.Logger) *Caching {
 }
 
 func (c *Caching) Initialize() {
+	c.setInstanceName()
+
 	cfClient, err := cfclient.NewClient(c.cfClientConfig)
 	if err != nil {
 		c.logger.Fatal("error creating cfclient", err)
@@ -68,4 +79,21 @@ func (c *Caching) GetAppName(appGuid string) string {
 			return app.Name
 		}
 	}
+}
+
+func (c *Caching) setInstanceName() error {
+	// instance id to track multiple nozzles, used for logging
+	hostName, err := os.Hostname()
+	if err != nil {
+		c.logger.Error("failed to get hostname for nozzle instance", err)
+		c.instanceName = fmt.Sprintf("pid-%d", os.Getpid())
+	} else {
+		c.instanceName = fmt.Sprintf("pid-%d@%s", os.Getpid(), hostName)
+	}
+	c.logger.Info("getting nozzle instance name", lager.Data{"name": c.instanceName})
+	return err
+}
+
+func (c *Caching) GetInstanceName() string {
+	return c.instanceName
 }

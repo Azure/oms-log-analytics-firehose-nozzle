@@ -14,8 +14,12 @@ import (
 	"code.cloudfoundry.org/lager"
 )
 
+type Client interface {
+	PostData(*[]byte, string) error
+}
+
 // Client posts messages to OMS
-type Client struct {
+type client struct {
 	customerID      string
 	sharedKey       string
 	url             string
@@ -34,8 +38,8 @@ func init() {
 }
 
 // New instance of the Client
-func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration, logger lager.Logger) *Client {
-	return &Client{
+func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration, logger lager.Logger) Client {
+	return &client{
 		customerID:      customerID,
 		sharedKey:       sharedKey,
 		url:             "https://" + customerID + ".ods.opinsights.azure.com" + resource + "?api-version=2016-04-01",
@@ -45,7 +49,7 @@ func NewOmsClient(customerID string, sharedKey string, postTimeout time.Duration
 }
 
 // PostData posts message to OMS
-func (c *Client) PostData(msg *[]byte, logType string) error {
+func (c *client) PostData(msg *[]byte, logType string) error {
 	// Headers
 	contentLength := len(*msg)
 	rfc1123date := time.Now().UTC().Format(time.RFC1123)
@@ -85,7 +89,7 @@ func (c *Client) PostData(msg *[]byte, logType string) error {
 	return nil
 }
 
-func (c *Client) buildSignature(date string, contentLength int, method string, contentType string, resource string) (string, error) {
+func (c *client) buildSignature(date string, contentLength int, method string, contentType string, resource string) (string, error) {
 	xHeaders := "x-ms-date:" + date
 	stringToHash := method + "\n" + strconv.Itoa(contentLength) + "\n" + contentType + "\n" + xHeaders + "\n" + resource
 	bytesToHash := []byte(stringToHash)

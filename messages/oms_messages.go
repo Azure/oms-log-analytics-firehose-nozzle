@@ -13,8 +13,6 @@ import (
 	"github.com/lizzha/pcf-oms-poc/caching"
 )
 
-var Caching *caching.Caching
-
 // BaseMessage contains common data elements
 type BaseMessage struct {
 	EventType      string
@@ -32,14 +30,14 @@ type BaseMessage struct {
 }
 
 // NewBaseMessage Creates the common attributes of messages
-func NewBaseMessage(e *events.Envelope, nozzleInstanceName string) *BaseMessage {
+func NewBaseMessage(e *events.Envelope, c caching.CachingClient) *BaseMessage {
 	var b = BaseMessage{
 		EventType:      e.GetEventType().String(),
 		Deployment:     e.GetDeployment(),
 		Job:            e.GetJob(),
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),
-		NozzleInstance: nozzleInstanceName,
+		NozzleInstance: c.GetInstanceName(),
 	}
 	if e.Timestamp != nil {
 		b.EventTime = time.Unix(0, *e.Timestamp)
@@ -84,12 +82,14 @@ type HTTPStartStop struct {
 }
 
 // NewHTTPStartStop creates a new NewHTTPStartStop
-func NewHTTPStartStop(e *events.Envelope, nozzleInstanceName string) *HTTPStartStop {
+func NewHTTPStartStop(e *events.Envelope, c caching.CachingClient) *HTTPStartStop {
 	var m = e.GetHttpStartStop()
 	var r = HTTPStartStop{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
+		BaseMessage:    *NewBaseMessage(e, c),
 		StartTimestamp: m.GetStartTimestamp(),
 		StopTimestamp:  m.GetStopTimestamp(),
+		PeerType:       m.GetPeerType().String(), // Client/Server
+		Method:         m.GetMethod().String(),   // HTTP method
 		URI:            m.GetUri(),
 		RemoteAddress:  m.GetRemoteAddress(),
 		UserAgent:      m.GetUserAgent(),
@@ -99,20 +99,13 @@ func NewHTTPStartStop(e *events.Envelope, nozzleInstanceName string) *HTTPStartS
 		InstanceID:     m.GetInstanceId(),
 	}
 	if m.RequestId != nil {
-		r.RequestID = m.GetRequestId().String()
-	}
-	if m.PeerType != nil {
-		r.PeerType = m.GetPeerType().String() // Client/Server
-	}
-	if m.Method != nil {
-		r.Method = m.GetMethod().String() // HTTP method
+		r.RequestID = cfUUIDToString(m.RequestId)
 	}
 	if m.ApplicationId != nil {
 		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
-		r.ApplicationName = Caching.GetAppName(id)
+		r.ApplicationName = c.GetAppName(id)
 	}
-
 	if e.HttpStartStop.GetForwarded() != nil {
 		r.Forwarded = strings.Join(e.GetHttpStartStop().GetForwarded(), ",")
 	}
@@ -133,10 +126,10 @@ type LogMessage struct {
 }
 
 // NewLogMessage creates a new NewLogMessage
-func NewLogMessage(e *events.Envelope, nozzleInstanceName string) *LogMessage {
+func NewLogMessage(e *events.Envelope, c caching.CachingClient) *LogMessage {
 	var m = e.GetLogMessage()
 	var r = LogMessage{
-		BaseMessage:    *NewBaseMessage(e, nozzleInstanceName),
+		BaseMessage:    *NewBaseMessage(e, c),
 		Timestamp:      m.GetTimestamp(),
 		AppID:          m.GetAppId(),
 		SourceType:     m.GetSourceType(),
@@ -149,7 +142,9 @@ func NewLogMessage(e *events.Envelope, nozzleInstanceName string) *LogMessage {
 		r.MessageType = m.MessageType.String()
 		r.SourceTypeKey = r.SourceType + "-" + r.MessageType
 	}
-	r.ApplicationName = Caching.GetAppName(r.AppID)
+	if m.AppId != nil {
+		r.ApplicationName = c.GetAppName(*m.AppId)
+	}
 	return &r
 }
 
@@ -162,12 +157,12 @@ type Error struct {
 }
 
 // NewError creates a new NewError
-func NewError(e *events.Envelope, nozzleInstanceName string) *Error {
+func NewError(e *events.Envelope, c caching.CachingClient) *Error {
 	return &Error{
-		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
-		Source:      *e.Error.Source,
-		Code:        *e.Error.Code,
-		Message:     *e.Error.Message,
+		BaseMessage: *NewBaseMessage(e, c),
+		Source:      e.Error.GetSource(),
+		Code:        e.Error.GetCode(),
+		Message:     e.Error.GetMessage(),
 	}
 }
 
@@ -185,18 +180,21 @@ type ContainerMetric struct {
 }
 
 // NewContainerMetric creates a new Container Metric
-func NewContainerMetric(e *events.Envelope, nozzleInstanceName string) *ContainerMetric {
+func NewContainerMetric(e *events.Envelope, c caching.CachingClient) *ContainerMetric {
+	var m = e.GetContainerMetric()
 	var r = ContainerMetric{
-		BaseMessage:      *NewBaseMessage(e, nozzleInstanceName),
-		ApplicationID:    *e.ContainerMetric.ApplicationId,
-		InstanceIndex:    *e.ContainerMetric.InstanceIndex,
-		CPUPercentage:    *e.ContainerMetric.CpuPercentage,
-		MemoryBytes:      *e.ContainerMetric.MemoryBytes,
-		DiskBytes:        *e.ContainerMetric.DiskBytes,
-		MemoryBytesQuota: *e.ContainerMetric.MemoryBytesQuota,
-		DiskBytesQuota:   *e.ContainerMetric.DiskBytesQuota,
+		BaseMessage:      *NewBaseMessage(e, c),
+		ApplicationID:    m.GetApplicationId(),
+		InstanceIndex:    m.GetInstanceIndex(),
+		CPUPercentage:    m.GetCpuPercentage(),
+		MemoryBytes:      m.GetMemoryBytes(),
+		DiskBytes:        m.GetDiskBytes(),
+		MemoryBytesQuota: m.GetMemoryBytesQuota(),
+		DiskBytesQuota:   m.GetDiskBytesQuota(),
 	}
-	r.ApplicationName = Caching.GetAppName(r.ApplicationID)
+	if m.ApplicationId != nil {
+		r.ApplicationName = c.GetAppName(*m.ApplicationId)
+	}
 	return &r
 }
 
@@ -210,14 +208,14 @@ type CounterEvent struct {
 }
 
 // NewCounterEvent creates a new CounterEvent
-func NewCounterEvent(e *events.Envelope, nozzleInstanceName string) *CounterEvent {
+func NewCounterEvent(e *events.Envelope, c caching.CachingClient) *CounterEvent {
 	var r = CounterEvent{
-		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
-		Delta:       *e.CounterEvent.Delta,
-		Total:       *e.CounterEvent.Total,
+		BaseMessage: *NewBaseMessage(e, c),
+		Name:        e.CounterEvent.GetName(),
+		Delta:       e.CounterEvent.GetDelta(),
+		Total:       e.CounterEvent.GetTotal(),
 	}
-	r.CounterKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
-	r.Name = e.GetOrigin() + "." + e.GetCounterEvent().GetName()
+	r.CounterKey = fmt.Sprintf("%s.%s.%s", r.Job, e.GetOrigin(), r.Name)
 	return &r
 }
 
@@ -231,14 +229,14 @@ type ValueMetric struct {
 }
 
 // NewValueMetric creates a new ValueMetric
-func NewValueMetric(e *events.Envelope, nozzleInstanceName string) *ValueMetric {
+func NewValueMetric(e *events.Envelope, c caching.CachingClient) *ValueMetric {
 	var r = ValueMetric{
-		BaseMessage: *NewBaseMessage(e, nozzleInstanceName),
-		Value:       *e.ValueMetric.Value,
-		Unit:        *e.ValueMetric.Unit,
+		BaseMessage: *NewBaseMessage(e, c),
+		Name:        e.ValueMetric.GetName(),
+		Value:       e.ValueMetric.GetValue(),
+		Unit:        e.ValueMetric.GetUnit(),
 	}
-	r.Name = e.GetOrigin() + "." + e.GetValueMetric().GetName()
-	r.MetricKey = fmt.Sprintf("%s.%s", r.Job, r.Name)
+	r.MetricKey = fmt.Sprintf("%s.%s.%s", r.Job, e.GetOrigin(), r.Name)
 	return &r
 }
 

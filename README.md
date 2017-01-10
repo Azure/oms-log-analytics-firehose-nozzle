@@ -61,3 +61,10 @@ Operators should run at least two instances of the nozzle to reduce message loss
 ```
 cf push
 ```
+
+# Test
+You need [ginkgo](http://onsi.github.io/ginkgo/) to run the tests. Run the following command to execute test:
+```
+ginkgo -r
+
+```
