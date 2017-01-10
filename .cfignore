@@ -1,0 +1,8 @@
+# Test files
+*_test.go
+mocks/
+
+# External packages for test
+vendor/github.com/onsi
+vendor/golang.org/x/sys/unix
+vendor/gopkg.in/yaml.v2

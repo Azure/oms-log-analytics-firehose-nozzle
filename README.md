@@ -66,5 +66,4 @@ cf push
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
 ```
 ginkgo -r
-
 ```
