@@ -63,7 +63,7 @@ cf push
 ```
 
 # Test
-You need [ginkgo](http://onsi.github.io/ginkgo/) to run the tests. Run the following command to execute test:
+You need [ginkgo](https://github.com/onsi/ginkgo) to run the tests. Run the following command to execute test:
 ```
 ginkgo -r
 
