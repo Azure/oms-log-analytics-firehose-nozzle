@@ -21,7 +21,7 @@ var _ = Describe("Omsnozzle", func() {
 		logger         *mocks.MockLogger
 	)
 
-	BeforeSuite(func() {
+	BeforeEach(func() {
 		firehoseClient = mocks.NewMockFirehoseClient()
 		omsClient = mocks.NewMockOmsClient()
 		cachingClient = &mocks.MockCaching{}
@@ -152,12 +152,11 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		time.Sleep(time.Duration(10) * time.Millisecond)
-		Eventually(func() mocks.Log {
-			return logger.GetLogs(lager.INFO)[0]
-		}).Should(Equal(mocks.Log{
+		Eventually(func() []mocks.Log {
+			return logger.GetLogs(lager.INFO)
+		}).Should(Equal([]mocks.Log{mocks.Log{
 			Action: "uncategorized message",
 			Data:   []lager.Data{{"message": "eventType:10 "}},
-		}))
+		}}))
 	})
 })
