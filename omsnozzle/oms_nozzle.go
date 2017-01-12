@@ -228,7 +228,6 @@ func (o *OmsNozzle) routeEvents() error {
 				o.goroutineSem <- 1
 				go o.postData(&currentEvents)
 			}
-		default:
 		}
 	}
 }
