@@ -11,10 +11,10 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/lizzha/pcf-oms-poc/caching"
-	"github.com/lizzha/pcf-oms-poc/client"
-	"github.com/lizzha/pcf-oms-poc/firehose"
-	"github.com/lizzha/pcf-oms-poc/messages"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/client"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/firehose"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
 )
 
 const (

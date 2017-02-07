@@ -5,8 +5,8 @@ import (
 
 	"code.cloudfoundry.org/lager"
 	"github.com/cloudfoundry/sonde-go/events"
-	"github.com/lizzha/pcf-oms-poc/mocks"
-	"github.com/lizzha/pcf-oms-poc/omsnozzle"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/mocks"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/omsnozzle"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

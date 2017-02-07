@@ -4,7 +4,7 @@ applications:
   memory: 512M
   instances: 2
   buildpack: https://github.com/cloudfoundry/go-buildpack.git
-  command: pcf-oms-poc
+  command: oms-log-analytics-firehose-nozzle
   no-route: true
   health-check-type: none
   env:

@@ -5,8 +5,8 @@ import (
 	"time"
 	hex "encoding/hex"
 	"github.com/cloudfoundry/sonde-go/events"
-	"github.com/lizzha/pcf-oms-poc/messages"
-	"github.com/lizzha/pcf-oms-poc/mocks"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

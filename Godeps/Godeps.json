@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/lizzha/pcf-oms-poc",
+	"ImportPath": "github.com/Azure/oms-log-analytics-firehose-nozzle",
 	"GoVersion": "go1.7",
 	"GodepVersion": "v75",
 	"Packages": [

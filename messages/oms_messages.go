@@ -10,7 +10,7 @@ import (
 	"time"
 
 	events "github.com/cloudfoundry/sonde-go/events"
-	"github.com/lizzha/pcf-oms-poc/caching"
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
 )
 
 // BaseMessage contains common data elements
