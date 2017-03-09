@@ -30,7 +30,7 @@ const (
 	// filter http start/stop events
 	httpEventType = "HTTP"
 
-	version = "0.1.0"
+	version = "0.9"
 )
 
 // Required parameters

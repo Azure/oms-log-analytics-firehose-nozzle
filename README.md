@@ -1,12 +1,12 @@
 # Summary
-The oms-log-analytics-nozzle is a CF component which forwards metrics from the [Loggregator](https://docs.cloudfoundry.org/loggregator/architecture.html) Firehose to [OMS Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/).
-> Note this is in developing phase and not for production use. It is based on private preview version of the OMS API and there may be changes before the API goes public.
+The oms-log-analytics-firehose-nozzle is a CF component which forwards metrics from the [Loggregator](https://docs.cloudfoundry.org/loggregator/architecture.html) Firehose to [OMS Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/).
+> Note this is preview and not for production use. The components of this tool may be changed when it is released at General Availability stage.
 
 # Prerequisites
 ### 1. Deploy a CF or PCF environment in Azure
 
 * [Deploy Cloud Foundry on Azure](https://github.com/cloudfoundry-incubator/bosh-azure-cpi-release/blob/master/docs/guidance.md)
-* [Deploy Pivotal Cloud Foundry on Azure](https://docs.pivotal.io/pivotalcf/1-8/customizing/azure.html)
+* [Deploy Pivotal Cloud Foundry on Azure](https://docs.pivotal.io/pivotalcf/1-9/customizing/azure.html)
 
 ### 2. Install CLIs on your dev box
 
@@ -50,7 +50,7 @@ API_ADDR                  : The api URL of the CF environment
 DOPPLER_ADDR              : Loggregator's traffic controller URL
 FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
-EVENT_FILTER              : If set, the specified types of events will be dropped
+EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
 IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
 LOG_LEVEL                 : Valid log levels: DEBUG, INFO, ERROR
@@ -61,6 +61,11 @@ Operators should run at least two instances of the nozzle to reduce message loss
 ```
 cf push
 ```
+
+# View in OMS Portal
+The OMS view of Cloud Foundry will be added to the OMS Solutions Gallery soon. For the intermediate period, you could import the view manually.
+### Import [omsview](./omsview)
+From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select the Cloud Foundry (Preview).omsview file and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
 
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
