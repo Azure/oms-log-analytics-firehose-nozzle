@@ -155,7 +155,7 @@
                                         "Subtitle": "By Deployment"
                                     },
                                     "Donut": {
-                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"bosh-hm-forwarder.system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s",
+                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -171,7 +171,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"bosh-hm-forwarder.system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s, Job_s",
+                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s, Job_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -436,7 +436,7 @@
                                             "displayName": "CF Logs - By Type then Source"
                                         },
                                         {
-                                            "query": "* Type=CF_ValueMetric_CL Name_s=\"gorouter.latency\" | measure avg(Value_d) by Deployment_s INTERVAL 5MINUTES",
+                                            "query": "* Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=\"latency\" | measure avg(Value_d) by Deployment_s INTERVAL 5MINUTES",
                                             "displayName": "Average Router Latency - 5 Minute Interval"
                                         },
                                         {
