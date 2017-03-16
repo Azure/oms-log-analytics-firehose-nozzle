@@ -67,7 +67,7 @@
                                     "List": [
                                         {
                                             "Title": "Cloud Foundry (Preview)",
-                                            "Content": "The Cloud Foundry solution helps you view message volume, application workloads and job status of your Cloud Foundry deployment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this  [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
+                                            "Content": "The Cloud Foundry solution helps you to view message volume, application workloads and job status of your Cloud Foundry deployment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
                                         }
                                     ]
                                 }
