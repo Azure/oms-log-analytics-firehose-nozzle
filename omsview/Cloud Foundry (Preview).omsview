@@ -66,8 +66,8 @@
                                     },
                                     "List": [
                                         {
-                                            "Title": "Cloud Foundry Integration (Preview)",
-                                            "Content": "This **preview** of Cloud Foundry integration utilizes\n\n1. The OMS log ingestion API\n2. A Loggregator Nozzle that forwards events to OMS via the OMS Log ingestion API\n\n\n#### Please visit this  [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\") for details about the preview\n\n\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
+                                            "Title": "Cloud Foundry (Preview)",
+                                            "Content": "The Cloud Foundry solution helps you view message volume, application workloads and job status of your Cloud Foundry deployment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this  [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
                                         }
                                     ]
                                 }
@@ -472,7 +472,7 @@
                                     "DataFlowVerification": {
                                         "Enabled": true,
                                         "Query": "Type=CF_LogMessage_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about the preview of Cloud Foundry integration with OMS."
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             },
