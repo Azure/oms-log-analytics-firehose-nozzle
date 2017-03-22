@@ -33,17 +33,17 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "a7d3f5db-10ac-4ef4-98b8-e735dcae05fb",
+                    "name": "Cloud Foundry (Preview)",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/a7d3f5db-10ac-4ef4-98b8-e735dcae05fb')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Cloud Foundry (Preview)')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "a7d3f5db-10ac-4ef4-98b8-e735dcae05fb",
+                        "Id": "Cloud Foundry (Preview)",
                         "Name": "Cloud Foundry (Preview)",
-                        "Author": "davre@microsoft.com",
+                        "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Dashboard": [
                             {
@@ -107,12 +107,12 @@
                                         "Query": "Type!=Heartbeat AND Type!=Perf  | measure count() by Deployment_s, Type",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Deployment Type",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -124,13 +124,15 @@
                                                 },
                                                 {
                                                     "name": "Warning",
-                                                    "threshold": 60,
-                                                    "color": "#fcd116"
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
                                                 },
                                                 {
                                                     "name": "Error",
-                                                    "threshold": 90,
-                                                    "color": "#ba141a"
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
                                                 }
                                             ]
                                         },
@@ -191,13 +193,15 @@
                                                 },
                                                 {
                                                     "name": "Warning",
-                                                    "threshold": 60,
-                                                    "color": "#fcd116"
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
                                                 },
                                                 {
                                                     "name": "Error",
-                                                    "threshold": 90,
-                                                    "color": "#ba141a"
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
                                                 }
                                             ]
                                         },
@@ -241,12 +245,12 @@
                                         "Query": "* Type=CF_ContainerMetric_CL | measure countDistinct(InstanceIndex_d) as InstanceCount by Deployment_s,ApplicationName_s ",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Instances",
                                             "Value": ""
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -311,12 +315,12 @@
                                         "Query": "* Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() by Deployment_s, ApplicationName_s  INTERVAL 1MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment App",
+                                            "Name": "Deployment",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -328,13 +332,15 @@
                                                 },
                                                 {
                                                     "name": "Warning",
-                                                    "threshold": 60,
-                                                    "color": "#fcd116"
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
                                                 },
                                                 {
                                                     "name": "Error",
-                                                    "threshold": 90,
-                                                    "color": "#ba141a"
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
                                                 }
                                             ]
                                         },
@@ -381,7 +387,7 @@
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment,App",
+                                            "Name": "Deployment",
                                             "Value": "CPU %"
                                         },
                                         "Color": "#0072c6",
@@ -396,13 +402,155 @@
                                                 },
                                                 {
                                                     "name": "Warning",
-                                                    "threshold": 60,
-                                                    "color": "#fcd116"
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
                                                 },
                                                 {
                                                     "name": "Error",
-                                                    "threshold": 90,
-                                                    "color": "#ba141a"
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartCalloutBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Utilization",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average Memory Utilization",
+                                        "Subtitle": "by Deployment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(MemoryBytes_d) as Mem by Deployment_s  INTERVAL 5MINUTES",
+                                        "Callout": {
+                                            "Title": "Overall average",
+                                            "Series": "",
+                                            "Operation": "Average"
+                                        },
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Bits",
+                                                "baseUnit": "Bytes",
+                                                "displayUnit": "Bytes"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(MemoryBytes_d) as Mem by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Deployment",
+                                            "Value": "Mem (Bytes)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartCalloutBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Utilization",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average Disk Utilization",
+                                        "Subtitle": "by Deployment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(DiskBytes_d) as Disk by Deployment_s  INTERVAL 5MINUTES",
+                                        "Callout": {
+                                            "Title": "Overall average",
+                                            "Series": "",
+                                            "Operation": "Average"
+                                        },
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Bits",
+                                                "baseUnit": "Bytes",
+                                                "displayUnit": "Bytes"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(DiskBytes_d) as Disk by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Deployment",
+                                            "Value": "Disk (Bytes)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
                                                 }
                                             ]
                                         },
@@ -475,30 +623,7 @@
                                         "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
-                            },
-                            "Navigation": [
-                                {
-                                    "Host": "OMSPortal",
-                                    "Link": {
-                                        "Type": "Builder",
-                                        "Id": "a7d3f5db-10ac-4ef4-98b8-e735dcae05fb"
-                                    }
-                                },
-                                {
-                                    "Host": "Mobile",
-                                    "Link": {
-                                        "Type": "Builder",
-                                        "Id": "a7d3f5db-10ac-4ef4-98b8-e735dcae05fb"
-                                    }
-                                },
-                                {
-                                    "Host": "Azure",
-                                    "Link": {
-                                        "Type": "Builder",
-                                        "Id": "a7d3f5db-10ac-4ef4-98b8-e735dcae05fb"
-                                    }
-                                }
-                            ]
+                            }
                         }
                     }
                 }
