@@ -6,15 +6,16 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"code.cloudfoundry.org/lager"
-	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/client"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/firehose"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
+	events "github.com/cloudfoundry/sonde-go/events"
 )
 
 const (
@@ -24,42 +25,54 @@ const (
 )
 
 type OmsNozzle struct {
-	logger         lager.Logger
-	errChan        <-chan error
-	msgChan        <-chan *events.Envelope
-	signalChan     chan os.Signal
-	omsClient      client.Client
-	firehoseClient firehose.Client
-	nozzleConfig   *NozzleConfig
-	goroutineSem   chan int // to control the number of active post goroutines
-	cachingClient  caching.CachingClient
+	logger              lager.Logger
+	errChan             <-chan error
+	msgChan             <-chan *events.Envelope
+	signalChan          chan os.Signal
+	omsClient           client.Client
+	firehoseClient      firehose.Client
+	nozzleConfig        *NozzleConfig
+	goroutineSem        chan int // to control the number of active post goroutines
+	cachingClient       caching.CachingClient
+	totalEventsReceived uint64
+	totalEventsSent     uint64
+	mutex               *sync.Mutex
 }
 
 type NozzleConfig struct {
-	OmsTypePrefix       string
-	OmsBatchTime        time.Duration
-	ExcludeMetricEvents bool
-	ExcludeLogEvents    bool
-	ExcludeHttpEvents   bool
+	OmsTypePrefix         string
+	OmsBatchTime          time.Duration
+	OmsMaxMsgNumPerBatch  int
+	ExcludeMetricEvents   bool
+	ExcludeLogEvents      bool
+	ExcludeHttpEvents     bool
+	LogEventCount         bool
+	LogEventCountInterval time.Duration
 }
 
 func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient client.Client, nozzleConfig *NozzleConfig, caching caching.CachingClient) *OmsNozzle {
 	return &OmsNozzle{
-		logger:         logger,
-		errChan:        make(<-chan error),
-		msgChan:        make(<-chan *events.Envelope),
-		signalChan:     make(chan os.Signal, 2),
-		omsClient:      omsClient,
-		firehoseClient: firehoseClient,
-		nozzleConfig:   nozzleConfig,
-		goroutineSem:   make(chan int, maxPostGoroutines),
-		cachingClient:  caching,
+		logger:              logger,
+		errChan:             make(<-chan error),
+		msgChan:             make(<-chan *events.Envelope),
+		signalChan:          make(chan os.Signal, 2),
+		omsClient:           omsClient,
+		firehoseClient:      firehoseClient,
+		nozzleConfig:        nozzleConfig,
+		goroutineSem:        make(chan int, maxPostGoroutines),
+		cachingClient:       caching,
+		totalEventsReceived: uint64(0),
+		totalEventsSent:     uint64(0),
+		mutex:               &sync.Mutex{},
 	}
 }
 
 func (o *OmsNozzle) Start() error {
 	o.cachingClient.Initialize()
 	o.initialize()
+	if o.nozzleConfig.LogEventCount {
+		o.logTotalEvents(o.nozzleConfig.LogEventCountInterval)
+	}
 	err := o.routeEvents()
 	return err
 }
@@ -81,30 +94,95 @@ func (o *OmsNozzle) initialize() {
 	}()
 }
 
-func (o *OmsNozzle) postData(events *map[string][]byte) {
+func (o *OmsNozzle) logTotalEvents(interval time.Duration) {
+	logEventCountTicker := time.NewTicker(interval)
+	lastReceivedCount := uint64(0)
+	lastSentCount := uint64(0)
+
+	go func() {
+		for range logEventCountTicker.C {
+			timeStamp := time.Now().UnixNano()
+			totalReceivedCount := o.totalEventsReceived
+			totalSentCount := o.totalEventsSent
+			currentEvents := make(map[string][]interface{})
+			var omsMsg OMSMessage
+			var msg *events.Envelope
+
+			// Generate CounterEvent
+			eventType := events.Envelope_CounterEvent.String()
+			msg = o.createEventCountEvent("eventsReceived", totalReceivedCount-lastReceivedCount, totalReceivedCount, &timeStamp)
+			omsMsg = messages.NewCounterEvent(msg, o.cachingClient)
+			currentEvents[eventType] = append(currentEvents[eventType], omsMsg)
+			msg = o.createEventCountEvent("eventsSent", totalSentCount-lastSentCount, totalSentCount, &timeStamp)
+			omsMsg = messages.NewCounterEvent(msg, o.cachingClient)
+			currentEvents[eventType] = append(currentEvents[eventType], omsMsg)
+
+			o.goroutineSem <- 1
+			o.postData(&currentEvents, false)
+
+			lastReceivedCount = totalReceivedCount
+			lastSentCount = totalSentCount
+		}
+	}()
+}
+
+func (o *OmsNozzle) createEventCountEvent(name string, deltaCount uint64, count uint64, timeStamp *int64) *events.Envelope {
+	counterEvent := &events.CounterEvent{
+		Name:  &name,
+		Delta: &deltaCount,
+		Total: &count,
+	}
+
+	eventType := events.Envelope_CounterEvent
+	job := "nozzle"
+	origin := "stats"
+	envelope := &events.Envelope{
+		EventType:    &eventType,
+		Timestamp:    timeStamp,
+		Job:          &job,
+		Origin:       &origin,
+		CounterEvent: counterEvent,
+	}
+
+	return envelope
+}
+
+func (o *OmsNozzle) postData(events *map[string][]interface{}, addCount bool) {
 	for k, v := range *events {
 		if len(v) > 0 {
-			v = append(v, ']')
-			o.logger.Debug("Posting to OMS",
-				lager.Data{"event type": k},
-				lager.Data{"size": len(v)})
-			if len(o.nozzleConfig.OmsTypePrefix) > 0 {
-				k = o.nozzleConfig.OmsTypePrefix + k
-			}
-			nRetries := 4
-			for nRetries > 0 {
-				requestStartTime := time.Now()
-				if err := o.omsClient.PostData(&v, k); err != nil {
-					nRetries--
-					elapsedTime := time.Since(requestStartTime)
-					o.logger.Error("error posting message to OMS", err,
-						lager.Data{"msg type": k},
-						lager.Data{"elapse time": elapsedTime.String()},
-						lager.Data{"msg size": len(v)},
-						lager.Data{"remaining attempts": nRetries})
-					time.Sleep(time.Second * 1)
-				} else {
-					break
+			if msgAsJson, err := json.Marshal(&v); err != nil {
+				o.logger.Error("error marshalling message to JSON", err,
+					lager.Data{"event type": k},
+					lager.Data{"event count": len(v)})
+			} else {
+				o.logger.Debug("Posting to OMS",
+					lager.Data{"event type": k},
+					lager.Data{"event count": len(v)},
+					lager.Data{"total size": len(msgAsJson)})
+				if len(o.nozzleConfig.OmsTypePrefix) > 0 {
+					k = o.nozzleConfig.OmsTypePrefix + k
+				}
+				nRetries := 4
+				for nRetries > 0 {
+					requestStartTime := time.Now()
+					if err = o.omsClient.PostData(&msgAsJson, k); err != nil {
+						nRetries--
+						elapsedTime := time.Since(requestStartTime)
+						o.logger.Error("error posting message to OMS", err,
+							lager.Data{"event type": k},
+							lager.Data{"elapse time": elapsedTime.String()},
+							lager.Data{"event count": len(v)},
+							lager.Data{"total size": len(msgAsJson)},
+							lager.Data{"remaining attempts": nRetries})
+						time.Sleep(time.Second * 1)
+					} else {
+						if addCount {
+							o.mutex.Lock()
+							o.totalEventsSent += uint64(len(v))
+							o.mutex.Unlock()
+						}
+						break
+					}
 				}
 			}
 		}
@@ -112,27 +190,8 @@ func (o *OmsNozzle) postData(events *map[string][]byte) {
 	<-o.goroutineSem
 }
 
-func (o *OmsNozzle) marshalAsJson(m *OMSMessage) []byte {
-	if j, err := json.Marshal(&m); err != nil {
-		o.logger.Error("error marshalling message to JSON", err, lager.Data{"message": *m})
-		return nil
-	} else {
-		return j
-	}
-}
-
-func (o *OmsNozzle) pushMsgAsJson(eventType string, events *map[string][]byte, msg *[]byte) {
-	// Push json messages to json array format
-	if len((*events)[eventType]) == 0 {
-		(*events)[eventType] = append((*events)[eventType], '[')
-	} else {
-		(*events)[eventType] = append((*events)[eventType], ',')
-	}
-	(*events)[eventType] = append((*events)[eventType], *msg...)
-}
-
 func (o *OmsNozzle) routeEvents() error {
-	pendingEvents := make(map[string][]byte)
+	pendingEvents := make(map[string][]interface{})
 	// Firehose message processing loop
 	ticker := time.NewTicker(o.nozzleConfig.OmsBatchTime)
 	for {
@@ -149,10 +208,11 @@ func (o *OmsNozzle) routeEvents() error {
 			// get the pending as current
 			currentEvents := pendingEvents
 			// reset the pending events
-			pendingEvents = make(map[string][]byte)
+			pendingEvents = make(map[string][]interface{})
 			o.goroutineSem <- 1
-			go o.postData(&currentEvents)
+			go o.postData(&currentEvents, true)
 		case msg := <-o.msgChan:
+			o.totalEventsReceived++
 			// process message
 			var omsMessage OMSMessage
 			var omsMessageType = msg.GetEventType().String()
@@ -161,9 +221,7 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_ValueMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewValueMetric(msg, o.cachingClient)
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 			case events.Envelope_CounterEvent:
 				if !o.nozzleConfig.ExcludeMetricEvents {
@@ -172,43 +230,33 @@ func (o *OmsNozzle) routeEvents() error {
 						o.logger.Error("received TruncatingBuffer alert", nil)
 					}
 					omsMessage = m
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 
 			case events.Envelope_ContainerMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewContainerMetric(msg, o.cachingClient)
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 
 			// Logs Errors
 			case events.Envelope_LogMessage:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewLogMessage(msg, o.cachingClient)
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 
 			case events.Envelope_Error:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewError(msg, o.cachingClient)
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 
 			// HTTP Start/Stop
 			case events.Envelope_HttpStartStop:
 				if !o.nozzleConfig.ExcludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg, o.cachingClient)
-					if m := o.marshalAsJson(&omsMessage); m != nil {
-						o.pushMsgAsJson(omsMessageType, &pendingEvents, &m)
-					}
+					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 			default:
 				o.logger.Info("uncategorized message", lager.Data{"message": msg.String()})
@@ -217,16 +265,16 @@ func (o *OmsNozzle) routeEvents() error {
 			// When the size of one type reaches the max per batch, trigger the post immediately
 			doPost := false
 			for _, v := range pendingEvents {
-				if len(v) >= maxSizePerBatch {
+				if len(v) >= o.nozzleConfig.OmsMaxMsgNumPerBatch {
 					doPost = true
 					break
 				}
 			}
 			if doPost {
 				currentEvents := pendingEvents
-				pendingEvents = make(map[string][]byte)
+				pendingEvents = make(map[string][]interface{})
 				o.goroutineSem <- 1
-				go o.postData(&currentEvents)
+				go o.postData(&currentEvents, true)
 			}
 		}
 	}

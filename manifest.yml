@@ -21,3 +21,5 @@ applications:
     # EVENT_FILTER: "METRIC,HTTP" # Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
     IDLE_TIMEOUT: 60s
     LOG_LEVEL: INFO # Valid log levels: DEBUG, INFO, ERROR
+    LOG_EVENT_COUNT: false
+    LOG_EVENT_COUNT_INTERVAL: 60s

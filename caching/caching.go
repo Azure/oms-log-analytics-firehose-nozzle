@@ -1,11 +1,10 @@
 package caching
 
 import (
-	"fmt"
-	"os"
 	"code.cloudfoundry.org/lager"
+	"fmt"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
-
+	"os"
 )
 
 type Caching struct {

@@ -45,7 +45,8 @@ OMS_WORKSPACE             : OMS workspace ID
 OMS_KEY                   : OMS key
 OMS_TYPE_PREFIX           : String helps to identify the CF related messags in OMS Log Analytics
 OMS_POST_TIMEOUT          : HTTP post timeout for sending events to OMS Log Analytics
-OMS_BATCH_TIME            : Interval for posing a batch to OMS
+OMS_BATCH_TIME            : Interval for posting a batch to OMS
+OMS_MAX_MSG_NUM_PER_BATCH : The max number of messages in an OMS batch
 API_ADDR                  : The api URL of the CF environment
 DOPPLER_ADDR              : Loggregator's traffic controller URL
 FIREHOSE_USER             : CF user who has admin and firehose access
@@ -53,7 +54,9 @@ FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
 IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
-LOG_LEVEL                 : Valid log levels: DEBUG, INFO, ERROR
+LOG_LEVEL                 : Logging level of the nozzle, valid levels: DEBUG, INFO, ERROR
+LOG_EVENT_COUNT           : If true, the total count of events that the nozzle has received and sent will be logged to OMS as CounterEvents
+LOG_EVENT_COUNT_INTERVAL  : The time interval of logging event count to OMS
 ```
 Operators should run at least two instances of the nozzle to reduce message loss. The Firehose will evenly distribute events across all instances of the nozzle. Scale to more instances if the nozzle cannot handle the workload.
 

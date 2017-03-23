@@ -2,13 +2,13 @@ package messages_test
 
 import (
 	"crypto/md5"
-	"time"
 	hex "encoding/hex"
-	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/mocks"
+	"github.com/cloudfoundry/sonde-go/events"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"time"
 )
 
 var _ = Describe("Messages", func() {
@@ -16,7 +16,7 @@ var _ = Describe("Messages", func() {
 		instanceName string
 		caching      *mocks.MockCaching
 	)
-	
+
 	BeforeEach(func() {
 		instanceName = "nozzleinstace"
 		caching = &mocks.MockCaching{
@@ -102,7 +102,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.SourceType).To(Equal(sourceType))
 		Expect(m.SourceInstance).To(Equal(sourceInstance))
 		Expect(m.SourceTypeKey).To(Equal("sourceTypeName-OUT"))
-		Expect(m.BaseMessage.SourceInstance).To(Equal("MISSING"))
+		Expect(m.BaseMessage.SourceInstance).To(Equal(""))
 		Expect(m.BaseMessage.EventType).To(Equal("LogMessage"))
 	})
 

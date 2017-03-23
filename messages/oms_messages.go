@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	events "github.com/cloudfoundry/sonde-go/events"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
+	events "github.com/cloudfoundry/sonde-go/events"
 )
 
 // BaseMessage contains common data elements
@@ -47,8 +47,6 @@ func NewBaseMessage(e *events.Envelope, c caching.CachingClient) *BaseMessage {
 	}
 	if e.Deployment != nil && e.Job != nil && e.Index != nil {
 		b.SourceInstance = fmt.Sprintf("%s.%s.%s", e.GetDeployment(), e.GetJob(), e.GetIndex())
-	} else {
-		b.SourceInstance = "MISSING"
 	}
 
 	if e.GetTags() != nil {
