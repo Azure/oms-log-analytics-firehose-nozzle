@@ -201,8 +201,8 @@
                                             "isLogarithmic": false,
                                             "units": {
                                                 "baseUnitType": "Bits",
-                                                "baseUnit": "Gigabytes",
-                                                "displayUnit": "Gigabytes"
+                                                "baseUnit": "Bytes",
+                                                "displayUnit": "Bytes"
                                             },
                                             "customLabel": ""
                                         }
@@ -211,12 +211,12 @@
                                         "Query": "Type=Perf ObjectName=Network CounterName=\"Total Bytes Transmitted\" | measure avg(CounterValue) by Computer,InstanceName interval 5MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Computer",
                                             "Value": "Bytes"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Summary",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -266,8 +266,8 @@
                                             "isLogarithmic": false,
                                             "units": {
                                                 "baseUnitType": "Bits",
-                                                "baseUnit": "Gigabytes",
-                                                "displayUnit": "Gigabytes"
+                                                "baseUnit": "Bytes",
+                                                "displayUnit": "Bytes"
                                             },
                                             "customLabel": ""
                                         }
@@ -276,12 +276,12 @@
                                         "Query": "Type=Perf ObjectName=Network CounterName=\"Total Bytes Received\" | measure avg(CounterValue) by Computer,InstanceName interval 5MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Computer",
                                             "Value": "Bytes"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Summary",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -322,7 +322,7 @@
                                     "charts": [
                                         {
                                             "Header": {
-                                                "Title": "Free Megabytes overtime",
+                                                "Title": "Free Megabytes over time",
                                                 "Subtitle": "/var/vcap/data"
                                             },
                                             "LineChart": {

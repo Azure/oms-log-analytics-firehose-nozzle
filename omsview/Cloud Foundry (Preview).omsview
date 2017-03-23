@@ -43,7 +43,7 @@
                     "properties": {
                         "Id": "Cloud Foundry (Preview)",
                         "Name": "Cloud Foundry (Preview)",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "davre@microsoft.com,lizzha@microsoft.com",
                         "Source": "Local",
                         "Dashboard": [
                             {
