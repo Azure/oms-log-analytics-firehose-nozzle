@@ -95,7 +95,7 @@ func main() {
 	logger.Info("config", lager.Data{"OMS_BATCH_TIME": (*omsBatchTime).String()})
 	logger.Info("config", lager.Data{"OMS_MAX_MSG_NUM_PER_BATCH": *omsMaxMsgNumPerBatch})
 	logger.Info("config", lager.Data{"LOG_EVENT_COUNT": *logEventCount})
-	logger.Info("config", lager.Data{"LOG_EVENT_COUNT_INTERVAL": *logEventCountInterval})
+	logger.Info("config", lager.Data{"LOG_EVENT_COUNT_INTERVAL": (*logEventCountInterval).String()})
 	if len(*eventFilter) > 0 {
 		*eventFilter = strings.ToUpper(*eventFilter)
 		// by default we don't filter any events
