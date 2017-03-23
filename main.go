@@ -29,6 +29,8 @@ const (
 	logEventType = "LOG"
 	// filter http start/stop events
 	httpEventType = "HTTP"
+	// the prefix of message type in OMS Log Analytics
+	omsTypePrefix = "CF_"
 
 	version = "0.9"
 )
@@ -43,7 +45,6 @@ var (
 	omsWorkspace         = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").Required().String()
 	omsKey               = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").Required().String()
 	omsPostTimeout       = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
-	omsTypePrefix        = kingpin.Flag("oms-type-prefix", "Prefix to identify the CF related messags in OMS Log Analytics").Default("CF_").OverrideDefaultFromEnvar("OMS_TYPE_PREFIX").String()
 	omsBatchTime         = kingpin.Flag("oms-batch-time", "Interval to post an OMS batch").Default("5s").OverrideDefaultFromEnvar("OMS_BATCH_TIME").Duration()
 	omsMaxMsgNumPerBatch = kingpin.Flag("oms-max-msg-num-per-batch", "Max number of messages per OMS batch").Default("1000").OverrideDefaultFromEnvar("OMS_MAX_MSG_NUM_PER_BATCH").Int()
 
@@ -89,7 +90,6 @@ func main() {
 			lager.Data{"default seconds": 5})
 		*omsPostTimeout = time.Duration(5) * time.Second
 	}
-	logger.Info("config", lager.Data{"OMS_TYPE_PREFIX": *omsTypePrefix})
 	logger.Info("config", lager.Data{"SKIP_SSL_VALIDATION": *skipSslValidation})
 	logger.Info("config", lager.Data{"IDLE_TIMEOUT": (*idleTimeout).String()})
 	logger.Info("config", lager.Data{"OMS_BATCH_TIME": (*omsBatchTime).String()})
@@ -134,7 +134,7 @@ func main() {
 	omsClient := client.NewOmsClient(*omsWorkspace, *omsKey, *omsPostTimeout, logger)
 
 	nozzleConfig := &omsnozzle.NozzleConfig{
-		OmsTypePrefix:         *omsTypePrefix,
+		OmsTypePrefix:         omsTypePrefix,
 		OmsBatchTime:          *omsBatchTime,
 		OmsMaxMsgNumPerBatch:  *omsMaxMsgNumPerBatch,
 		ExcludeMetricEvents:   excludeMetricEvents,

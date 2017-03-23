@@ -43,7 +43,6 @@ cd oms-log-analytics-firehose-nozzle
 ```
 OMS_WORKSPACE             : OMS workspace ID
 OMS_KEY                   : OMS key
-OMS_TYPE_PREFIX           : String helps to identify the CF related messags in OMS Log Analytics
 OMS_POST_TIMEOUT          : HTTP post timeout for sending events to OMS Log Analytics
 OMS_BATCH_TIME            : Interval for posting a batch to OMS
 OMS_MAX_MSG_NUM_PER_BATCH : The max number of messages in an OMS batch
