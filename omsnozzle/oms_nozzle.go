@@ -2,7 +2,6 @@ package omsnozzle
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/signal"
 	"strings"
@@ -15,7 +14,7 @@ import (
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/client"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/firehose"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
-	events "github.com/cloudfoundry/sonde-go/events"
+	"github.com/cloudfoundry/sonde-go/events"
 )
 
 const (
@@ -36,6 +35,7 @@ type OmsNozzle struct {
 	cachingClient       caching.CachingClient
 	totalEventsReceived uint64
 	totalEventsSent     uint64
+	totalEventsLost     uint64
 	mutex               *sync.Mutex
 }
 
@@ -63,13 +63,19 @@ func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient
 		cachingClient:       caching,
 		totalEventsReceived: uint64(0),
 		totalEventsSent:     uint64(0),
+		totalEventsLost:     uint64(0),
 		mutex:               &sync.Mutex{},
 	}
 }
 
 func (o *OmsNozzle) Start() error {
 	o.cachingClient.Initialize()
-	o.initialize()
+
+	// setup for termination signal from CF
+	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
+
+	o.msgChan, o.errChan = o.firehoseClient.Connect()
+
 	if o.nozzleConfig.LogEventCount {
 		o.logTotalEvents(o.nozzleConfig.LogEventCountInterval)
 	}
@@ -77,56 +83,36 @@ func (o *OmsNozzle) Start() error {
 	return err
 }
 
-func (o *OmsNozzle) initialize() {
-	// setup for termination signal from CF
-	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
-
-	o.msgChan, o.errChan = o.firehoseClient.Connect()
-
-	//o.consumer.SetDebugPrinter(ConsoleDebugPrinter{})
-	// async error channel
-	go func() {
-		var errorChannelCount = 0
-		for err := range o.errChan {
-			errorChannelCount++
-			o.logger.Error("firehose channel error", err, lager.Data{"error count": errorChannelCount})
-		}
-	}()
-}
-
 func (o *OmsNozzle) logTotalEvents(interval time.Duration) {
 	logEventCountTicker := time.NewTicker(interval)
 	lastReceivedCount := uint64(0)
 	lastSentCount := uint64(0)
+	lastLostCount := uint64(0)
 
 	go func() {
 		for range logEventCountTicker.C {
 			timeStamp := time.Now().UnixNano()
 			totalReceivedCount := o.totalEventsReceived
 			totalSentCount := o.totalEventsSent
+			totalLostCount := o.totalEventsLost
 			currentEvents := make(map[string][]interface{})
-			var omsMsg OMSMessage
-			var msg *events.Envelope
 
 			// Generate CounterEvent
-			eventType := events.Envelope_CounterEvent.String()
-			msg = o.createEventCountEvent("eventsReceived", totalReceivedCount-lastReceivedCount, totalReceivedCount, &timeStamp)
-			omsMsg = messages.NewCounterEvent(msg, o.cachingClient)
-			currentEvents[eventType] = append(currentEvents[eventType], omsMsg)
-			msg = o.createEventCountEvent("eventsSent", totalSentCount-lastSentCount, totalSentCount, &timeStamp)
-			omsMsg = messages.NewCounterEvent(msg, o.cachingClient)
-			currentEvents[eventType] = append(currentEvents[eventType], omsMsg)
+			o.addEventCountEvent("eventsReceived", totalReceivedCount-lastReceivedCount, totalReceivedCount, &timeStamp, &currentEvents)
+			o.addEventCountEvent("eventsSent", totalSentCount-lastSentCount, totalSentCount, &timeStamp, &currentEvents)
+			o.addEventCountEvent("eventsLost", totalLostCount-lastLostCount, totalLostCount, &timeStamp, &currentEvents)
 
 			o.goroutineSem <- 1
 			o.postData(&currentEvents, false)
 
 			lastReceivedCount = totalReceivedCount
 			lastSentCount = totalSentCount
+			lastLostCount = totalLostCount
 		}
 	}()
 }
 
-func (o *OmsNozzle) createEventCountEvent(name string, deltaCount uint64, count uint64, timeStamp *int64) *events.Envelope {
+func (o *OmsNozzle) addEventCountEvent(name string, deltaCount uint64, count uint64, timeStamp *int64, currentEvents *map[string][]interface{}) {
 	counterEvent := &events.CounterEvent{
 		Name:  &name,
 		Delta: &deltaCount,
@@ -144,7 +130,10 @@ func (o *OmsNozzle) createEventCountEvent(name string, deltaCount uint64, count 
 		CounterEvent: counterEvent,
 	}
 
-	return envelope
+	var omsMsg OMSMessage
+	eventTypeString := eventType.String()
+	omsMsg = messages.NewCounterEvent(envelope, o.cachingClient)
+	(*currentEvents)[eventTypeString] = append((*currentEvents)[eventTypeString], omsMsg)
 }
 
 func (o *OmsNozzle) postData(events *map[string][]interface{}, addCount bool) {
@@ -183,6 +172,11 @@ func (o *OmsNozzle) postData(events *map[string][]interface{}, addCount bool) {
 						}
 						break
 					}
+				}
+				if nRetries == 0 && addCount {
+					o.mutex.Lock()
+					o.totalEventsLost += uint64(len(v))
+					o.mutex.Unlock()
 				}
 			}
 		}
@@ -224,11 +218,12 @@ func (o *OmsNozzle) routeEvents() error {
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
 			case events.Envelope_CounterEvent:
+				m := messages.NewCounterEvent(msg, o.cachingClient)
+				if strings.Contains(m.Name, "TruncatingBuffer.DroppedMessage") {
+					o.logger.Error("received TruncatingBuffer alert", nil)
+					o.logSlowConsumerAlert()
+				}
 				if !o.nozzleConfig.ExcludeMetricEvents {
-					m := messages.NewCounterEvent(msg, o.cachingClient)
-					if strings.Contains(m.Name, "TruncatingBuffer.DroppedMessage") {
-						o.logger.Error("received TruncatingBuffer alert", nil)
-					}
 					omsMessage = m
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
 				}
@@ -262,7 +257,7 @@ func (o *OmsNozzle) routeEvents() error {
 				o.logger.Info("uncategorized message", lager.Data{"message": msg.String()})
 				continue
 			}
-			// When the size of one type reaches the max per batch, trigger the post immediately
+			// When the number of one type of events reaches the max per batch, trigger the post immediately
 			doPost := false
 			for _, v := range pendingEvents {
 				if len(v) >= o.nozzleConfig.OmsMaxMsgNumPerBatch {
@@ -276,17 +271,56 @@ func (o *OmsNozzle) routeEvents() error {
 				o.goroutineSem <- 1
 				go o.postData(&currentEvents, true)
 			}
+		case err := <-o.errChan:
+			o.logger.Error("Error while reading from the firehose", err)
+
+			if strings.Contains(err.Error(), "close 1008 (policy violation)") {
+				o.logger.Error("Disconnected because nozzle couldn't keep up. Please try scaling up the nozzle.", nil)
+				o.logSlowConsumerAlert()
+			}
+
+			// post the buffered messages
+			o.goroutineSem <- 1
+			o.postData(&pendingEvents, true)
+
+			o.logger.Error("Closing connection with traffic controller", nil)
+			o.firehoseClient.CloseConsumer()
+			return err
 		}
 	}
 }
 
+// Log slowConsumerAlert as a ValueMetric event to OMS
+func (o *OmsNozzle) logSlowConsumerAlert() {
+	name := "slowConsumerAlert"
+	value := float64(1)
+	unit := "b"
+	valueMetric := &events.ValueMetric{
+		Name:  &name,
+		Value: &value,
+		Unit:  &unit,
+	}
+
+	timeStamp := time.Now().UnixNano()
+	eventType := events.Envelope_ValueMetric
+	job := "nozzle"
+	origin := "alert"
+	envelope := &events.Envelope{
+		EventType:   &eventType,
+		Timestamp:   &timeStamp,
+		Job:         &job,
+		Origin:      &origin,
+		ValueMetric: valueMetric,
+	}
+
+	var omsMsg OMSMessage
+	omsMsg = messages.NewValueMetric(envelope, o.cachingClient)
+	currentEvents := make(map[string][]interface{})
+	currentEvents[eventType.String()] = append(currentEvents[eventType.String()], omsMsg)
+
+	o.goroutineSem <- 1
+	o.postData(&currentEvents, false)
+}
+
 // OMSMessage is a marker inteface for JSON formatted messages published to OMS
 type OMSMessage interface{}
-
-// ConsoleDebugPrinter for debug logging
-type ConsoleDebugPrinter struct{}
-
-// Print debug logging
-func (c ConsoleDebugPrinter) Print(title, dump string) {
-	fmt.Printf("Consumer debug.  title:%s detail:%s", title, dump)
-}

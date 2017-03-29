@@ -11,7 +11,8 @@ applications:
     OMS_WORKSPACE: CHANGE_ME
     OMS_KEY: CHANGE_ME
     OMS_POST_TIMEOUT: 10s
-    OMS_BATCH_TIME: 5s
+    OMS_BATCH_TIME: 10s
+    OMS_MAX_MSG_NUM_PER_BATCH: 1000
     FIREHOSE_USER: CHANGE_ME
     FIREHOSE_USER_PASSWORD: CHANGE_ME
     API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
@@ -20,5 +21,5 @@ applications:
     # EVENT_FILTER: "METRIC,HTTP" # Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
     IDLE_TIMEOUT: 60s
     LOG_LEVEL: INFO # Valid log levels: DEBUG, INFO, ERROR
-    LOG_EVENT_COUNT: false
+    LOG_EVENT_COUNT: true
     LOG_EVENT_COUNT_INTERVAL: 60s
