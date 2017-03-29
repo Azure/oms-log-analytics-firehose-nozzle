@@ -1,0 +1,160 @@
+---
+# The high-level description of your tile.
+# Replace these properties with real values.
+#
+name: oms-log-analytics-firehose-nozzle # By convention lowercase with dashes
+icon_file: resources/icon.png
+label: OMS Log Analytics Firehose Nozzle 
+description: A nozzle which forwards metrics and logs from the Loggregator Firehose to Azure OMS Log Analytics
+# metadata_version: 1.8                 # Optional, defaults to 1.5
+
+# Global defaults (all optional)
+#
+# org: test-org                         # Name of org to create for your apps
+# space: test-space                     # Name of space to create for your apps
+apply_open_security_group: true         # Apply open security group, default: false
+
+# Specify the packages to be included in your tile.
+# The format of the section to include depends on the type
+# of package you are describing. For fragments of each type
+# that you can copy & paste, see:
+#
+# https://github.com/cf-platform-eng/tile-generator/blob/master/README.md
+#
+packages:
+- name: oms-log-analytics-firehose-nozzle
+  type: app
+#  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
+  manifest:
+    path: resources/oms-log-analytics-firehose-nozzle.zip
+    buildpack: https://github.com/cloudfoundry/go-buildpack.git
+    instances: 2
+    memory: 128M
+  health_check: none
+
+# Include stemcell criteria if you don't want to accept the default.
+# Since this stemcell is only used to run pre and post errands, we
+# strongly recommend you leave this alone so that your tile always
+# runs with the latest stemcell.
+#
+# stemcell_criteria:
+#   os: ubuntu-trusty
+#   requires_cpi: false
+#   version: '3062'
+
+# Add properties you want to pass to your applications.
+# Properties specified here will not be configurable by the user.
+#
+# properties:
+# - name: example_property
+#   type: string
+#   default: specify a value
+#   label: Label for the field on the GUI
+#   description: Longer description of the field's purpose
+
+# Uncomment this section if you want to display forms with configurable
+# properties in Ops Manager. These properties will be passed to your
+# applications as environment variables. You can also refer to them
+# elsewhere in this template by using:
+#     (( .properties.<property-name> ))
+# 
+forms:
+ - name: oms-nozzle-config-form
+   label: OMS Nozzle Config
+   description: Configuration properties for OMS nozzle
+   properties:
+   - name: OMS_WORKSPACE
+     type: string
+     label: OMS Workspace ID
+   - name: OMS_KEY
+     type: string
+     label: OMS Workpace Key
+   - name: OMS_POST_TIMEOUT
+     type: string
+     default: 10s
+     label: OMS Post Timeout
+     description: Timeout duration for posting to OMS
+   - name: OMS_BATCH_TIME
+     type: string
+     default: 10s
+     label: OMS Batch Time
+     description: Time interval for posting an event batch to OMS
+   - name: OMS_MAX_MSG_NUM_PER_BATCH
+     type: integer
+     default: 1000
+     label: Max Event Number Per Batch
+     description: The max number of events in each batch to OMS
+   - name: FIREHOSE_USER
+     type: string
+     label: Firehose Username
+     description: The CF user who has admin and firehose access
+   - name: FIREHOSE_USER_PASSWORD
+     type: secret
+     label: Firehose User Password
+     description: The password of the CF user who has admin and firehose access
+   - name: API_ADDR
+     type: string
+     label: Cloud Foundry API Address
+   - name: DOPPLER_ADDR
+     type: string
+     label: Cloud Foundry Doppler Address
+   - name: SKIP_SSL_VALIDATION
+     type: boolean 
+     label: Skip SSL Validation
+     default: false
+   - name: EVENT_FILTER
+     type: string
+     label: Event Types to be Filtered out
+     description: A comma separated list of event types to be dropped. Valid types are METRIC,LOG,HTTP
+     optional: true
+   - name: IDLE_TIMEOUT
+     type: string
+     description: Keep Alive Duration for Firehose Consumer
+     default: 60s
+     label: Idle Timeout
+   - name: LOG_EVENT_COUNT
+     type: boolean
+     label: Log Event Count
+     description: Whether to log to OMS the count of events that the nozzle recevied and sent
+     default: true
+   - name: LOG_EVENT_COUNT_INTERVAL
+     type: string
+     label: Log Event Count Interval
+     description: The time interval to log event log
+     default: 60s
+   - name: LOG_LEVEL
+     type: dropdown_select
+     label: Log Level
+     description: The minimal log level of the nozzle
+     options:
+     - name: INFO
+       label: Info
+     - name: DEBUG
+       label: Debug
+     - name: ERROR
+       label: Error
+     
+# Add any dependencies your tile has on other installed products.
+# This is often appropriate when using automatic service provisioning
+# for any of your packages above, with services provided by other
+# products.
+#
+# requires_product_versions:
+# - name: p-mysql
+#   version: '~> 1.7'
+
+# Customize upgrade parameters if the defaults don't meet your needs.
+#
+# update:
+#   canaries: 1
+#   canary_watch_time: 10000-100000
+#   max_in_flight: 1
+#   update_watch_time: 10000-100000
+
+# If prior versions of your tile are installed and configured, their
+# property values will not be overwritten by new defaults provided
+# in this file. If that is your intent, you must do the overwriting
+# explicitly using JavaScript migration functions, like so:
+#
+# migration: |
+#   properties['properties']['.properties.org']['value'] = 'system';
