@@ -29,7 +29,7 @@ packages:
     path: resources/oms-log-analytics-firehose-nozzle.zip
     buildpack: https://github.com/cloudfoundry/go-buildpack.git
     instances: 2
-    memory: 128M
+    memory: 512M
   health_check: none
 
 # Include stemcell criteria if you don't want to accept the default.
@@ -61,7 +61,7 @@ packages:
 forms:
  - name: oms-nozzle-config-form
    label: OMS Nozzle Config
-   description: Configuration properties for OMS nozzle
+   description: Properties for OMS Nozzle
    properties:
    - name: OMS_WORKSPACE
      type: string
@@ -129,6 +129,7 @@ forms:
      options:
      - name: INFO
        label: Info
+       default: true
      - name: DEBUG
        label: Debug
      - name: ERROR
