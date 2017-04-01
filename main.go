@@ -23,6 +23,8 @@ const (
 	minOMSPostTimeoutSeconds = 1
 	// upper limit for override
 	maxOMSPostTimeoutSeconds = 60
+	// upper limit of max message number per batch
+	ceilingMaxMsgNumPerBatch = 10000
 	// filter metrics
 	metricEventType = "METRIC"
 	// filter stdout/stderr events
@@ -83,7 +85,7 @@ func main() {
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		logger.Info("config", lager.Data{"OMS_POST_TIMEOUT": (*omsPostTimeout).String()})
 	} else {
-		logger.Info("invalid OMS_POST_TIMEOUT value",
+		logger.Info("invalid OMS_POST_TIMEOUT value, set to default",
 			lager.Data{"invalid value": (*omsPostTimeout).String()},
 			lager.Data{"min seconds": minOMSPostTimeoutSeconds},
 			lager.Data{"max seconds": maxOMSPostTimeoutSeconds},
@@ -93,7 +95,15 @@ func main() {
 	logger.Info("config", lager.Data{"SKIP_SSL_VALIDATION": *skipSslValidation})
 	logger.Info("config", lager.Data{"IDLE_TIMEOUT": (*idleTimeout).String()})
 	logger.Info("config", lager.Data{"OMS_BATCH_TIME": (*omsBatchTime).String()})
-	logger.Info("config", lager.Data{"OMS_MAX_MSG_NUM_PER_BATCH": *omsMaxMsgNumPerBatch})
+	if ceilingMaxMsgNumPerBatch >= *omsMaxMsgNumPerBatch && *omsMaxMsgNumPerBatch > 0 {
+		logger.Info("config", lager.Data{"OMS_MAX_MSG_NUM_PER_BATCH": *omsMaxMsgNumPerBatch})
+	} else {
+		logger.Info("invalid OMS_MAX_MSG_NUM_PER_BATCH value, set to default",
+			lager.Data{"invalid value": *omsMaxMsgNumPerBatch},
+			lager.Data{"max value": ceilingMaxMsgNumPerBatch},
+			lager.Data{"default value": 1000})
+		*omsMaxMsgNumPerBatch = 1000
+	}
 	logger.Info("config", lager.Data{"LOG_EVENT_COUNT": *logEventCount})
 	logger.Info("config", lager.Data{"LOG_EVENT_COUNT_INTERVAL": (*logEventCountInterval).String()})
 	if len(*eventFilter) > 0 {

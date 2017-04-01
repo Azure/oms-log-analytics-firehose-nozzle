@@ -17,12 +17,6 @@ import (
 	"github.com/cloudfoundry/sonde-go/events"
 )
 
-const (
-	maxPostGoroutines = 1000
-	// Max message size of a sigle post
-	maxSizePerBatch = 20000000
-)
-
 type OmsNozzle struct {
 	logger              lager.Logger
 	errChan             <-chan error
@@ -51,6 +45,7 @@ type NozzleConfig struct {
 }
 
 func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient client.Client, nozzleConfig *NozzleConfig, caching caching.CachingClient) *OmsNozzle {
+	maxPostGoroutines := int(100000 / nozzleConfig.OmsMaxMsgNumPerBatch)
 	return &OmsNozzle{
 		logger:              logger,
 		errChan:             make(<-chan error),

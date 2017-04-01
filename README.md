@@ -94,7 +94,7 @@ Operators should run at least two instances of the nozzle to reduce message loss
 When the nozzle couldn't keep up with processing the logs from firehose, Loggregator alerts the nozzle and then the nozzle logs slowConsumerAlert message to OMS. Operator can [create Alert rule](#alert) for this slowConsumerAlert message in OMS Log Analytics, and when the alert is triggered, the operator should scale up the nozzle to minimize the loss of data.
 
 We did some workload test against the nozzle and got a few data for operaters' reference:
-* In our test, the size of each log and metric sent to OMS is around 550 bytes, each nozzle instance should handle no more than **300000** such messages per minute. Under such workload, the CPU usage of each instance is around 40%, and the memory usage of each instance is around 80M.
+* In our test, the size of each log and metric sent to OMS is around 550 bytes, suggest each nozzle instance should handle no more than **300000** such messages per minute. Under such workload, the CPU usage of each instance is around 40%, and the memory usage of each instance is around 80M.
 
 
 ### Scaling Loggregator
@@ -122,6 +122,11 @@ Type=CF_LogMessage_CL SourceType_s=LGR MessageType_s=ERR
 3. When the number of lost events reaches a threshold (set the threshold value in OMS Portal)
 ```
 Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost
+```
+
+4. When the nozzle receives `TruncatingBuffer.DroppedMessages` CounterEvent
+```
+Type=CF_CounterEvent_CL Name_s="TruncatingBuffer.DroppedMessages"
 ```
 
 # Test
