@@ -67,7 +67,7 @@ forms:
      type: string
      label: OMS Workspace ID
    - name: OMS_KEY
-     type: string
+     type: secret
      label: OMS Workpace Key
    - name: OMS_POST_TIMEOUT
      type: string
@@ -84,6 +84,9 @@ forms:
      default: 1000
      label: Max Event Number Per Batch
      description: The max number of events in each batch to OMS
+     constraints:
+       min: 1
+       max: 10000
    - name: FIREHOSE_USER
      type: string
      label: Firehose Username
@@ -95,9 +98,11 @@ forms:
    - name: API_ADDR
      type: string
      label: Cloud Foundry API Address
+     description: e.g. https://api.203.0.113.0.xip.io
    - name: DOPPLER_ADDR
      type: string
      label: Cloud Foundry Doppler Address
+     description: e.g. wss://doppler.203.0.113.0.xip.io:443
    - name: SKIP_SSL_VALIDATION
      type: boolean 
      label: Skip SSL Validation
@@ -127,11 +132,10 @@ forms:
      label: Log Level
      description: The minimal log level of the nozzle
      options:
-     - name: INFO
-       label: Info
-       default: true
      - name: DEBUG
        label: Debug
+     - name: INFO
+       label: Info
      - name: ERROR
        label: Error
      
