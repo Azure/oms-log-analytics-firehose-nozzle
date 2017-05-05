@@ -67,7 +67,7 @@ cf push
 # Additional logging
 For the most part, the oms-log-analytics-firehose-nozzle forwards metrics from the loggregator firehose to OMS without too much processing. In a few cases the nozzle might push some additional metrics to OMS.
 
-### eventsReceived, eventsSent and eventsLost
+### 1. eventsReceived, eventsSent and eventsLost
 If `LOG_EVENT_COUNT` is set to true, the nozzle will periodically send to OMS the count of received events, sent events and lost events, at intervals of `LOG_EVENT_COUNT_INTERVAL`.
 
 The statistic count is sent as a CounterEvent, with CounterKey of one of **`nozzle.stats.eventsReceived`**, **`nozzle.stats.eventsSent`** and **`nozzle.stats.eventsLost`**. Each CounterEvent contains the value of delta count during the interval, and the total count from the beginning. **`eventsReceived`** counts all the events that the nozzle received from firehose, **`eventsSent`** counts all the events that the nozzle sent to OMS successfully, **`eventsLost`** counts all the events that the nozzle tried to send to OMS but failed after 4 attempts.
@@ -76,7 +76,7 @@ These CounterEvents themselves are not counted in the received, sent or lost cou
 
 In normal cases, the total count of eventsSent plus eventsLost is less than total eventsReceived at the same time, as the nozzle buffers some messages and then post them in a batch to OMS. Operator can adjust the buffer size by changing the configurations `OMS_BATCH_TIME` and `OMS_MAX_MSG_NUM_PER_BATCH`.
 
-### slowConsumerAlert
+### 2. slowConsumerAlert
 When the nozzle receives slow consumer alert from loggregator in two ways:
 
 1. the nozzle receives a WebSocket close error with error code `ClosePolicyViolation (1008)`
@@ -88,7 +88,7 @@ the nozzle will send a slowConsumerAlert as a ValueMetric to OMS, with MetricKey
 This ValueMetric is not counted in the above statistic received, sent or lost count.
 
 # Scaling guidance
-### Scaling Nozzle
+### 1. Scaling Nozzle
 Operators should run at least two instances of the nozzle to reduce message loss. The Firehose will evenly distribute events across all instances of the nozzle.
 
 When the nozzle couldn't keep up with processing the logs from firehose, Loggregator alerts the nozzle and then the nozzle logs slowConsumerAlert message to OMS. Operator can [create Alert rule](#alert) for this slowConsumerAlert message in OMS Log Analytics, and when the alert is triggered, the operator should scale up the nozzle to minimize the loss of data.
@@ -97,15 +97,15 @@ We did some workload test against the nozzle and got a few data for operaters' r
 * In our test, the size of each log and metric sent to OMS is around 550 bytes, suggest each nozzle instance should handle no more than **300000** such messages per minute. Under such workload, the CPU usage of each instance is around 40%, and the memory usage of each instance is around 80M.
 
 
-### Scaling Loggregator
+### 2. Scaling Loggregator
 Loggregator emits **LGR** log message to indicate problems with the logging process. When operaters see this message in OMS, they might need to [scale Loggregator](https://docs.cloudfoundry.org/running/managing-cf/logging-config.html#scaling).
 
 # View in OMS Portal
 The OMS view of Cloud Foundry will be added to the OMS Solutions Gallery soon. For the intermediate period, you could import the view manually.
-### Import [omsview](./omsview)
+### 1. Import [omsview](./omsview)
 From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select the Cloud Foundry (Preview).omsview file and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
 
-### <a name="alert">Create Alert rules</a>
+### 2. <a name="alert">Create Alert rules</a>
 Operators can follow [this page](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-alerts) to create Alert rules in OMS Portal.
 
 **Sample Alert queries**
@@ -134,3 +134,6 @@ You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the follo
 ```
 ginkgo -r
 ```
+
+# Additional Reference
+To collect syslogs and performance metrics of VMs in CloudFoundry deployment to OMS Log Analytics, please refer to [OMS Agent Bosh release](https://github.com/Azure/oms-agent-for-linux-boshrelease)
