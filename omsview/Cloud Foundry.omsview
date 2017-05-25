@@ -33,18 +33,19 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "Cloud Foundry (Preview)",
+                    "name": "Cloud Foundry",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Cloud Foundry (Preview)')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Cloud Foundry')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "Cloud Foundry (Preview)",
-                        "Name": "Cloud Foundry (Preview)",
+                        "Id": "Cloud Foundry",
+                        "Name": "Cloud Foundry",
                         "Author": "davre@microsoft.com,lizzha@microsoft.com",
                         "Source": "Local",
+                        "Version": 1,
                         "Dashboard": [
                             {
                                 "Id": "InformationBlade",
@@ -66,7 +67,7 @@
                                     },
                                     "List": [
                                         {
-                                            "Title": "Cloud Foundry (Preview)",
+                                            "Title": "Cloud Foundry",
                                             "Content": "The Cloud Foundry solution helps you to view message volume, application workloads and job status of your Cloud Foundry deployment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
                                         }
                                     ]
@@ -88,7 +89,7 @@
                                         "Subtitle": "By Deployment"
                                     },
                                     "Donut": {
-                                        "Query": "Type!=Heartbeat AND Type!=Perf  AND TimeGenerated >= now-1HOURS | measure count() by Deployment_s",
+                                        "Query": "Type:contains(\"CL\") TimeGenerated >= now-1HOURS | measure count() by Deployment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -104,15 +105,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type!=Heartbeat AND Type!=Perf  | measure count() by Deployment_s, Type",
+                                        "Query": "Type:contains(\"CL\") | measure count() by Deployment_s, Type",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Deployment Type",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -157,7 +158,7 @@
                                         "Subtitle": "By Deployment"
                                     },
                                     "Donut": {
-                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Deployment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -173,7 +174,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s, Job_s",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s, Job_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -226,7 +227,7 @@
                                         "Subtitle": "By Deployment"
                                     },
                                     "Donut": {
-                                        "Query": "* Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Deployment_s",
+                                        "Query": "Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Deployment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -242,15 +243,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure countDistinct(InstanceIndex_d) as InstanceCount by Deployment_s,ApplicationName_s ",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure countDistinct(InstanceIndex_d) as InstanceCount by Deployment_s,ApplicationName_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
-                                            "Name": "Instances",
-                                            "Value": ""
+                                            "Name": "Deployment",
+                                            "Value": "Instances"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -295,7 +296,7 @@
                                         "Subtitle": "By Deployment"
                                     },
                                     "LineChart": {
-                                        "Query": "* Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() AS count by Deployment_s  INTERVAL 1MINUTES",
+                                        "Query": "Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() AS count by Deployment_s  INTERVAL 1MINUTES",
                                         "Callout": {
                                             "Title": "Last Minute",
                                             "Series": "",
@@ -312,15 +313,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() by Deployment_s, ApplicationName_s  INTERVAL 1MINUTES",
+                                        "Query": "Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() by Deployment_s, ApplicationName_s  INTERVAL 1MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Deployment",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -365,7 +366,7 @@
                                         "Subtitle": "by Deployment"
                                     },
                                     "LineChart": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Deployment_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Deployment_s  INTERVAL 5MINUTES",
                                         "Callout": {
                                             "Title": "Overall Average",
                                             "Series": "",
@@ -382,13 +383,13 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Deployment",
-                                            "Value": "CPU %"
+                                            "Value": "CPU (%)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -435,7 +436,7 @@
                                         "Subtitle": "by Deployment"
                                     },
                                     "LineChart": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(MemoryBytes_d) as Mem by Deployment_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Deployment_s  INTERVAL 5MINUTES",
                                         "Callout": {
                                             "Title": "Overall average",
                                             "Series": "",
@@ -445,20 +446,20 @@
                                             "isLogarithmic": false,
                                             "units": {
                                                 "baseUnitType": "Bits",
-                                                "baseUnit": "Bytes",
-                                                "displayUnit": "Bytes"
+                                                "baseUnit": "Megabytes",
+                                                "displayUnit": "Megabytes"
                                             },
                                             "customLabel": ""
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(MemoryBytes_d) as Mem by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Deployment",
-                                            "Value": "Mem (Bytes)"
+                                            "Value": "Mem (MB)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -505,7 +506,7 @@
                                         "Subtitle": "by Deployment"
                                     },
                                     "LineChart": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(DiskBytes_d) as Disk by Deployment_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Deployment_s  INTERVAL 5MINUTES",
                                         "Callout": {
                                             "Title": "Overall average",
                                             "Series": "",
@@ -515,20 +516,20 @@
                                             "isLogarithmic": false,
                                             "units": {
                                                 "baseUnitType": "Bits",
-                                                "baseUnit": "Bytes",
-                                                "displayUnit": "Bytes"
+                                                "baseUnit": "Megabytes",
+                                                "displayUnit": "Megabytes"
                                             },
                                             "customLabel": ""
                                         }
                                     },
                                     "List": {
-                                        "Query": "* Type=CF_ContainerMetric_CL | measure avg(DiskBytes_d) as Disk by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
+                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Deployment_s,ApplicationName_s  INTERVAL 5MINUTES",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Deployment",
-                                            "Value": "Disk (Bytes)"
+                                            "Value": "Disk (MB)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -601,7 +602,7 @@
                             "Version": 0,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "* Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Deployment_s",
+                                    "Query": "Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Deployment_s",
                                     "CenterLegend": {
                                         "Text": "Total Apps",
                                         "Operation": "Sum",

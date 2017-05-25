@@ -101,9 +101,10 @@ We did some workload test against the nozzle and got a few data for operaters' r
 Loggregator emits **LGR** log message to indicate problems with the logging process. When operaters see this message in OMS, they might need to [scale Loggregator](https://docs.cloudfoundry.org/running/managing-cf/logging-config.html#scaling).
 
 # View in OMS Portal
-The OMS view of Cloud Foundry will be added to the OMS Solutions Gallery soon. For the intermediate period, you could import the view manually.
-### 1. Import [omsview](./omsview)
-From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select the Cloud Foundry (Preview).omsview file and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
+### 1. Import OMS View
+From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select one of the [omsview](./omsview) files, e.g. [Cloud Foundry.omsview](./omsview/Cloud%20Foundry.omsview), and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
+
+You can also customize these views or create new views through **View Designer**.
 
 ### 2. <a name="alert">Create Alert rules</a>
 Operators can follow [this page](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-alerts) to create Alert rules in OMS Portal.
