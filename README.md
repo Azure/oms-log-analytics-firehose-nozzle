@@ -104,31 +104,24 @@ Loggregator emits **LGR** log message to indicate problems with the logging proc
 ### 1. Import OMS View
 From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select one of the [omsview](./omsview) files, e.g. [Cloud Foundry.omsview](./omsview/Cloud%20Foundry.omsview), and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
 
-You can also customize these views or create new views through **View Designer**.
+Operators could customize these views or create new views through **View Designer**.
 
 ### 2. <a name="alert">Create Alert rules</a>
-Operators can follow [this page](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-alerts) to create Alert rules in OMS Portal.
+This section describes some sample alert rules that operators may want to create for identifying important information in your Cloud Foundry deployment.
 
-**Sample Alert queries**
-1. slowConsumerAlert
-```
-Type=CF_ValueMetric_CL Name_s=slowConsumerAlert
-```
+For the process of creating alert rules in Log Analytics, please refer to this [article](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-alerts).
 
-2. Loggregator emits **LGR** to indicate problems with the logging process, e.g. when log message output is too high
-```
-Type=CF_LogMessage_CL SourceType_s=LGR MessageType_s=ERR
-```
+Operators could customize the queries and threshold values as needed.
 
-3. When the number of lost events reaches a threshold (set the threshold value in OMS Portal)
-```
-Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost
-```
-
-4. When the nozzle receives `TruncatingBuffer.DroppedMessages` CounterEvent
-```
-Type=CF_CounterEvent_CL Name_s="TruncatingBuffer.DroppedMessages"
-```
+| Search query                                                                  | Generate alert based on | Description                                                                       |
+| ----------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| Type=CF_ValueMetric_CL Origin_s=bbs Name_s="Domain.cf-apps"                   | Number of results < 1   | **bbs.Domain.cf-apps** indicates if the cf-apps Domain is up-to-date, meaning that CF App requests from Cloud Controller are synchronized to bbs.LRPsDesired (Diego-desired AIs) for execution. No data received means cf-apps Domain is not up-to-date in the given time window. |
+| Type=CF_ValueMetric_CL Origin_s=rep Name_s=UnhealthyCell Value_d>1            | Number of results > 0   | For Diego cells, 0 means healthy, and 1 means unhealthy. Set the alert if multiple **unhealthy Diego cells** are detected in the given time window. |
+| Type=CF_ValueMetric_CL Origin_s=route_emitter Name_s=ConsulDownMode Value_d>0 | Number of results > 0   | Consul emits its health status periodically. 0 means the system is healthy, and 1 means that route emitter detects that **Consul is down**. |
+| Type=CF_CounterEvent_CL Origin_s=DopplerServer (Name_s="TruncatingBuffer.DroppedMessages" or Name_s="doppler.shedEnvelopes") Delta_d>0 | Number of results > 0 | The delta number of messages intentionally **dropped** by Doppler due to back pressure. |
+| Type=CF_LogMessage_CL SourceType_s=LGR MessageType_s=ERR                      | Number of results > 0   | Loggregator emits **LGR** to indicate problems with the logging process, e.g. when log message output is too high. |
+| Type=CF_ValueMetric_CL Name_s=slowConsumerAlert                               | Number of results > 0   | When the nozzle receives slow consumer alert from Loggregator, it sends **slowConsumerAlert** ValueMetric to OMS. |
+| Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost Delta_d>0              | Number of results > 0   | When the delta number of **lost events** reaches a threshold, the nozzle might have some problem running. |
 
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
