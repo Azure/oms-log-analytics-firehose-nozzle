@@ -107,7 +107,7 @@ From the main OMS Overview page, go to **View Designer** -> **Import** -> **Brow
 Operators could customize these views or create new views through **View Designer**.
 
 ### 2. <a name="alert">Create Alert rules</a>
-This section describes some sample alert rules that operators may want to create for identifying important information in your Cloud Foundry deployment.
+This section describes some sample alert rules that operators may want to create for identifying important information in their Cloud Foundry deployments.
 
 For the process of creating alert rules in Log Analytics, please refer to this [article](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-alerts).
 
@@ -121,7 +121,7 @@ Operators could customize the queries and threshold values as needed.
 | Type=CF_CounterEvent_CL Origin_s=DopplerServer (Name_s="TruncatingBuffer.DroppedMessages" or Name_s="doppler.shedEnvelopes") Delta_d>0 | Number of results > 0 | The delta number of messages intentionally **dropped** by Doppler due to back pressure. |
 | Type=CF_LogMessage_CL SourceType_s=LGR MessageType_s=ERR                      | Number of results > 0   | Loggregator emits **LGR** to indicate problems with the logging process, e.g. when log message output is too high. |
 | Type=CF_ValueMetric_CL Name_s=slowConsumerAlert                               | Number of results > 0   | When the nozzle receives slow consumer alert from Loggregator, it sends **slowConsumerAlert** ValueMetric to OMS. |
-| Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost Delta_d>0              | Number of results > 0   | When the delta number of **lost events** reaches a threshold, the nozzle might have some problem running. |
+| Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost Delta_d>0              | Number of results > 0   | If the delta number of **lost events** reaches a threshold, it means the nozzle might have some problem running. |
 
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
