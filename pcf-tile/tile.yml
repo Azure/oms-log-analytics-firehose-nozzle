@@ -73,17 +73,17 @@ forms:
      type: string
      default: 10s
      label: OMS Post Timeout
-     description: Timeout duration for posting to OMS
+     description: Timeout duration for posting to OMS Log Analytics
    - name: OMS_BATCH_TIME
      type: string
      default: 10s
      label: OMS Batch Time
-     description: Time interval for posting an event batch to OMS
+     description: Time interval for posting an event batch to OMS Log Analytics
    - name: OMS_MAX_MSG_NUM_PER_BATCH
      type: integer
      default: 1000
      label: Max Event Number Per Batch
-     description: The max number of events in each batch to OMS
+     description: The max number of events in each batch to OMS Log Analytics
      constraints:
        min: 1
        max: 10000
