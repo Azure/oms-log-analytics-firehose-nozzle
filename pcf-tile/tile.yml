@@ -5,7 +5,7 @@
 name: azure-log-analytics-nozzle # By convention lowercase with dashes
 icon_file: resources/icon.png
 label: Microsoft Azure Log Analytics Nozzle
-description: A nozzle which forwards metrics and logs from the Loggregator Firehose to Microsoft Azure OMS Log Analytics
+description: A nozzle which forwards metrics and logs from the Loggregator Firehose to OMS (Operations Management Suite) Log Analytics
 # metadata_version: 1.8                 # Optional, defaults to 1.5
 
 # Global defaults (all optional)
@@ -68,7 +68,7 @@ forms:
      label: OMS Workspace ID
    - name: OMS_KEY
      type: secret
-     label: OMS Workpace Key
+     label: OMS Workspace Key
    - name: OMS_POST_TIMEOUT
      type: string
      default: 10s
@@ -120,7 +120,7 @@ forms:
    - name: LOG_EVENT_COUNT
      type: boolean
      label: Log Event Count
-     description: Whether to log to Azure Log Analytics the count of events that the nozzle has recevied, sent and lost
+     description: Whether to log to OMS Log Analytics the count of events that the nozzle has recevied, sent and lost
      default: true
    - name: LOG_EVENT_COUNT_INTERVAL
      type: string
