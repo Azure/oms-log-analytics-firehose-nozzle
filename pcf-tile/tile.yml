@@ -2,10 +2,10 @@
 # The high-level description of your tile.
 # Replace these properties with real values.
 #
-name: oms-log-analytics-firehose-nozzle # By convention lowercase with dashes
+name: azure-log-analytics-nozzle # By convention lowercase with dashes
 icon_file: resources/icon.png
-label: OMS Log Analytics Firehose Nozzle 
-description: A nozzle which forwards metrics and logs from the Loggregator Firehose to Azure OMS Log Analytics
+label: Microsoft Azure Log Analytics Nozzle
+description: A nozzle which forwards metrics and logs from the Loggregator Firehose to Microsoft Azure OMS Log Analytics
 # metadata_version: 1.8                 # Optional, defaults to 1.5
 
 # Global defaults (all optional)
@@ -22,11 +22,11 @@ apply_open_security_group: true         # Apply open security group, default: fa
 # https://github.com/cf-platform-eng/tile-generator/blob/master/README.md
 #
 packages:
-- name: oms-log-analytics-firehose-nozzle
+- name: azure-log-analytics-nozzle
   type: app
 #  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
   manifest:
-    path: resources/oms-log-analytics-firehose-nozzle.zip
+    path: resources/azure-log-analytics-nozzle.zip
     buildpack: https://github.com/cloudfoundry/go-buildpack.git
     instances: 2
     memory: 512M
@@ -59,9 +59,9 @@ packages:
 #     (( .properties.<property-name> ))
 # 
 forms:
- - name: oms-nozzle-config-form
-   label: OMS Nozzle Config
-   description: Properties for OMS Nozzle
+ - name: nozzle-config-form
+   label: Nozzle Config
+   description: Properties for Azure Log Analytics Nozzle
    properties:
    - name: OMS_WORKSPACE
      type: string
@@ -120,12 +120,12 @@ forms:
    - name: LOG_EVENT_COUNT
      type: boolean
      label: Log Event Count
-     description: Whether to log to OMS the count of events that the nozzle recevied and sent
+     description: Whether to log to Azure Log Analytics the count of events that the nozzle has recevied, sent and lost
      default: true
    - name: LOG_EVENT_COUNT_INTERVAL
      type: string
      label: Log Event Count Interval
-     description: The time interval to log event log
+     description: The time interval to log event count
      default: 60s
    - name: LOG_LEVEL
      type: dropdown_select
