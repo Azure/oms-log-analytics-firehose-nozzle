@@ -109,6 +109,8 @@ From the main OMS Overview page, go to **View Designer** -> **Import** -> **Brow
 
 Operators could customize these views or create new views through **View Designer**.
 
+> Please note the "Cloud Foundry.omsview" is a preview version of Cloud Foundry OMS view template, a fully configured default template is in progress, please send your suggestions and feedback for the full view by creating Github issues.
+
 ### 2. <a name="alert">Create Alert rules</a>
 This section describes some sample alert rules that operators may want to create for identifying important information in their Cloud Foundry deployments.
 
