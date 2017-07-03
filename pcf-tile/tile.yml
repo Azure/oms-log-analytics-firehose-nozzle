@@ -99,10 +99,16 @@ forms:
      type: string
      label: Cloud Foundry API Address
      description: e.g. https://api.203.0.113.0.xip.io
+     constraints:
+     - must_match_regex: '^https://.*$'
+       error_message: 'This address starts with "https://"'
    - name: DOPPLER_ADDR
      type: string
      label: Cloud Foundry Doppler Address
      description: e.g. wss://doppler.203.0.113.0.xip.io:443
+     constraints:
+     - must_match_regex: '^wss://.*$'
+       error_message: 'This address starts with "wss://"'
    - name: SKIP_SSL_VALIDATION
      type: boolean 
      label: Skip SSL Validation
