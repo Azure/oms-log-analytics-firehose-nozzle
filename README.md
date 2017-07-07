@@ -55,7 +55,7 @@ FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
-ENVIRONMENT               : Set this value to identify different CF environments
+ENVIRONMENT               : Set to any string value for identifying logs and metrics from different CF environments
 IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
 LOG_LEVEL                 : Logging level of the nozzle, valid levels: DEBUG, INFO, ERROR
 LOG_EVENT_COUNT           : If true, the total count of events that the nozzle has received and sent will be logged to OMS Log Analytics as CounterEvents
