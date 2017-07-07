@@ -25,14 +25,18 @@ var _ = Describe("Omsnozzle", func() {
 	BeforeEach(func() {
 		firehoseClient = mocks.NewMockFirehoseClient()
 		omsClient = mocks.NewMockOmsClient()
-		cachingClient = &mocks.MockCaching{}
+		cachingClient = &mocks.MockCaching{
+			EnvironmentName: "dev",
+			InstanceName:    "nozzle0",
+		}
 		logger = mocks.NewMockLogger()
 		nozzleConfig = &omsnozzle.NozzleConfig{
-			OmsTypePrefix:       "CF_",
-			OmsBatchTime:        time.Duration(5) * time.Millisecond,
-			ExcludeMetricEvents: false,
-			ExcludeLogEvents:    false,
-			ExcludeHttpEvents:   false,
+			OmsTypePrefix:        "CF_",
+			OmsBatchTime:         time.Duration(5) * time.Millisecond,
+			ExcludeMetricEvents:  false,
+			ExcludeLogEvents:     false,
+			ExcludeHttpEvents:    false,
+			OmsMaxMsgNumPerBatch: 2000,
 		}
 
 		nozzle = omsnozzle.NewOmsNozzle(logger, firehoseClient, omsClient, nozzleConfig, cachingClient)
@@ -54,7 +58,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"LogMessage\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"d396528c711f0053685aac71a95a9637\",\"Origin\":\"\",\"Message\":\"\",\"MessageType\":\"OUT\",\"Timestamp\":0,\"AppID\":\"\",\"ApplicationName\":\"\",\"SourceType\":\"\",\"SourceInstance\":\"\",\"SourceTypeKey\":\"-OUT\"}]"
+		msgJson := "[{\"EventType\":\"LogMessage\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"d396528c711f0053685aac71a95a9637\",\"Origin\":\"\",\"Message\":\"\",\"MessageType\":\"OUT\",\"Timestamp\":0,\"AppID\":\"\",\"ApplicationName\":\"\",\"SourceType\":\"\",\"SourceInstance\":\"\",\"SourceTypeKey\":\"-OUT\"}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_LogMessage"]
 		}).Should(Equal(msgJson))
@@ -75,7 +79,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"HttpStartStop\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"b7338b4f4c40613986590b7e4ec508a9\",\"SourceInstance\":\"\",\"Origin\":\"\",\"StartTimestamp\":0,\"StopTimestamp\":0,\"RequestID\":\"\",\"PeerType\":\"Client\",\"Method\":\"GET\",\"URI\":\"\",\"RemoteAddress\":\"\",\"UserAgent\":\"\",\"StatusCode\":0,\"ContentLength\":0,\"ApplicationID\":\"\",\"ApplicationName\":\"\",\"InstanceIndex\":0,\"InstanceID\":\"\",\"Forwarded\":\"\"}]"
+		msgJson := "[{\"EventType\":\"HttpStartStop\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"b7338b4f4c40613986590b7e4ec508a9\",\"SourceInstance\":\"\",\"Origin\":\"\",\"StartTimestamp\":0,\"StopTimestamp\":0,\"RequestID\":\"\",\"PeerType\":\"Client\",\"Method\":\"GET\",\"URI\":\"\",\"RemoteAddress\":\"\",\"UserAgent\":\"\",\"StatusCode\":0,\"ContentLength\":0,\"ApplicationID\":\"\",\"ApplicationName\":\"\",\"InstanceIndex\":0,\"InstanceID\":\"\",\"Forwarded\":\"\"}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_HttpStartStop"]
 		}).Should(Equal(msgJson))
@@ -91,7 +95,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"Error\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"1aeb0d10b3411300c1ad275c668c581a\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Source\":\"\",\"Code\":0,\"Message\":\"\"}]"
+		msgJson := "[{\"EventType\":\"Error\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"1aeb0d10b3411300c1ad275c668c581a\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Source\":\"\",\"Code\":0,\"Message\":\"\"}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_Error"]
 		}).Should(Equal(msgJson))
@@ -107,7 +111,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"ContainerMetric\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"7a2415d07f1304f829a5b1fc1390aa1e\",\"SourceInstance\":\"\",\"Origin\":\"\",\"ApplicationID\":\"\",\"ApplicationName\":\"\",\"InstanceIndex\":0}]"
+		msgJson := "[{\"EventType\":\"ContainerMetric\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"7a2415d07f1304f829a5b1fc1390aa1e\",\"SourceInstance\":\"\",\"Origin\":\"\",\"ApplicationID\":\"\",\"ApplicationName\":\"\",\"InstanceIndex\":0}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_ContainerMetric"]
 		}).Should(Equal(msgJson))
@@ -123,7 +127,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"CounterEvent\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"5e28ff227b28d842fd7e08c0a764cf53\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Name\":\"\",\"Delta\":0,\"Total\":0,\"CounterKey\":\"..\"}]"
+		msgJson := "[{\"EventType\":\"CounterEvent\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"5e28ff227b28d842fd7e08c0a764cf53\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Name\":\"\",\"Delta\":0,\"Total\":0,\"CounterKey\":\"..\"}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_CounterEvent"]
 		}).Should(Equal(msgJson))
@@ -139,7 +143,7 @@ var _ = Describe("Omsnozzle", func() {
 
 		firehoseClient.MessageChan <- envelope
 
-		msgJson := "[{\"EventType\":\"ValueMetric\",\"Deployment\":\"\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"\",\"MessageHash\":\"cc4acf2df16fb78148a274ddc04800ca\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Name\":\"\",\"Value\":0,\"Unit\":\"\",\"MetricKey\":\"..\"}]"
+		msgJson := "[{\"EventType\":\"ValueMetric\",\"Deployment\":\"\",\"Environment\":\"dev\",\"EventTime\":\"0001-01-01T00:00:00Z\",\"Job\":\"\",\"Index\":\"\",\"IP\":\"\",\"Tags\":\"\",\"NozzleInstance\":\"nozzle0\",\"MessageHash\":\"cc4acf2df16fb78148a274ddc04800ca\",\"SourceInstance\":\"\",\"Origin\":\"\",\"Name\":\"\",\"Value\":0,\"Unit\":\"\",\"MetricKey\":\"..\"}]"
 		Eventually(func() string {
 			return omsClient.GetPostedMessages()["CF_ValueMetric"]
 		}).Should(Equal(msgJson))
@@ -177,6 +181,7 @@ var _ = Describe("LogEventCount", func() {
 			ExcludeHttpEvents:     false,
 			LogEventCount:         true,
 			LogEventCountInterval: time.Duration(10) * time.Millisecond,
+			OmsMaxMsgNumPerBatch:  2000,
 		}
 
 		nozzle = omsnozzle.NewOmsNozzle(logger, firehoseClient, omsClient, nozzleConfig, cachingClient)

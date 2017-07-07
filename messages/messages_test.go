@@ -13,14 +13,17 @@ import (
 
 var _ = Describe("Messages", func() {
 	var (
-		instanceName string
-		caching      *mocks.MockCaching
+		instanceName    string
+		environmentName string
+		caching         *mocks.MockCaching
 	)
 
 	BeforeEach(func() {
 		instanceName = "nozzleinstace"
+		environmentName = "dev"
 		caching = &mocks.MockCaching{
-			InstanceName: instanceName,
+			InstanceName:    instanceName,
+			EnvironmentName: environmentName,
 		}
 	})
 
@@ -61,6 +64,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.Job).To(Equal(job))
 		hash := md5.Sum([]byte(envelope.String()))
 		Expect(m.MessageHash).To(Equal(hex.EncodeToString(hash[:])))
+		Expect(m.Environment).To(Equal(environmentName))
 	})
 
 	It("creates LogMessage from Envelope", func() {
@@ -104,6 +108,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.SourceTypeKey).To(Equal("sourceTypeName-OUT"))
 		Expect(m.BaseMessage.SourceInstance).To(Equal(""))
 		Expect(m.BaseMessage.EventType).To(Equal("LogMessage"))
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 
 	It("creates HttpStartStop from Envelope", func() {
@@ -177,7 +182,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.InstanceID).To(Equal(instanceId))
 		Expect(m.Forwarded).To(Equal("10.0.0.1,10.0.0.2"))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
-
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 
 	It("creates Error from Envelope", func() {
@@ -203,6 +208,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.Code).To(Equal(code))
 		Expect(m.Source).To(Equal(source))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 
 	It("creates ContainerMetric from Envelope", func() {
@@ -247,6 +253,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.MemoryBytesQuota).To(Equal(memoryBytesQuota))
 		Expect(m.DiskBytesQuota).To(Equal(diskBytesQuota))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 
 	It("creates CounterEvent from Envelope", func() {
@@ -277,6 +284,7 @@ var _ = Describe("Messages", func() {
 		Expect(m.Total).To(Equal(total))
 		Expect(m.CounterKey).To(Equal("job.MetronAgent.dropsondeUnmarshaller.receivedEnvelopes"))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 
 	It("creates ValueMetric from Envelope", func() {
@@ -307,5 +315,6 @@ var _ = Describe("Messages", func() {
 		Expect(m.Unit).To(Equal(unit))
 		Expect(m.MetricKey).To(Equal("job.rep.memoryStats.numBytesAllocatedHeap"))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
+		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 	})
 })

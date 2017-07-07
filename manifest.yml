@@ -18,6 +18,7 @@ applications:
     API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
     DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443
     SKIP_SSL_VALIDATION: true
+    ENVIRONMENT: "cf"
     # EVENT_FILTER: "METRIC,HTTP" # Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
     IDLE_TIMEOUT: 60s
     LOG_LEVEL: INFO # Valid log levels: DEBUG, INFO, ERROR

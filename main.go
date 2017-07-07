@@ -34,7 +34,7 @@ const (
 	// the prefix of message type in OMS Log Analytics
 	omsTypePrefix = "CF_"
 
-	version = "1.0.0"
+	version = "1.1.0"
 )
 
 // Required parameters
@@ -44,6 +44,7 @@ var (
 	dopplerAddress       = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").Required().String()
 	cfUser               = kingpin.Flag("firehose-user", "CF user with admin and firehose access").OverrideDefaultFromEnvar("FIREHOSE_USER").Required().String()
 	cfPassword           = kingpin.Flag("firehose-user-password", "Password of the CF user").OverrideDefaultFromEnvar("FIREHOSE_USER_PASSWORD").Required().String()
+	environment          = kingpin.Flag("environment", "CF environment name").OverrideDefaultFromEnvar("ENVIRONMENT").Default("cf").String()
 	omsWorkspace         = kingpin.Flag("oms-workspace", "OMS workspace ID").OverrideDefaultFromEnvar("OMS_WORKSPACE").Required().String()
 	omsKey               = kingpin.Flag("oms-key", "OMS workspace key").OverrideDefaultFromEnvar("OMS_KEY").Required().String()
 	omsPostTimeout       = kingpin.Flag("oms-post-timeout", "HTTP timeout for posting events to OMS Log Analytics").Default("5s").OverrideDefaultFromEnvar("OMS_POST_TIMEOUT").Duration()
@@ -95,6 +96,7 @@ func main() {
 	logger.Info("config", lager.Data{"SKIP_SSL_VALIDATION": *skipSslValidation})
 	logger.Info("config", lager.Data{"IDLE_TIMEOUT": (*idleTimeout).String()})
 	logger.Info("config", lager.Data{"OMS_BATCH_TIME": (*omsBatchTime).String()})
+	logger.Info("config", lager.Data{"ENVIRONMENT": *environment})
 	if ceilingMaxMsgNumPerBatch >= *omsMaxMsgNumPerBatch && *omsMaxMsgNumPerBatch > 0 {
 		logger.Info("config", lager.Data{"OMS_MAX_MSG_NUM_PER_BATCH": *omsMaxMsgNumPerBatch})
 	} else {
@@ -154,7 +156,7 @@ func main() {
 		LogEventCountInterval: *logEventCountInterval,
 	}
 
-	cachingClient := caching.NewCaching(cfClientConfig, logger)
+	cachingClient := caching.NewCaching(cfClientConfig, logger, *environment)
 	nozzle := omsnozzle.NewOmsNozzle(logger, firehoseClient, omsClient, nozzleConfig, cachingClient)
 
 	nozzle.Start()

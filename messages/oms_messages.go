@@ -17,6 +17,7 @@ import (
 type BaseMessage struct {
 	EventType      string
 	Deployment     string
+	Environment    string
 	EventTime      time.Time
 	Job            string
 	Index          string
@@ -34,6 +35,7 @@ func NewBaseMessage(e *events.Envelope, c caching.CachingClient) *BaseMessage {
 	var b = BaseMessage{
 		EventType:      e.GetEventType().String(),
 		Deployment:     e.GetDeployment(),
+		Environment:    c.GetEnvironmentName(),
 		Job:            e.GetJob(),
 		Index:          e.GetIndex(),
 		IP:             e.GetIp(),

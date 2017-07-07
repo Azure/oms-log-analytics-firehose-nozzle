@@ -12,19 +12,22 @@ type Caching struct {
 	appNamesByGuid map[string]string
 	logger         lager.Logger
 	instanceName   string
+	environment    string
 }
 
 type CachingClient interface {
 	GetAppName(string) string
 	GetInstanceName() string
+	GetEnvironmentName() string
 	Initialize()
 }
 
-func NewCaching(config *cfclient.Config, logger lager.Logger) CachingClient {
+func NewCaching(config *cfclient.Config, logger lager.Logger, environment string) CachingClient {
 	return &Caching{
 		cfClientConfig: config,
 		appNamesByGuid: make(map[string]string),
 		logger:         logger,
+		environment:    environment,
 	}
 }
 
@@ -96,4 +99,8 @@ func (c *Caching) setInstanceName() error {
 
 func (c *Caching) GetInstanceName() string {
 	return c.instanceName
+}
+
+func (c *Caching) GetEnvironmentName() string {
+	return c.environment
 }
