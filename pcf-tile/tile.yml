@@ -25,6 +25,8 @@ packages:
 - name: azure-log-analytics-nozzle
   type: app
 #  label: My fabulous appplication      # Package name for use in human-readable labels in OpsManager
+  pre_deploy: |
+    cf delete-org -f azure-log-analytics-nozzle-org
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
     buildpack: https://github.com/cloudfoundry/go-buildpack.git
@@ -172,5 +174,5 @@ forms:
 # in this file. If that is your intent, you must do the overwriting
 # explicitly using JavaScript migration functions, like so:
 #
-# migration: |
-#   properties['properties']['.properties.org']['value'] = 'system';
+migration: |
+  properties['properties']['.properties.org']['value'] = 'system';
