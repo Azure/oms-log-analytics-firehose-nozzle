@@ -10,8 +10,8 @@ description: A nozzle which forwards metrics and logs from the Loggregator Fireh
 
 # Global defaults (all optional)
 #
-# org: test-org                         # Name of org to create for your apps
-# space: test-space                     # Name of space to create for your apps
+org: system                             # Name of org to create for your apps
+space: azure-log-analytics-nozzle-space # Name of space to create for your apps
 apply_open_security_group: true         # Apply open security group, default: false
 
 # Specify the packages to be included in your tile.
@@ -109,6 +109,11 @@ forms:
      constraints:
      - must_match_regex: '^wss://.*$'
        error_message: 'This address starts with "wss://"'
+   - name: CF_ENVIRONMENT
+     type: string
+     label: Cloud Foundry Environment
+     description: Label to identify logs and metrics from different CF environments
+     default: "cf"
    - name: SKIP_SSL_VALIDATION
      type: boolean 
      label: Skip SSL Validation
