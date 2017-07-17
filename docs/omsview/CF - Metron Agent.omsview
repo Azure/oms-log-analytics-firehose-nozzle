@@ -1,0 +1,475 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "2015-11-01-preview",
+                    "name": "CF - Metron Agent",
+                    "type": "views",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - Metron Agent')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "CF - Metron Agent",
+                        "Name": "CF - Metron Agent",
+                        "DisplayName": "CF - Metron Agent",
+                        "Author": "lizzha@microsoft.com",
+                        "Source": "Local",
+                        "Version": 1,
+                        "Dashboard": [
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Sent Dropsonde Envelopes",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Sent Envelopes per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "Ones"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Received Dropsonde Envelopes",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Received Envelopes per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "Ones"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartCalloutStackedBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Sent to Doppler",
+                                        "newGroup": false
+                                    },
+                                    "charts": [
+                                        {
+                                            "Header": {
+                                                "Title": "Messages Sent to Doppler per Minute",
+                                                "Subtitle": ""
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "",
+                                                        "baseUnit": "",
+                                                        "displayUnit": ""
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "Header": {
+                                                "Title": "Bytes Sent to Doppler per Minute",
+                                                "Subtitle": ""
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentByteCount\") | measure sum(div(Delta_d,5242880)) by Environment_s,Name_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "Bits",
+                                                        "baseUnit": "Megabytes",
+                                                        "displayUnit": "Megabytes"
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "Header": {
+                                                "Title": "Total Errors Writing to Doppler",
+                                                "Subtitle": ""
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sendErrorCount\") | measure max(Total_d) by Environment_s,Name_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "",
+                                                        "baseUnit": "",
+                                                        "displayUnit": ""
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Messages Unmarshalled",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Unmarshalled Messages per Minute",
+                                        "Subtitle": ""
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure max(Total_d) by Environment_s,Name_s,IP_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Dropsonde Messages",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Messages Received by Agent Listener per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Dropsonde Bytes",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Bytes Received by Agent Listener per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure sum(div(Delta_d, 5240)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Bits",
+                                                "baseUnit": "Kilobytes",
+                                                "displayUnit": "Kilobytes"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure max(div(Total_d, 1048576)) by Environment_s,Job_s,IP_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total(MB)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "LineChartBuilderTile",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "LineChart": {
+                                    "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                    "yAxis": {
+                                        "isLogarithmic": false,
+                                        "units": {
+                                            "baseUnitType": "Count",
+                                            "baseUnit": "Ones",
+                                            "displayUnit": "Ones"
+                                        },
+                                        "customLabel": "Sent Message Rate"
+                                    }
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": true,
+                                        "Query": "Type=CF_CounterEvent_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

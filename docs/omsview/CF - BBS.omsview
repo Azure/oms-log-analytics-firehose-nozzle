@@ -1,0 +1,357 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "2015-11-01-preview",
+                    "name": "CF - BBS",
+                    "type": "views",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - BBS')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "CF - BBS",
+                        "Name": "CF - BBS",
+                        "DisplayName": "CF - BBS",
+                        "Author": "lizzha@microsoft.com",
+                        "Source": "Local",
+                        "Version": 1,
+                        "Dashboard": [
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Request",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Request Latency",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=RequestLatency | measure max(div(Value_d, 1000000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Seconds",
+                                                "displayUnit": "Seconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s,Name_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "SingleQueryDonutBuilderBladeV1",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Convergence Task",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Total Convergence Task Runs",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "Donut": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTaskRuns | measure max(Total_d) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "Total",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
+                                        },
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTasksKicked or Name_s=ConvergenceTasksPruned | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "SingleQueryDonutBuilderBladeV1",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Convergence LRP",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Total Convergence LRP Runs",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "Donut": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceLRPRuns | measure max(Total_d) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "Total",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
+                                        },
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s:contains(\"ConvergenceLRPPreProcessing\") | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartCalloutStackedBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Duration",
+                                        "newGroup": false
+                                    },
+                                    "charts": [
+                                        {
+                                            "Header": {
+                                                "Title": "Convergence LRP Duration",
+                                                "Subtitle": "by Environment"
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceLRPDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "TimeRange",
+                                                        "baseUnit": "Milliseconds",
+                                                        "displayUnit": "Milliseconds"
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "Header": {
+                                                "Title": "Convergence Task Duration",
+                                                "Subtitle": "by Environment"
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceTaskDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "TimeRange",
+                                                        "baseUnit": "Milliseconds",
+                                                        "displayUnit": "Milliseconds"
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "Header": {
+                                                "Title": "Metrics Reporting Duration",
+                                                "Subtitle": "by Environment"
+                                            },
+                                            "LineChart": {
+                                                "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=MetricsReportingDuration | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                                "yAxis": {
+                                                    "isLogarithmic": false,
+                                                    "units": {
+                                                        "baseUnitType": "TimeRange",
+                                                        "baseUnit": "Milliseconds",
+                                                        "displayUnit": "Milliseconds"
+                                                    },
+                                                    "customLabel": ""
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "Donut": {
+                                    "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s",
+                                    "CenterLegend": {
+                                        "Text": "Total Requests",
+                                        "Operation": "Sum",
+                                        "ArcsToSelect": []
+                                    },
+                                    "Options": {
+                                        "colors": [
+                                            "#00188f",
+                                            "#0072c6",
+                                            "#00bcf2"
+                                        ],
+                                        "valueColorMapping": []
+                                    }
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": true,
+                                        "Query": "Type=CF_CounterEvent_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

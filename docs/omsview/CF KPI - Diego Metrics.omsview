@@ -1,0 +1,607 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "2015-11-01-preview",
+                    "name": "CF KPI - Diego Metrics",
+                    "type": "views",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Diego Metrics')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "CF KPI - Diego Metrics",
+                        "Name": "CF KPI - Diego Metrics",
+                        "DisplayName": "CF KPI - Diego Metrics",
+                        "Author": "lizzha@microsoft.com",
+                        "Source": "Local",
+                        "Version": 1,
+                        "Dashboard": [
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "BBS - LRPs",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "LRPs Running",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning | measure avg(Value_d) by Environment_s",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs (Name_s=LRPsExtra or Name_s=CrashedActualLRPs or Name_s=LRPsDesired or Name_s=LRPsClaimed or Name_s=LRPsMissing) | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "BBS - LRP Convergence",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "BBS Time to Run LRP Convergence",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceLRPDuration | measure max(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceLRPRuns | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "BBS - Task Convergence",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "BBS Time to Run Task Convergence",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceTaskDuration | measure max(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs (Name_s=ConvergenceTasksKicked OR Name_s=ConvergenceTaskRuns OR Name_s=ConvergenceTasksPruned) | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "BBS - Request",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Request Latency",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=RequestLatency | measure max(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Cell",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Cell Rep Time to Sync",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=RepBulkSyncDuration | measure max(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep (Name_s=CapacityRemainingDisk or Name_s=CapacityRemainingMemory or Name_s=CapacityTotalMemory or Name_s=CapacityTotalDisk) | measure avg(div(Value_d,1024)) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "GB"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "NSync",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Nsync-bulker Time to Sync",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=DesiredLRPSyncDuration | measure max(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=NsyncInvalidDesiredLRPsFound | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Invalid DesiredLRPs Found "
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Route Emitter",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Route Emitter Time to Sync",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=route_emitter Name_s=RouteEmitterSyncDuration | measure max(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=route_emitter Name_s=RoutesTotal | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Routes Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Auctioneer",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Auctioneer Time to Fetch Cell State",
+                                        "Subtitle": "By Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=auctioneer Name_s=AuctioneerFetchStatesDuration | measure max(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "TimeRange",
+                                                "baseUnit": "Milliseconds",
+                                                "displayUnit": "Milliseconds"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=auctioneer (Name_s=AuctioneerLRPAuctionsFailed or Name_s=AuctioneerLRPAuctionsStarted or Name_s=AuctioneerTaskAuctionsFailed or Name_s=AuctioneerTaskAuctionsStarted) | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "Donut": {
+                                    "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                    "CenterLegend": {
+                                        "Text": "LRPs Running",
+                                        "Operation": "Sum",
+                                        "ArcsToSelect": []
+                                    },
+                                    "Options": {
+                                        "colors": [
+                                            "#00188f",
+                                            "#0072c6",
+                                            "#00bcf2"
+                                        ],
+                                        "valueColorMapping": []
+                                    }
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": true,
+                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

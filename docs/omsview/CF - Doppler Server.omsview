@@ -33,37 +33,363 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "Diego Metrics",
+                    "name": "CF - Doppler Server",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Diego Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - Doppler Server')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "Diego Metrics",
-                        "Name": "Diego Metrics",
+                        "Id": "CF - Doppler Server",
+                        "Name": "CF - Doppler Server",
+                        "DisplayName": "CF - Doppler Server",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
                         "Dashboard": [
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Messages Unmarshalled",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Messages Unmarshalled per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"dropsondeUnmarshaller\") and Name_s!=\"dropsondeUnmarshaller.unmarshalErrors\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "Ones"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"dropsondeUnmarshaller\") and Name_s!=\"dropsondeUnmarshaller.unmarshalErrors\" | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Sinks",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average Number of Sinks",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "Ones"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure max(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Messages Received by Listeners",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Messages Received by Listeners per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "Ones"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedMessageCount\") | measure max(Total_d) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Bytes Received by Listeners",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Bytes Received by Listeners per Minute",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedByteCount\" | measure sum(div(Delta_d,5242880)) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Bits",
+                                                "baseUnit": "Megabytes",
+                                                "displayUnit": "Megabytes"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedByteCount\") | measure max(div(Total_d,1048576)) by Environment_s,Name_s",
+                                        "HideGraph": true,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "MB"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Unmarshal Errors",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Unmarshal Errors per Minute",
+                                        "Subtitle": ""
+                                    },
+                                    "LineChart": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure sum(Delta_d) by Environment_s interval 1Minute",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": "Count"
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure max(Total_d) by Environment_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Last Sample",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total Unmarshal Errors"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
                             {
                                 "Id": "SingleQueryDonutBuilderBladeV1",
                                 "Type": "Blade",
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "BBS - LRPs",
+                                        "title": "Dropped Messages",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "LRPs Running - Last Hour",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Shed Envelopes",
+                                        "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning TimeGenerated>Now-1Hour | measure avg(Value_d) by Deployment_s",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"doppler.shedEnvelopes\" | measure max(Total_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -79,468 +405,13 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs (Name_s=LRPsExtra or Name_s=CrashedActualLRPs or Name_s=LRPsDesired or Name_s=LRPsClaimed or Name_s=LRPsMissing) | measure avg(Value_d) by Deployment_s,Name_s interval 5Minutes",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"TruncatingBuffer.totalDroppedMessages\" | measure max(Total_d) by Environment_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Value"
-                                        },
-                                        "Color": "#0072c6",
-                                        "operation": "Summary",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "BBS - LRP Convergence",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "BBS Time to Run LRP Convergence",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceLRPDuration | measure max(div(Value_d, 1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceLRPRuns | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "operation": "Summary",
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
-                                        },
-                                        "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "BBS - Task Convergence",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "BBS Time to Run Task Convergence",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceTaskDuration | measure max(div(Value_d, 1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs (Name_s=ConvergenceTasksKicked OR Name_s=ConvergenceTaskRuns OR Name_s=ConvergenceTasksPruned) | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "operation": "Summary",
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
-                                        },
-                                        "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "BBS - Request",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Request Latency",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=RequestLatency | measure max(div(Value_d, 1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "operation": "Summary",
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
-                                        },
-                                        "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "Cell",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Cell Rep Time to Sync",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=RepBulkSyncDuration | measure max(div(Value_d,1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep (Name_s=CapacityRemainingDisk or Name_s=CapacityRemainingMemory or Name_s=CapacityTotalMemory or Name_s=CapacityTotalDisk) | measure avg(div(Value_d,1024)) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "operation": "Summary",
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "GB"
-                                        },
-                                        "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "NSync",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Nsync-bulker Time to Sync",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=DesiredLRPSyncDuration | measure max(div(Value_d,1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=NsyncInvalidDesiredLRPsFound TimeGenerated>Now-1Hour | measure avg(Value_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Value"
-                                        },
-                                        "Color": "#0072c6",
-                                        "operation": "Summary",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "Route Emitter",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Route Emitter Time to Sync",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=route_emitter Name_s=RouteEmitterSyncDuration | measure max(div(Value_d,1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=route_emitter Name_s=RoutesTotal TimeGenerated>Now-1Hour | measure avg(Value_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Value"
-                                        },
-                                        "Color": "#0072c6",
-                                        "operation": "Summary",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "Auctioneer",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Auctioneer Time to Fetch Cell State",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=auctioneer Name_s=AuctioneerFetchStatesDuration | measure max(div(Value_d, 1000000000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=auctioneer (Name_s=AuctioneerLRPAuctionsFailed or Name_s=AuctioneerLRPAuctionsStarted or Name_s=AuctioneerTaskAuctionsFailed or Name_s=AuctioneerTaskAuctionsStarted) | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "operation": "Summary",
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
+                                            "Name": "Environment",
+                                            "Value": "Total Dropped Messages"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -578,9 +449,9 @@
                             "Version": 0,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning TimeGenerated>Now-1Hour | measure avg(Value_d) by Deployment_s",
+                                    "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" TimeGenerated>Now-1Hour | measure max(Total_d) by Environment_s",
                                     "CenterLegend": {
-                                        "Text": "App Instances",
+                                        "Text": "Received Messages",
                                         "Operation": "Sum",
                                         "ArcsToSelect": []
                                     },
@@ -595,9 +466,9 @@
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": false,
-                                        "Query": "*",
-                                        "Message": ""
+                                        "Enabled": true,
+                                        "Query": "Type=CF_CounterEvent_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }

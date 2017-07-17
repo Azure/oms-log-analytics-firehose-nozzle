@@ -33,16 +33,17 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "System Metrics",
+                    "name": "CF - Cell Capacity",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/System Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - Cell Capacity')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "System Metrics",
-                        "Name": "System Metrics",
+                        "Id": "CF - Cell Capacity",
+                        "Name": "CF - Cell Capacity",
+                        "DisplayName": "CF - Cell Capacity",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
@@ -53,17 +54,17 @@
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "Job Health",
+                                        "title": "Remaining Containers",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Unhealthy Jobs - Last 15 Minutes",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Average Remaining Containers - Last Hour",
+                                        "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Deployment_s",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingContainers TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -79,13 +80,13 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Deployment_s, Job_s",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Count"
+                                            "Name": "Environment",
+                                            "Value": "Remaining"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -117,45 +118,44 @@
                                 }
                             },
                             {
-                                "Id": "LineChartCalloutBuilderBlade",
+                                "Id": "SingleQueryDonutBuilderBladeV1",
                                 "Type": "Blade",
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "VM System Disk Used",
+                                        "title": "Total Containers",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Average VM System Disk Used",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Average Total Containers - Last Hour",
+                                        "Subtitle": "by Environment"
                                     },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.system.percent\" | measure avg(Value_d) by Deployment_s interval 5Minutes",
-                                        "Callout": {
-                                            "Title": "Overall Average",
-                                            "Series": "",
-                                            "Operation": "Average"
+                                    "Donut": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "Total",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
                                         },
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "Percentage",
-                                                "baseUnit": "ZeroToOne",
-                                                "displayUnit": "ZeroToOne"
-                                            },
-                                            "customLabel": ""
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.system.percent\" | measure avg(Value_d) by Deployment_s,Job_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Percent"
+                                            "Name": "Environment",
+                                            "Value": "Total"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -187,45 +187,44 @@
                                 }
                             },
                             {
-                                "Id": "LineChartCalloutBuilderBlade",
+                                "Id": "SingleQueryDonutBuilderBladeV1",
                                 "Type": "Blade",
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "VM Ephemeral Disk Used",
+                                        "title": "Remaining Memory",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Average VM Ephemeral Disk Used",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Average Remaining Memory - Last Hour",
+                                        "Subtitle": "by Environment"
                                     },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.ephemeral.percent\" | measure avg(Value_d) by Deployment_s interval 5Minutes",
-                                        "Callout": {
-                                            "Title": "Overall Average",
-                                            "Series": "",
-                                            "Operation": "Average"
+                                    "Donut": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "GB",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
                                         },
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "Percentage",
-                                                "baseUnit": "ZeroToOne",
-                                                "displayUnit": "ZeroToOne"
-                                            },
-                                            "customLabel": ""
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.ephemeral.percent\" | measure avg(Value_d) by Deployment_s,Job_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Percent"
+                                            "Name": "Environment",
+                                            "Value": "Remaining (GB)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -257,45 +256,44 @@
                                 }
                             },
                             {
-                                "Id": "LineChartCalloutBuilderBlade",
+                                "Id": "SingleQueryDonutBuilderBladeV1",
                                 "Type": "Blade",
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "VM Persistent Disk Used",
+                                        "title": "Total Memory",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Average VM Persistent Disk Used",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Average Total Memory - Last Hour",
+                                        "Subtitle": "by Environment"
                                     },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.persistent.percent\" | measure avg(Value_d) by Deployment_s interval 5Minutes",
-                                        "Callout": {
-                                            "Title": "Overall Average",
-                                            "Series": "",
-                                            "Operation": "Average"
+                                    "Donut": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "GB",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
                                         },
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "Percentage",
-                                                "baseUnit": "ZeroToOne",
-                                                "displayUnit": "ZeroToOne"
-                                            },
-                                            "customLabel": ""
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.persistent.percent\" | measure avg(Value_d) by Deployment_s,Job_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Percent"
+                                            "Name": "Environment",
+                                            "Value": "Total (GB)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -327,45 +325,113 @@
                                 }
                             },
                             {
-                                "Id": "LineChartCalloutBuilderBlade",
+                                "Id": "SingleQueryDonutBuilderBladeV1",
                                 "Type": "Blade",
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "VM CPU Utilization",
+                                        "title": "Remaining Disk",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Average VM CPU Utilization",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Average Remaining Disk - Last Hour",
+                                        "Subtitle": "by Environment"
                                     },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.cpu.user\" | measure avg(Value_d) by Deployment_s interval 5Minutes",
-                                        "Callout": {
-                                            "Title": "Overall Average",
-                                            "Series": "",
-                                            "Operation": "Average"
+                                    "Donut": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "GB",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
                                         },
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "Percentage",
-                                                "baseUnit": "ZeroToOne",
-                                                "displayUnit": "ZeroToOne"
-                                            },
-                                            "customLabel": ""
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.cpu.user\" | measure avg(Value_d) by Deployment_s,Job_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Percent"
+                                            "Name": "Environment",
+                                            "Value": "Remaining (GB)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "SingleQueryDonutBuilderBladeV1",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Total Disk",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average Total Disk - Last Hour",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "Donut": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "CenterLegend": {
+                                            "Text": "GB",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
+                                        },
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "Total (GB)"
                                         },
                                         "Color": "#0072c6",
                                         "thresholds": {
@@ -403,9 +469,9 @@
                             "Version": 0,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-1Hour | measure countdistinct(Job_s) by Deployment_s",
+                                    "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure countdistinct(Job_s) by Environment_s",
                                     "CenterLegend": {
-                                        "Text": "Unhealthy Jobs",
+                                        "Text": "Cells",
                                         "Operation": "Sum",
                                         "ArcsToSelect": []
                                     },
@@ -420,9 +486,9 @@
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": false,
-                                        "Query": "*",
-                                        "Message": ""
+                                        "Enabled": true,
+                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }

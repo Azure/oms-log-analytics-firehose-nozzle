@@ -33,7 +33,7 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "Doppler Server Metrics",
+                    "name": "CF KPI - Doppler Server Metrics",
                     "type": "views",
                     "location": "[parameters('location')]",
                     "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Doppler Server Metrics')]",
@@ -41,8 +41,9 @@
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "Doppler Server Metrics",
-                        "Name": "Doppler Server Metrics",
+                        "Id": "CF KPI - Doppler Server Metrics",
+                        "Name": "CF KPI - Doppler Server Metrics",
+                        "DisplayName": "CF KPI - Doppler Server Metrics",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
@@ -60,10 +61,10 @@
                                     },
                                     "Header": {
                                         "Title": "Received Message Count per Minute",
-                                        "Subtitle": "By Deployment"
+                                        "Subtitle": "By Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure sum(Delta_d) by Deployment_s interval 1Minute",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -75,15 +76,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer (Name_s=\"listeners.totalReceivedMessageCount\" OR Name_s=\"listeners.receivedEnvelopes\") | measure max(Total_d) by Deployment_s, Name_s interval 1Minute",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.receivedEnvelopes\" | measure max(Total_d) by Environment_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Summary",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
+                                            "Name": "Environment",
+                                            "Value": "Total Received Envelopes"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Summary",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -125,10 +126,10 @@
                                     },
                                     "Header": {
                                         "Title": "Shed Envelopes",
-                                        "Subtitle": "By Deployment"
+                                        "Subtitle": "By Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"doppler.shedEnvelopes\" | measure max(Total_d) by Deployment_s",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"doppler.shedEnvelopes\" | measure max(Total_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -144,15 +145,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"TruncatingBuffer.totalDroppedMessages\" | measure max(Total_d) by Deployment_s, Name_s interval 5Minute",
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"TruncatingBuffer.totalDroppedMessages\" | measure max(Total_d) by Environment_s",
                                         "HideGraph": false,
-                                        "enableSparklines": false,
-                                        "operation": "Summary",
+                                        "enableSparklines": true,
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
+                                            "Name": "Environment",
+                                            "Value": "Total Dropped Messages"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -188,7 +189,7 @@
                             "Version": 0,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" TimeGenerated>Now-1Hour | measure max(Total_d) by Deployment_s",
+                                    "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure max(Total_d) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Received Messages",
                                         "Operation": "Sum",
@@ -205,9 +206,9 @@
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": false,
-                                        "Query": "*",
-                                        "Message": ""
+                                        "Enabled": true,
+                                        "Query": "Type=CF_CounterEvent_CL Origin_s=DopplerServer",
+                                        "Message": "There is no DopplerServer data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }

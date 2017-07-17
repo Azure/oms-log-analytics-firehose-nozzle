@@ -33,16 +33,17 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "Gorouter Metrics",
+                    "name": "CF - Diego Health",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/Gorouter Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - Diego Health')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "Gorouter Metrics",
-                        "Name": "Gorouter Metrics",
+                        "Id": "CF - Diego Health",
+                        "Name": "CF - Diego Health",
+                        "DisplayName": "CF - Diego Health",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
@@ -53,102 +54,37 @@
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "Router Health",
+                                        "title": "Apps & Tasks Synchronized",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Router Handling Latency",
-                                        "Subtitle": "By Deployment"
+                                        "Title": "Apps Synchronized",
+                                        "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=latency | measure max(div(Value_d,1000)) by Deployment_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=\"Domain.cf-apps\" | measure min(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
+                                                "baseUnitType": "Count",
+                                                "baseUnit": "Ones",
+                                                "displayUnit": "AUTO"
                                             },
                                             "customLabel": ""
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=gorouter (Name_s=total_requests OR Name_s=responses OR Name_s=rejected_requests) | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
+                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=\"Domain.cf-tasks\" | measure min(Value_d) by Environment_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Summary",
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
+                                            "Name": "Environment",
+                                            "Value": "Tasks Synchronized"
                                         },
                                         "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "Router Health",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Time Since Last Route Register Received",
-                                        "Subtitle": "By Deployment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=ms_since_last_registry_update | measure max(div(Value_d,1000)) by Deployment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "TimeRange",
-                                                "baseUnit": "Seconds",
-                                                "displayUnit": "Seconds"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=gorouter (Name_s=\"responses.2xx\" OR Name_s=\"responses.3xx\" OR Name_s=\"responses.4xx\" OR Name_s=\"responses.5xx\" OR Name_s=\"responses.xxx\" OR Name_s=\"bad_gateways\") | measure max(Total_d) by Deployment_s,Name_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
-                                        "ColumnsTitle": {
-                                            "Name": "Deployment",
-                                            "Value": "Total"
-                                        },
-                                        "Color": "#0072c6",
-                                        "operation": "Summary",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -184,9 +120,9 @@
                             "Version": 0,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=total_routes TimeGenerated>Now-1Hour | measure avg(Value_d) by Deployment_s",
+                                    "Query": "Type=CF_ValueMetric_CL Origin_s=rep Name_s=UnhealthyCell TimeGenerated>Now-1Hour | measure max(Value_d) by Environment_s",
                                     "CenterLegend": {
-                                        "Text": "Total Routes",
+                                        "Text": "Unhealthy Cells",
                                         "Operation": "Sum",
                                         "ArcsToSelect": []
                                     },
@@ -201,9 +137,9 @@
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": false,
-                                        "Query": "*",
-                                        "Message": ""
+                                        "Enabled": true,
+                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }
