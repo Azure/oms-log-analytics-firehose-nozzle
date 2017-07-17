@@ -43,7 +43,6 @@
                     "properties": {
                         "Id": "CF - LRPs and Tasks",
                         "Name": "CF - LRPs and Tasks",
-                        "DisplayName": "CF - LRPs and Tasks",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
@@ -267,9 +266,9 @@
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": false,
-                                        "Query": "*",
-                                        "Message": ""
+                                        "Enabled": true,
+                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }
