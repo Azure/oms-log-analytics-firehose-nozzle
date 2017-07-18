@@ -622,7 +622,7 @@
                                     "DataFlowVerification": {
                                         "Enabled": true,
                                         "Query": "Type=CF_ValueMetric_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                        "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }

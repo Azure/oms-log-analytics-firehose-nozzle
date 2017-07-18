@@ -204,7 +204,7 @@
                                     "DataFlowVerification": {
                                         "Enabled": true,
                                         "Query": "Type=CF_CounterEvent_CL or Type=CF_ValueMetric_CL Origin_s=auctioneer",
-                                        "Message": "There is no auctioneer data yet from your Cloud Foundry deployment(s)."
+                                        "Message": "There is no auctioneer data yet from your Cloud Foundry environment(s)."
                                     }
                                 }
                             }

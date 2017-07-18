@@ -69,7 +69,7 @@
                                     "List": [
                                         {
                                             "Title": "Cloud Foundry",
-                                            "Content": "The Cloud Foundry solution helps you to view message volume, application workloads and job status of your Cloud Foundry deployment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
+                                            "Content": "The Cloud Foundry solution helps you to view message volume, application workloads and job status of your Cloud Foundry environment(s).\n\nFor more details on collecting Cloud Foundry logs and metrics, please visit this [page](https://github.com/Azure/oms-log-analytics-firehose-nozzle \"Links\").\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
                                         }
                                     ]
                                 }
@@ -570,7 +570,7 @@
                                             "displayName": "Average Router Latency - 5 Minute Interval"
                                         },
                                         {
-                                            "query": "Type=CF_LogMessage_CL TimeGenerated >= now-1HOURS | measure count() by Deployment_s, ApplicationName_s | sort Environment_s,ApplicationName_s",
+                                            "query": "Type=CF_LogMessage_CL TimeGenerated >= now-1HOURS | measure count() by Environment_s, ApplicationName_s | sort Environment_s,ApplicationName_s",
                                             "displayName": "Log Messages By App - Last Hour"
                                         }
                                     ]
@@ -601,8 +601,8 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_LogMessage_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry deployment(s).  Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                        "Query": "Type=CF_ContainerMetric_CL",
+                                        "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
                             }
