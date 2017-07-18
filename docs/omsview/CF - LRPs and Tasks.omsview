@@ -43,6 +43,7 @@
                     "properties": {
                         "Id": "CF - LRPs and Tasks",
                         "Name": "CF - LRPs and Tasks",
+                        "DisplayName": "CF - LRPs and Tasks",
                         "Author": "lizzha@microsoft.com",
                         "Source": "Local",
                         "Version": 1,
