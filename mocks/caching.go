@@ -1,13 +1,19 @@
 package mocks
 
+type AppInfo struct {
+	Name  string
+	Org   string
+	Space string
+}
+
 type MockCaching struct {
-	MockGetAppName  func(string) string
+	MockGetAppInfo  func(string) AppInfo
 	InstanceName    string
 	EnvironmentName string
 }
 
-func (c *MockCaching) GetAppName(appGuid string) string {
-	return c.MockGetAppName(appGuid)
+func (c *MockCaching) GetAppInfo(appGuid string) AppInfo {
+	return c.MockGetAppInfo(appGuid)
 }
 
 func (c *MockCaching) GetInstanceName() string {

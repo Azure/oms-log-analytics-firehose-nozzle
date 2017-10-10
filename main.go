@@ -34,7 +34,7 @@ const (
 	// the prefix of message type in OMS Log Analytics
 	omsTypePrefix = "CF_"
 
-	version = "1.1.0"
+	version = "1.1.1"
 )
 
 // Required parameters
