@@ -1,9 +1,11 @@
 package mocks
 
 type AppInfo struct {
-	Name  string
-	Org   string
-	Space string
+	Name    string
+	Org     string
+	OrgId   string
+	Space   string
+	SpaceId string
 }
 
 type MockCaching struct {

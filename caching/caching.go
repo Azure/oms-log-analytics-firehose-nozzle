@@ -9,9 +9,11 @@ import (
 )
 
 type AppInfo struct {
-	Name  string
-	Org   string
-	Space string
+	Name    string
+	Org     string
+	OrgID   string
+	Space   string
+	SpaceID string
 }
 
 type Caching struct {
@@ -53,9 +55,11 @@ func (c *Caching) Initialize() {
 
 	for _, app := range apps {
 		var appInfo = AppInfo{
-			Name:  app.Name,
-			Org:   app.SpaceData.Entity.OrgData.Entity.Name,
-			Space: app.SpaceData.Entity.Name,
+			Name:    app.Name,
+			Org:     app.SpaceData.Entity.OrgData.Entity.Name,
+			OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
+			Space:   app.SpaceData.Entity.Name,
+			SpaceID: app.SpaceData.Entity.Guid,
 		}
 		c.appInfosByGuid[app.Guid] = appInfo
 		c.logger.Info("adding to app name cache",
@@ -80,25 +84,31 @@ func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 		if err != nil {
 			c.logger.Error("error creating cfclient", err)
 			return AppInfo{
-				Name:  "",
-				Org:   "",
-				Space: "",
+				Name:    "",
+				Org:     "",
+				OrgID:   "",
+				Space:   "",
+				SpaceID: "",
 			}
 		}
 		app, err := cfClient.AppByGuid(appGuid)
 		if err != nil {
 			c.logger.Error("error getting app info", err, lager.Data{"guid": appGuid})
 			return AppInfo{
-				Name:  "",
-				Org:   "",
-				Space: "",
+				Name:    "",
+				Org:     "",
+				OrgID:   "",
+				Space:   "",
+				SpaceID: "",
 			}
 		} else {
 			// store app info in map
 			appInfo = AppInfo{
-				Name:  app.Name,
-				Org:   app.SpaceData.Entity.OrgData.Entity.Name,
-				Space: app.SpaceData.Entity.Name,
+				Name:    app.Name,
+				Org:     app.SpaceData.Entity.OrgData.Entity.Name,
+				OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
+				Space:   app.SpaceData.Entity.Name,
+				SpaceID: app.SpaceData.Entity.Guid,
 			}
 			appInfo = c.appInfosByGuid[app.Guid]
 			c.logger.Info("adding to app name cache",

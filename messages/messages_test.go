@@ -13,9 +13,11 @@ import (
 )
 
 type AppInfo struct {
-	Name  string
-	Org   string
-	Space string
+	Name    string
+	Org     string
+	OrgID   string
+	Space   string
+	SpaceID string
 }
 
 var _ = Describe("Messages", func() {
@@ -84,7 +86,9 @@ var _ = Describe("Messages", func() {
 		logMsg := "This is a test log message"
 		appName := "appName"
 		appOrg := "appOrg"
+		appOrgID := "ASDF1234"
 		appSpace := "appSpace"
+		appSpaceID := "	QWER5678"
 
 		logMessage := events.LogMessage{
 			Message:        []byte(logMsg),
@@ -103,9 +107,11 @@ var _ = Describe("Messages", func() {
 		caching.MockGetAppInfo = func(appGuid string) AppInfo {
 			Expect(appGuid).To(Equal(appId))
 			return AppInfo{
-				Name:  appName,
-				Org:   appOrg,
-				Space: appSpace,
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
 			}
 		}
 
@@ -114,7 +120,9 @@ var _ = Describe("Messages", func() {
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
 		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.Message).To(Equal(logMsg))
 		Expect(m.MessageType).To(Equal("OUT"))
 		Expect(m.Timestamp).To(Equal(posixStart))
@@ -152,7 +160,9 @@ var _ = Describe("Messages", func() {
 		forwarded := []string{"10.0.0.1", "10.0.0.2"}
 		appName := "applicationName"
 		appOrg := "applicationOrg"
+		appOrgID := "4103e7f8-c44b-43a6-b46f-0df52295113f"
 		appSpace := "applicationSpace"
+		appSpaceID := "60c1d57c-8a71-4c38-9ea1-28bdabd59014"
 
 		httpStartStop := events.HttpStartStop{
 			StartTimestamp: &startTimestamp,
@@ -179,9 +189,11 @@ var _ = Describe("Messages", func() {
 		caching.MockGetAppInfo = func(appGuid string) string {
 			Expect(appGuid).To(Equal(formattedUUID))
 			return AppInfo{
-				Name:  appName,
-				Org:   appOrg,
-				Space: appSpace,
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
 			}
 		}
 
@@ -190,7 +202,9 @@ var _ = Describe("Messages", func() {
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
 		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.StartTimestamp).To(Equal(startTimestamp))
 		Expect(m.StopTimestamp).To(Equal(stopTimestamp))
 		Expect(m.RequestID).To(Equal(formattedUUID))
@@ -246,14 +260,18 @@ var _ = Describe("Messages", func() {
 		diskBytesQuota := uint64(1073741800)
 		appName := "cf"
 		appOrg := "system"
+		appOrgID := "123456-1234-1234-12345678"
 		appSpace := "oms_nozzle"
+		appSpaceID := "ABCDEF-ABCD-ABCD-ABCDEFGH"
 
 		caching.MockGetAppInfo = func(appGuid string) string {
 			Expect(appGuid).To(Equal(appId))
 			return AppInfo{
-				Name:  appName,
-				Org:   appOrg,
-				Space: appSpace,
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
 			}
 		}
 
@@ -277,7 +295,9 @@ var _ = Describe("Messages", func() {
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
 		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.InstanceIndex).To(Equal(instanceIndex))
 		Expect(m.CPUPercentage).To(Equal(cpuPercentage))
 		Expect(m.MemoryBytes).To(Equal(memoryBytes))

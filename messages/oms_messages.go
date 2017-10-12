@@ -64,23 +64,25 @@ func NewBaseMessage(e *events.Envelope, c caching.CachingClient) *BaseMessage {
 // An HTTPStartStop event represents the whole lifecycle of an HTTP request.
 type HTTPStartStop struct {
 	BaseMessage
-	StartTimestamp   int64
-	StopTimestamp    int64
-	RequestID        string
-	PeerType         string // Client/Server
-	Method           string // HTTP method
-	URI              string
-	RemoteAddress    string
-	UserAgent        string
-	StatusCode       int32
-	ContentLength    int64
-	ApplicationID    string
-	ApplicationName  string
-	ApplicationOrg   string
-	ApplicationSpace string
-	InstanceIndex    int32
-	InstanceID       string
-	Forwarded        string
+	StartTimestamp     int64
+	StopTimestamp      int64
+	RequestID          string
+	PeerType           string // Client/Server
+	Method             string // HTTP method
+	URI                string
+	RemoteAddress      string
+	UserAgent          string
+	StatusCode         int32
+	ContentLength      int64
+	ApplicationID      string
+	ApplicationName    string
+	ApplicationOrg     string
+	ApplicationOrgID   string
+	ApplicationSpace   string
+	ApplicationSpaceID string
+	InstanceIndex      int32
+	InstanceID         string
+	Forwarded          string
 }
 
 // NewHTTPStartStop creates a new NewHTTPStartStop
@@ -109,7 +111,9 @@ func NewHTTPStartStop(e *events.Envelope, c caching.CachingClient) *HTTPStartSto
 		var appInfo = c.GetAppInfo(id)
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
+		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
+		r.ApplicationSpaceID = appInfo.SpaceID
 	}
 	if e.HttpStartStop.GetForwarded() != nil {
 		r.Forwarded = strings.Join(e.GetHttpStartStop().GetForwarded(), ",")
@@ -120,16 +124,18 @@ func NewHTTPStartStop(e *events.Envelope, c caching.CachingClient) *HTTPStartSto
 //A LogMessage contains a "log line" and associated metadata.
 type LogMessage struct {
 	BaseMessage
-	Message          string
-	MessageType      string // OUT or ERROR
-	Timestamp        int64
-	AppID            string
-	ApplicationName  string
-	ApplicationOrg   string
-	ApplicationSpace string
-	SourceType       string // APP,RTR,DEA,STG,etc
-	SourceInstance   string
-	SourceTypeKey    string // Key for aggregation until multiple levels of grouping supported
+	Message            string
+	MessageType        string // OUT or ERROR
+	Timestamp          int64
+	AppID              string
+	ApplicationName    string
+	ApplicationOrg     string
+	ApplicationOrgID   string
+	ApplicationSpace   string
+	ApplicationSpaceID string
+	SourceType         string // APP,RTR,DEA,STG,etc
+	SourceInstance     string
+	SourceTypeKey      string // Key for aggregation until multiple levels of grouping supported
 }
 
 // NewLogMessage creates a new NewLogMessage
@@ -153,7 +159,9 @@ func NewLogMessage(e *events.Envelope, c caching.CachingClient) *LogMessage {
 		var appInfo = c.GetAppInfo(*m.AppId)
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
+		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
+		r.ApplicationSpaceID = appInfo.SpaceID
 	}
 	return &r
 }
@@ -179,16 +187,18 @@ func NewError(e *events.Envelope, c caching.CachingClient) *Error {
 // A ContainerMetric records resource usage of an app in a container.
 type ContainerMetric struct {
 	BaseMessage
-	ApplicationID    string
-	ApplicationName  string
-	ApplicationOrg   string
-	ApplicationSpace string
-	InstanceIndex    int32
-	CPUPercentage    float64 `json:",omitempty"`
-	MemoryBytes      uint64  `json:",omitempty"`
-	DiskBytes        uint64  `json:",omitempty"`
-	MemoryBytesQuota uint64  `json:",omitempty"`
-	DiskBytesQuota   uint64  `json:",omitempty"`
+	ApplicationID      string
+	ApplicationName    string
+	ApplicationOrg     string
+	ApplicationOrgID   string
+	ApplicationSpace   string
+	ApplicationSpaceID string
+	InstanceIndex      int32
+	CPUPercentage      float64 `json:",omitempty"`
+	MemoryBytes        uint64  `json:",omitempty"`
+	DiskBytes          uint64  `json:",omitempty"`
+	MemoryBytesQuota   uint64  `json:",omitempty"`
+	DiskBytesQuota     uint64  `json:",omitempty"`
 }
 
 // NewContainerMetric creates a new Container Metric
@@ -208,7 +218,9 @@ func NewContainerMetric(e *events.Envelope, c caching.CachingClient) *ContainerM
 		var appInfo = c.GetAppInfo(*m.ApplicationId)
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
+		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
+		r.ApplicationSpaceID = appInfo.SpaceID
 	}
 	return &r
 }
