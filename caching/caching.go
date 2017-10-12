@@ -9,11 +9,11 @@ import (
 )
 
 type AppInfo struct {
-	Name    string
-	Org     string
-	OrgID   string
-	Space   string
-	SpaceID string
+	Name    string `json:"name"`
+	Org     string `json:"org"`
+	OrgID   string `json:"orgId"`
+	Space   string `json:"space"`
+	SpaceID string `json:"spaceId"`
 }
 
 type Caching struct {
@@ -62,11 +62,9 @@ func (c *Caching) Initialize() {
 			SpaceID: app.SpaceData.Entity.Guid,
 		}
 		c.appInfosByGuid[app.Guid] = appInfo
-		c.logger.Info("adding to app name cache",
+		c.logger.Info("adding to app info cache",
 			lager.Data{"guid": app.Guid},
-			lager.Data{"name": appInfo.Name},
-			lager.Data{"org": appInfo.Org},
-			lager.Data{"space": appInfo.Space},
+			lager.Data{"info": appInfo},
 			lager.Data{"cache size": len(c.appInfosByGuid)})
 	}
 }
@@ -110,12 +108,10 @@ func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 				Space:   app.SpaceData.Entity.Name,
 				SpaceID: app.SpaceData.Entity.Guid,
 			}
-			appInfo = c.appInfosByGuid[app.Guid]
-			c.logger.Info("adding to app name cache",
+			c.appInfosByGuid[app.Guid] = appInfo
+			c.logger.Info("adding to app info cache",
 				lager.Data{"guid": app.Guid},
-				lager.Data{"name": appInfo.Name},
-				lager.Data{"org": appInfo.Org},
-				lager.Data{"space": appInfo.Space},
+				lager.Data{"info": appInfo},
 				lager.Data{"cache size": len(c.appInfosByGuid)})
 			// return the app name
 			return appInfo
