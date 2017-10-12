@@ -3,6 +3,7 @@ package caching
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"code.cloudfoundry.org/lager"
 	cfclient "github.com/cloudfoundry-community/go-cfclient"
@@ -19,6 +20,7 @@ type AppInfo struct {
 type Caching struct {
 	cfClientConfig *cfclient.Config
 	appInfosByGuid map[string]AppInfo
+	appInfoLock    sync.RWMutex
 	logger         lager.Logger
 	instanceName   string
 	environment    string
@@ -61,21 +63,35 @@ func (c *Caching) Initialize() {
 			Space:   app.SpaceData.Entity.Name,
 			SpaceID: app.SpaceData.Entity.Guid,
 		}
-		c.appInfosByGuid[app.Guid] = appInfo
-		c.logger.Info("adding to app info cache",
+		{
+			c.appInfoLock.Lock()
+			defer c.appInfoLock.Unlock()
+			c.appInfosByGuid[app.Guid] = appInfo
+		}
+		c.logger.Debug("adding to app info cache",
 			lager.Data{"guid": app.Guid},
-			lager.Data{"info": appInfo},
-			lager.Data{"cache size": len(c.appInfosByGuid)})
+			lager.Data{"info": appInfo})
 	}
+
+	c.appInfoLock.RLock()
+	defer c.appInfoLock.RUnlock()
+	c.logger.Info("Cache initialize completed",
+		lager.Data{"cache size": len(c.appInfosByGuid)})
 }
 
 func (c *Caching) GetAppInfo(appGuid string) AppInfo {
-	if appInfo, ok := c.appInfosByGuid[appGuid]; ok {
+	var appInfo AppInfo
+	var ok bool
+	{
+		c.appInfoLock.RLock()
+		defer c.appInfoLock.RUnlock()
+		appInfo, ok = c.appInfosByGuid[appGuid]
+	}
+	if ok {
 		return appInfo
 	} else {
 		c.logger.Info("App info not found for GUID",
-			lager.Data{"guid": appGuid},
-			lager.Data{"app name cache size": len(c.appInfosByGuid)})
+			lager.Data{"guid": appGuid})
 		// call the client api to get the name for this app
 		// purposely create a new client due to issue in using a single client
 		cfClient, err := cfclient.NewClient(c.cfClientConfig)
@@ -108,11 +124,14 @@ func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 				Space:   app.SpaceData.Entity.Name,
 				SpaceID: app.SpaceData.Entity.Guid,
 			}
-			c.appInfosByGuid[app.Guid] = appInfo
-			c.logger.Info("adding to app info cache",
+			{
+				c.appInfoLock.Lock()
+				defer c.appInfoLock.Unlock()
+				c.appInfosByGuid[app.Guid] = appInfo
+			}
+			c.logger.Debug("adding to app info cache",
 				lager.Data{"guid": app.Guid},
-				lager.Data{"info": appInfo},
-				lager.Data{"cache size": len(c.appInfosByGuid)})
+				lager.Data{"info": appInfo})
 			// return the app name
 			return appInfo
 		}
