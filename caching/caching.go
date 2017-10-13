@@ -63,18 +63,12 @@ func (c *Caching) Initialize() {
 			Space:   app.SpaceData.Entity.Name,
 			SpaceID: app.SpaceData.Entity.Guid,
 		}
-		{
-			c.appInfoLock.Lock()
-			defer c.appInfoLock.Unlock()
-			c.appInfosByGuid[app.Guid] = appInfo
-		}
+		c.appInfosByGuid[app.Guid] = appInfo
 		c.logger.Debug("adding to app info cache",
 			lager.Data{"guid": app.Guid},
 			lager.Data{"info": appInfo})
 	}
 
-	c.appInfoLock.RLock()
-	defer c.appInfoLock.RUnlock()
 	c.logger.Info("Cache initialize completed",
 		lager.Data{"cache size": len(c.appInfosByGuid)})
 }
@@ -82,11 +76,11 @@ func (c *Caching) Initialize() {
 func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 	var appInfo AppInfo
 	var ok bool
-	{
+	func() {
 		c.appInfoLock.RLock()
 		defer c.appInfoLock.RUnlock()
 		appInfo, ok = c.appInfosByGuid[appGuid]
-	}
+	}()
 	if ok {
 		return appInfo
 	} else {
@@ -124,11 +118,11 @@ func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 				Space:   app.SpaceData.Entity.Name,
 				SpaceID: app.SpaceData.Entity.Guid,
 			}
-			{
+			func() {
 				c.appInfoLock.Lock()
 				defer c.appInfoLock.Unlock()
 				c.appInfosByGuid[app.Guid] = appInfo
-			}
+			}()
 			c.logger.Debug("adding to app info cache",
 				lager.Data{"guid": app.Guid},
 				lager.Data{"info": appInfo})
