@@ -218,6 +218,10 @@ func (o *OmsNozzle) routeEvents() error {
 					o.logger.Error("received TruncatingBuffer alert", nil)
 					o.logSlowConsumerAlert()
 				}
+				if strings.Contains(m.Name, "doppler_proxy.slow_consumer") {
+					o.logger.Error("received slow_consumer alert", nil)
+					o.logSlowConsumerAlert()
+				}
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = m
 					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
