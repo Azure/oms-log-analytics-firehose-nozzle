@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - Nozzle Status",
                         "Name": "CF - Nozzle Status",
-                        "DisplayName": "CF - Nozzle Status",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "LineChartBuilderBlade",
@@ -64,7 +63,7 @@
                                         "Subtitle": "by Environment, Nozzle Instance"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsReceived | measure sum(div(Delta_d,5)) by Environment_s,NozzleInstance_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsReceived\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s, NozzleInstance_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsReceived | measure sum(div(Delta_d,5)) by Environment_s,NozzleInstance_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -76,15 +75,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsReceived | measure max(Total_d) by Environment_s,NozzleInstance_s",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsReceived\" | summarize AggregatedValue = max(Total_d) by Environment_s, NozzleInstance_s// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsReceived | measure max(Total_d) by Environment_s,NozzleInstance_s",
                                         "HideGraph": false,
                                         "enableSparklines": false,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Total Received"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -109,7 +108,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -129,7 +128,7 @@
                                         "Subtitle": "by Environment, Nozzle Instance"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsSent | measure sum(div(Delta_d,5)) by Environment_s,NozzleInstance_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsSent\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s, NozzleInstance_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsSent | measure sum(div(Delta_d,5)) by Environment_s,NozzleInstance_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -141,7 +140,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsSent | measure max(Total_d) by Environment_s,NozzleInstance_s",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsSent\" | summarize AggregatedValue = max(Total_d) by Environment_s, NozzleInstance_s\r\n// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsSent | measure max(Total_d) by Environment_s,NozzleInstance_s",
                                         "HideGraph": false,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -174,7 +173,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -194,7 +193,7 @@
                                         "Subtitle": "by Environment, Nozzle Instance"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost | measure sum(Delta_d) by Environment_s,NozzleInstance_s interval 1Minute",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsLost\" | summarize AggregatedValue = sum(Delta_d) by bin(TimeGenerated, 1m), Environment_s, NozzleInstance_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost | measure sum(Delta_d) by Environment_s,NozzleInstance_s interval 1Minute",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -206,7 +205,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost | measure max(Total_d) by Environment_s,NozzleInstance_s",
+                                        "Query": "CF_CounterEvent_CL | where Job_s == \"nozzle\" and Name_s == \"eventsLost\" | summarize AggregatedValue = max(Total_d) by Environment_s, NozzleInstance_s\r\n// Oql: Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost | measure max(Total_d) by Environment_s,NozzleInstance_s",
                                         "HideGraph": false,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -239,18 +238,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "SingleQueryDonutBuilderTileV1",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Name_s=slowConsumerAlert TimeGenerated>Now-1Hour | measure count() by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | where Name_s == \"slowConsumerAlert\" and TimeGenerated > ago(1h) | summarize AggregatedValue = count() by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=slowConsumerAlert TimeGenerated>Now-1Hour | measure count() by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Slow Consumer Alert",
                                         "Operation": "Sum",
@@ -262,13 +262,19 @@
                                             "#0072c6",
                                             "#00bcf2"
                                         ],
-                                        "valueColorMapping": []
-                                    }
+                                        "valueColorMapping": [],
+                                        "legend": true,
+                                        "skipLegendPositioning": true,
+                                        "center": true,
+                                        "unitType": "Count",
+                                        "fromUnit": "Ones"
+                                    },
+                                    "HideOtherLegend": true
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

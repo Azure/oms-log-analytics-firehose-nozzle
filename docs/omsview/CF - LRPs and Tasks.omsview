@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - LRPs and Tasks",
                         "Name": "CF - LRPs and Tasks",
-                        "DisplayName": "CF - LRPs and Tasks",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "LineChartBuilderBlade",
@@ -64,7 +63,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"LRPsRunning\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=LRPsRunning | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -76,15 +75,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"LRPs\") and not Name_s:contains(\"Crash\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s contains_cs \"LRPs\" and Name_s !contains_cs \"Crash\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"LRPs\") and not Name_s:contains(\"Crash\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -109,7 +108,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -129,7 +128,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=DesiredLRPSyncDuration | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"nsync_bulker\" and Name_s == \"DesiredLRPSyncDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=nsync_bulker Name_s=DesiredLRPSyncDuration | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -141,7 +140,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"Crash\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s contains_cs \"Crash\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"Crash\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -174,7 +173,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -194,7 +193,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=TasksRunning | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"TasksRunning\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=TasksRunning | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -206,7 +205,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"Tasks\") and not Name_s:contains(\"Convergence\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s contains_cs \"Tasks\" and Name_s !contains_cs \"Convergence\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s:contains(\"Tasks\") and not Name_s:contains(\"Convergence\") | measure avg(Value_d) by Environment_s,Name_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -239,18 +238,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "SingleQueryDonutBuilderTileV1",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=bbs Name_s=TasksCompleted | measure max(Value_d) by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"TasksCompleted\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=TasksCompleted | measure max(Value_d) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Completed Tasks",
                                         "Operation": "Sum",
@@ -262,13 +262,19 @@
                                             "#0072c6",
                                             "#00bcf2"
                                         ],
-                                        "valueColorMapping": []
-                                    }
+                                        "valueColorMapping": [],
+                                        "legend": true,
+                                        "skipLegendPositioning": true,
+                                        "center": true,
+                                        "unitType": "Count",
+                                        "fromUnit": "Ones"
+                                    },
+                                    "HideOtherLegend": true
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

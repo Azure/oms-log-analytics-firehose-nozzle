@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - Garden Linux",
                         "Name": "CF - Garden Linux",
-                        "DisplayName": "CF - Garden Linux",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "SingleQueryDonutBuilderBladeV1",
@@ -64,7 +63,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"BackingStores\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -80,15 +79,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"BackingStores\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Backing Stores"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -113,7 +112,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -133,7 +132,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=LoopDevices TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"LoopDevices\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=LoopDevices TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -149,7 +148,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=LoopDevices | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"LoopDevices\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=LoopDevices | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -182,7 +181,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -202,7 +201,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -218,7 +217,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -251,18 +250,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "LineChartBuilderTile",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "LineChart": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"BackingStores\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                     "yAxis": {
                                         "isLogarithmic": false,
                                         "units": {
@@ -276,7 +276,7 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

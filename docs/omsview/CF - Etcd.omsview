@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - Etcd",
                         "Name": "CF - Etcd",
-                        "DisplayName": "CF - Etcd",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "LineChartBuilderBlade",
@@ -64,7 +63,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Latency | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"Latency\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Latency | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -76,15 +75,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=IsLeader | measure min(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"IsLeader\" | summarize AggregatedValue = min(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=IsLeader | measure min(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Is Leader"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -109,7 +108,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -129,7 +128,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=SendingRequestRate | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"SendingRequestRate\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=SendingRequestRate | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -141,7 +140,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=SentAppendRequests | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"SentAppendRequests\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=SentAppendRequests | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -174,7 +173,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -194,7 +193,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=\"ReceivingRequestRate\" | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"ReceivingRequestRate\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=\"ReceivingRequestRate\" | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -206,7 +205,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=ReceivedAppendRequests | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"ReceivedAppendRequests\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=ReceivedAppendRequests | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -239,7 +238,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -259,7 +258,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=RaftTerm | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"RaftTerm\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=RaftTerm | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -271,15 +270,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=RaftIndex | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"RaftIndex\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=RaftIndex | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Raft Index"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -304,18 +303,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "SingleQueryDonutBuilderTileV1",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Followers TimeGenerated>Now-1Hour | measure max(Value_d) by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"Followers\" and TimeGenerated > ago(1h) | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Followers TimeGenerated>Now-1Hour | measure max(Value_d) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Followers",
                                         "Operation": "Sum",
@@ -327,13 +327,19 @@
                                             "#0072c6",
                                             "#00bcf2"
                                         ],
-                                        "valueColorMapping": []
-                                    }
+                                        "valueColorMapping": [],
+                                        "legend": true,
+                                        "skipLegendPositioning": true,
+                                        "center": true,
+                                        "unitType": "Count",
+                                        "fromUnit": "Ones"
+                                    },
+                                    "HideOtherLegend": true
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
