@@ -1,22 +1,33 @@
 package caching
 
 import (
-	"code.cloudfoundry.org/lager"
 	"fmt"
-	cfclient "github.com/cloudfoundry-community/go-cfclient"
 	"os"
+	"sync"
+
+	"code.cloudfoundry.org/lager"
+	cfclient "github.com/cloudfoundry-community/go-cfclient"
 )
+
+type AppInfo struct {
+	Name    string `json:"name"`
+	Org     string `json:"org"`
+	OrgID   string `json:"orgId"`
+	Space   string `json:"space"`
+	SpaceID string `json:"spaceId"`
+}
 
 type Caching struct {
 	cfClientConfig *cfclient.Config
-	appNamesByGuid map[string]string
+	appInfosByGuid map[string]AppInfo
+	appInfoLock    sync.RWMutex
 	logger         lager.Logger
 	instanceName   string
 	environment    string
 }
 
 type CachingClient interface {
-	GetAppName(string) string
+	GetAppInfo(string) AppInfo
 	GetInstanceName() string
 	GetEnvironmentName() string
 	Initialize()
@@ -25,7 +36,7 @@ type CachingClient interface {
 func NewCaching(config *cfclient.Config, logger lager.Logger, environment string) CachingClient {
 	return &Caching{
 		cfClientConfig: config,
-		appNamesByGuid: make(map[string]string),
+		appInfosByGuid: make(map[string]AppInfo),
 		logger:         logger,
 		environment:    environment,
 	}
@@ -45,41 +56,78 @@ func (c *Caching) Initialize() {
 	}
 
 	for _, app := range apps {
-		c.appNamesByGuid[app.Guid] = app.Name
-		c.logger.Info("adding to app name cache",
+		var appInfo = AppInfo{
+			Name:    app.Name,
+			Org:     app.SpaceData.Entity.OrgData.Entity.Name,
+			OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
+			Space:   app.SpaceData.Entity.Name,
+			SpaceID: app.SpaceData.Entity.Guid,
+		}
+		c.appInfosByGuid[app.Guid] = appInfo
+		c.logger.Debug("adding to app info cache",
 			lager.Data{"guid": app.Guid},
-			lager.Data{"name": app.Name},
-			lager.Data{"cache size": len(c.appNamesByGuid)})
+			lager.Data{"info": appInfo})
 	}
+
+	c.logger.Info("Cache initialize completed",
+		lager.Data{"cache size": len(c.appInfosByGuid)})
 }
 
-func (c *Caching) GetAppName(appGuid string) string {
-	if appName, ok := c.appNamesByGuid[appGuid]; ok {
-		return appName
+func (c *Caching) GetAppInfo(appGuid string) AppInfo {
+	var appInfo AppInfo
+	var ok bool
+	func() {
+		c.appInfoLock.RLock()
+		defer c.appInfoLock.RUnlock()
+		appInfo, ok = c.appInfosByGuid[appGuid]
+	}()
+	if ok {
+		return appInfo
 	} else {
-		c.logger.Info("App name not found for GUID",
-			lager.Data{"guid": appGuid},
-			lager.Data{"app name cache size": len(c.appNamesByGuid)})
+		c.logger.Info("App info not found for GUID",
+			lager.Data{"guid": appGuid})
 		// call the client api to get the name for this app
 		// purposely create a new client due to issue in using a single client
 		cfClient, err := cfclient.NewClient(c.cfClientConfig)
 		if err != nil {
 			c.logger.Error("error creating cfclient", err)
-			return ""
+			return AppInfo{
+				Name:    "",
+				Org:     "",
+				OrgID:   "",
+				Space:   "",
+				SpaceID: "",
+			}
 		}
 		app, err := cfClient.AppByGuid(appGuid)
 		if err != nil {
-			c.logger.Error("error getting appname", err, lager.Data{"guid": appGuid})
-			return ""
+			c.logger.Error("error getting app info", err, lager.Data{"guid": appGuid})
+			return AppInfo{
+				Name:    "",
+				Org:     "",
+				OrgID:   "",
+				Space:   "",
+				SpaceID: "",
+			}
 		} else {
-			// store appname in map
-			c.appNamesByGuid[app.Guid] = app.Name
-			c.logger.Info("adding to app name cache",
+			// store app info in map
+			appInfo = AppInfo{
+				Name:    app.Name,
+				Org:     app.SpaceData.Entity.OrgData.Entity.Name,
+				OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
+				Space:   app.SpaceData.Entity.Name,
+				SpaceID: app.SpaceData.Entity.Guid,
+			}
+			func() {
+				c.appInfoLock.Lock()
+				defer c.appInfoLock.Unlock()
+				c.appInfosByGuid[app.Guid] = appInfo
+			}()
+			c.logger.Debug("adding to app info cache",
 				lager.Data{"guid": app.Guid},
-				lager.Data{"name": app.Name},
-				lager.Data{"cache size": len(c.appNamesByGuid)})
+				lager.Data{"info": appInfo})
 			// return the app name
-			return app.Name
+			return appInfo
 		}
 	}
 }

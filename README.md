@@ -81,11 +81,11 @@ These CounterEvents themselves are not counted in the received, sent or lost cou
 In normal cases, the total count of eventsSent plus eventsLost is less than total eventsReceived at the same time, as the nozzle buffers some messages and then post them in a batch to OMS Log Analytics. Operator can adjust the buffer size by changing the configurations `OMS_BATCH_TIME` and `OMS_MAX_MSG_NUM_PER_BATCH`.
 
 ### 2. slowConsumerAlert
-When the nozzle receives slow consumer alert from loggregator in two ways:
+When the nozzle receives slow consumer alert from loggregator in three ways:
 
 1. the nozzle receives a WebSocket close error with error code `ClosePolicyViolation (1008)`
-
 2. the nozzle receives a CounterEvent with the name `TruncatingBuffer.DroppedMessages`
+3. the nozzle receives a CounterEvent with the name `doppler_proxy.slow_consumer`
 
 the nozzle will send a slowConsumerAlert as a ValueMetric to OMS Log Analytics, with MetricKey **`nozzle.alert.slowConsumerAlert`** and value **`1`**.
 

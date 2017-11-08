@@ -409,7 +409,7 @@
                                     "DataFlowVerification": {
                                         "Enabled": true,
                                         "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\"",
-                                        "Message": "There is no data yet from Bosh Health Monitor. Please visit https://github.com/cloudfoundry/bosh-hm-forwarder for details about forwarding bosh health metrics into Loggregator."
+                                        "Message": "There is no data yet from Bosh Health Monitor. Please visit https://github.com/cloudfoundry/bosh-hm-forwarder-release for details about forwarding bosh health metrics into Loggregator."
                                     }
                                 }
                             }

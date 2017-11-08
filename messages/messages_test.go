@@ -3,13 +3,22 @@ package messages_test
 import (
 	"crypto/md5"
 	hex "encoding/hex"
+	"time"
+
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/mocks"
 	"github.com/cloudfoundry/sonde-go/events"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"time"
 )
+
+type AppInfo struct {
+	Name    string
+	Org     string
+	OrgID   string
+	Space   string
+	SpaceID string
+}
 
 var _ = Describe("Messages", func() {
 	var (
@@ -76,6 +85,10 @@ var _ = Describe("Messages", func() {
 		sourceInstance := "1"
 		logMsg := "This is a test log message"
 		appName := "appName"
+		appOrg := "appOrg"
+		appOrgID := "ASDF1234"
+		appSpace := "appSpace"
+		appSpaceID := "	QWER5678"
 
 		logMessage := events.LogMessage{
 			Message:        []byte(logMsg),
@@ -91,14 +104,25 @@ var _ = Describe("Messages", func() {
 			LogMessage: &logMessage,
 		}
 
-		caching.MockGetAppName = func(appGuid string) string {
+		caching.MockGetAppInfo = func(appGuid string) AppInfo {
 			Expect(appGuid).To(Equal(appId))
-			return appName
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+			}
 		}
 
 		m := *messages.NewLogMessage(envelope, caching)
 
+		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
+		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
+		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.Message).To(Equal(logMsg))
 		Expect(m.MessageType).To(Equal("OUT"))
 		Expect(m.Timestamp).To(Equal(posixStart))
@@ -135,6 +159,10 @@ var _ = Describe("Messages", func() {
 		instanceId := "4489c965-c445-4fd3-481b-9fd35e12222f"
 		forwarded := []string{"10.0.0.1", "10.0.0.2"}
 		appName := "applicationName"
+		appOrg := "applicationOrg"
+		appOrgID := "4103e7f8-c44b-43a6-b46f-0df52295113f"
+		appSpace := "applicationSpace"
+		appSpaceID := "60c1d57c-8a71-4c38-9ea1-28bdabd59014"
 
 		httpStartStop := events.HttpStartStop{
 			StartTimestamp: &startTimestamp,
@@ -158,14 +186,25 @@ var _ = Describe("Messages", func() {
 			HttpStartStop: &httpStartStop,
 		}
 
-		caching.MockGetAppName = func(appGuid string) string {
+		caching.MockGetAppInfo = func(appGuid string) string {
 			Expect(appGuid).To(Equal(formattedUUID))
-			return appName
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+			}
 		}
 
 		m := *messages.NewHTTPStartStop(envelope, caching)
 
+		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
+		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
+		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.StartTimestamp).To(Equal(startTimestamp))
 		Expect(m.StopTimestamp).To(Equal(stopTimestamp))
 		Expect(m.RequestID).To(Equal(formattedUUID))
@@ -177,7 +216,6 @@ var _ = Describe("Messages", func() {
 		Expect(m.StatusCode).To(Equal(statusCode))
 		Expect(m.ContentLength).To(Equal(contentLength))
 		Expect(m.ApplicationID).To(Equal(formattedUUID))
-		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.InstanceIndex).To(Equal(instanceIndex))
 		Expect(m.InstanceID).To(Equal(instanceId))
 		Expect(m.Forwarded).To(Equal("10.0.0.1,10.0.0.2"))
@@ -221,10 +259,20 @@ var _ = Describe("Messages", func() {
 		memoryBytesQuota := uint64(1073741824)
 		diskBytesQuota := uint64(1073741800)
 		appName := "cf"
+		appOrg := "system"
+		appOrgID := "123456-1234-1234-12345678"
+		appSpace := "oms_nozzle"
+		appSpaceID := "ABCDEF-ABCD-ABCD-ABCDEFGH"
 
-		caching.MockGetAppName = func(appGuid string) string {
+		caching.MockGetAppInfo = func(appGuid string) string {
 			Expect(appGuid).To(Equal(appId))
-			return appName
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+			}
 		}
 
 		metric := events.ContainerMetric{
@@ -246,6 +294,10 @@ var _ = Describe("Messages", func() {
 
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
+		Expect(m.ApplicationOrg).To(Equal(appOrg))
+		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
+		Expect(m.ApplicationSpace).To(Equal(appSpace))
+		Expect(m.ApplicationSpaceID).To(Equal(appSpaceID))
 		Expect(m.InstanceIndex).To(Equal(instanceIndex))
 		Expect(m.CPUPercentage).To(Equal(cpuPercentage))
 		Expect(m.MemoryBytes).To(Equal(memoryBytes))
