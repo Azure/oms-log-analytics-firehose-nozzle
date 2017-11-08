@@ -130,6 +130,13 @@ Operators could customize the queries and threshold values as needed.
 | Type=CF_ValueMetric_CL Name_s=slowConsumerAlert                               | Number of results > 0   | When the nozzle receives slow consumer alert from Loggregator, it sends **slowConsumerAlert** ValueMetric to OMS. |
 | Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost Delta_d>0              | Number of results > 0   | If the delta number of **lost events** reaches a threshold, it means the nozzle might have some problem running. |
 
+### 3. Access OMS Everywhere
+OMS also provides a mobile app for users to view OMS views, receiving alerts and searching for logs from your mobile devices.
+
+Simply download App from your app store and login with your account, you can have experience just the same as on your workplace everywhere.
+
+OMS Apps now available on [Windows(Mobile devices)](https://www.microsoft.com/en-us/store/p/microsoft-operations-management-suite/9wzdncrfjz2r), [Android](https://play.google.com/store/apps/details?id=com.microsoft.operations.AndroidPhone) and [iOS](https://itunes.apple.com/us/app/microsoft-operations-management-suite/id1042424859) devices.
+
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
 ```
