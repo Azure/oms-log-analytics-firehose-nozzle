@@ -126,6 +126,11 @@ forms:
      label: Event Types to be Filtered out
      description: A comma separated list of event types to be dropped. Valid types are METRIC,LOG,HTTP
      optional: true
+   - name: SPACE_WHITELIST
+     type: string
+     label: App Space Whitelist
+     description: A comma separated list of spaces used as whitelist for app log. For example "system.azure, azure.*"
+     optional: true
    - name: IDLE_TIMEOUT
      type: string
      description: Keep Alive Duration for Firehose Consumer

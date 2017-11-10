@@ -230,14 +230,18 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_ContainerMetric:
 				if !o.nozzleConfig.ExcludeMetricEvents {
 					omsMessage = messages.NewContainerMetric(msg, o.cachingClient)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if omsMessage != nil {
+						pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					}
 				}
 
 			// Logs Errors
 			case events.Envelope_LogMessage:
 				if !o.nozzleConfig.ExcludeLogEvents {
 					omsMessage = messages.NewLogMessage(msg, o.cachingClient)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if omsMessage != nil {
+						pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					}
 				}
 
 			case events.Envelope_Error:

@@ -114,6 +114,9 @@ func NewHTTPStartStop(e *events.Envelope, c caching.CachingClient) *HTTPStartSto
 		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
 		r.ApplicationSpaceID = appInfo.SpaceID
+		if !appInfo.Monitored {
+			return nil
+		}
 	}
 	if e.HttpStartStop.GetForwarded() != nil {
 		r.Forwarded = strings.Join(e.GetHttpStartStop().GetForwarded(), ",")
@@ -162,6 +165,9 @@ func NewLogMessage(e *events.Envelope, c caching.CachingClient) *LogMessage {
 		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
 		r.ApplicationSpaceID = appInfo.SpaceID
+		if !appInfo.Monitored {
+			return nil
+		}
 	}
 	return &r
 }
@@ -221,6 +227,9 @@ func NewContainerMetric(e *events.Envelope, c caching.CachingClient) *ContainerM
 		r.ApplicationOrgID = appInfo.OrgID
 		r.ApplicationSpace = appInfo.Space
 		r.ApplicationSpaceID = appInfo.SpaceID
+		if !appInfo.Monitored {
+			return nil
+		}
 	}
 	return &r
 }
