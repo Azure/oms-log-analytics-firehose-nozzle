@@ -79,7 +79,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingContainers\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingContainers\" | summarize AggregatedValue = avg(Value_d) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "ColumnsTitle": {
@@ -132,7 +132,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -148,7 +148,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" | summarize AggregatedValue = avg(Value_d) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure avg(Value_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -181,7 +181,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -201,7 +201,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingMemory\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingMemory\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "GB",
                                             "Operation": "Sum",
@@ -217,7 +217,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingMemory\" | summarize AggregatedValue = avg((Value_d / 1024)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingMemory\" | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -250,7 +250,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -270,7 +270,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalMemory\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalMemory\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "GB",
                                             "Operation": "Sum",
@@ -286,7 +286,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalMemory\" | summarize AggregatedValue = avg((Value_d / 1024)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalMemory\" | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalMemory | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -319,7 +319,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -339,7 +339,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingDisk\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingDisk\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "GB",
                                             "Operation": "Sum",
@@ -355,7 +355,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingDisk\" | summarize AggregatedValue = avg((Value_d / 1024)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityRemainingDisk\" | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityRemainingDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -388,7 +388,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -408,7 +408,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalDisk\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalDisk\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk TimeGenerated>Now-1Hour| measure avg(div(Value_d,1024)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "GB",
                                             "Operation": "Sum",
@@ -424,7 +424,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalDisk\" | summarize AggregatedValue = avg((Value_d / 1024)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalDisk\" | summarize AggregatedValue = avg((Value_d / 1024)) by Environment_s, Job_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalDisk | measure avg(div(Value_d,1024)) by Environment_s,Job_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -457,7 +457,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             }
@@ -469,7 +469,7 @@
                             "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure countdistinct(Job_s) by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"rep\" and Name_s == \"CapacityTotalContainers\" | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=rep Name_s=CapacityTotalContainers | measure countdistinct(Job_s) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Cells",
                                         "Operation": "Sum",
@@ -493,7 +493,7 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

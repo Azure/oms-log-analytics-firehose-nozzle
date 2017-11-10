@@ -128,7 +128,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"messageRouter.numberOf\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"messageRouter.numberOf\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -140,7 +140,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"messageRouter.numberOf\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure max(Value_d) by Environment_s,Name_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"messageRouter.numberOf\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s//OQL: Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure max(Value_d) by Environment_s,Name_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Summary",
@@ -173,7 +173,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },

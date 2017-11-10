@@ -79,7 +79,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Sets\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Sets\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Sets\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Sets\") | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "ColumnsTitle": {
@@ -132,7 +132,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"GetsSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=GetsSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"GetsSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=GetsSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -148,7 +148,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Gets\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Gets\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Gets\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Gets\") | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -181,7 +181,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -201,7 +201,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CreateSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CreateSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CreateSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CreateSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -217,7 +217,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Create\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Create\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Create\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Create\") | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -250,7 +250,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -270,7 +270,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"UpdateSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=UpdateSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"UpdateSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=UpdateSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -286,7 +286,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Update\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Update\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"Update\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"Update\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -319,7 +319,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -339,7 +339,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"DeleteSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=DeleteSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"DeleteSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=DeleteSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -355,7 +355,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and (Name_s == \"DeleteSuccess\" or Name_s == \"DeleteFail\") | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=DeleteSuccess or Name_s=DeleteFail | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and (Name_s == \"DeleteSuccess\" or Name_s == \"DeleteFail\") | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=DeleteSuccess or Name_s=DeleteFail | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -388,7 +388,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -408,7 +408,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CompareAndDeleteSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CompareAndDeleteSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CompareAndDeleteSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CompareAndDeleteSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -424,7 +424,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"CompareAndDelete\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"CompareAndDelete\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"CompareAndDelete\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"CompareAndDelete\") | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -457,7 +457,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -477,7 +477,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CompareAndSwapSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CompareAndSwapSuccess | measure max(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"CompareAndSwapSuccess\" | summarize AggregatedValue = max(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=CompareAndSwapSuccess | measure max(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -493,7 +493,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"CompareAndSwap\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Name_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"CompareAndSwap\") | measure max(Value_d) by Environment_s,Name_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s contains_cs \"CompareAndSwap\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s, IP_s// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s:contains(\"CompareAndSwap\") | measure max(Value_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -526,7 +526,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             }
@@ -538,7 +538,7 @@
                             "Version": 2,
                             "Configuration": {
                                 "LineChart": {
-                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"Watchers\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 10m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Watchers | measure avg(Value_d) by Environment_s,IP_s interval 10Minutes",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\" and Name_s == \"Watchers\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 10m), Environment_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=etcd Name_s=Watchers | measure avg(Value_d) by Environment_s,IP_s interval 10Minutes",
                                     "yAxis": {
                                         "isLogarithmic": false,
                                         "units": {
@@ -552,7 +552,7 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
