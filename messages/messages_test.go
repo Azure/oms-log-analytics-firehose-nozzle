@@ -112,11 +112,13 @@ var _ = Describe("Messages", func() {
 				Space:   appSpace,
 				OrgID:   appOrgID,
 				SpaceID: appSpaceID,
+				Monitored: true,
 			}
 		}
 
 		m := *messages.NewLogMessage(envelope, caching)
 
+		Expect(m).NotTo(Equal(nil))
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
@@ -133,6 +135,22 @@ var _ = Describe("Messages", func() {
 		Expect(m.BaseMessage.SourceInstance).To(Equal(""))
 		Expect(m.BaseMessage.EventType).To(Equal("LogMessage"))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
+
+		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+			Expect(appGuid).To(Equal(appId))
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+				Monitored: false,
+			}
+		}
+
+		m := *messages.NewLogMessage(envelope, caching)
+
+		Expect(m).To(Equal(nil))
 	})
 
 	It("creates HttpStartStop from Envelope", func() {
@@ -194,11 +212,13 @@ var _ = Describe("Messages", func() {
 				Space:   appSpace,
 				OrgID:   appOrgID,
 				SpaceID: appSpaceID,
+				Monitored: true,
 			}
 		}
 
 		m := *messages.NewHTTPStartStop(envelope, caching)
 
+		Expect(m).NotTo(Equal(nil))
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
@@ -221,6 +241,22 @@ var _ = Describe("Messages", func() {
 		Expect(m.Forwarded).To(Equal("10.0.0.1,10.0.0.2"))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
+
+		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+			Expect(appGuid).To(Equal(appId))
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+				Monitored: false,
+			}
+		}
+
+		m := *messages.NewLogMessage(envelope, caching)
+
+		Expect(m).To(Equal(nil))
 	})
 
 	It("creates Error from Envelope", func() {
@@ -272,6 +308,7 @@ var _ = Describe("Messages", func() {
 				Space:   appSpace,
 				OrgID:   appOrgID,
 				SpaceID: appSpaceID,
+				Monitored: true,
 			}
 		}
 
@@ -292,6 +329,7 @@ var _ = Describe("Messages", func() {
 
 		m := *messages.NewContainerMetric(envelope, caching)
 
+		Expect(m).NotTo(Equal(nil))
 		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
@@ -306,6 +344,22 @@ var _ = Describe("Messages", func() {
 		Expect(m.DiskBytesQuota).To(Equal(diskBytesQuota))
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
+
+		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+			Expect(appGuid).To(Equal(appId))
+			return AppInfo{
+				Name:    appName,
+				Org:     appOrg,
+				Space:   appSpace,
+				OrgID:   appOrgID,
+				SpaceID: appSpaceID,
+				Monitored: false,
+			}
+		}
+
+		m := *messages.NewLogMessage(envelope, caching)
+
+		Expect(m).To(Equal(nil))
 	})
 
 	It("creates CounterEvent from Envelope", func() {
