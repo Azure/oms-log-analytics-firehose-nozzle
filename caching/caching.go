@@ -59,6 +59,31 @@ func NewCaching(config *cfclient.Config, logger lager.Logger, environment string
 	}
 }
 
+func (c *Caching) addAppinfoRecord(app cfclient.App) {
+	var appInfo = AppInfo{
+		Name:    app.Name,
+		Org:     app.SpaceData.Entity.OrgData.Entity.Name,
+		OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
+		Space:   app.SpaceData.Entity.Name,
+		SpaceID: app.SpaceData.Entity.Guid,
+	}
+	if c.spaceWhiteList == nil || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name] || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name] {
+		appInfo.Monitored = true
+	} else {
+		appInfo.Monitored = false
+	}
+	func() {
+		c.appInfoLock.Lock()
+		defer c.appInfoLock.Unlock()
+		c.appInfosByGuid[app.Guid] = appInfo
+	}()
+	c.logger.Debug("adding to app info cache",
+		lager.Data{"guid": app.Guid},
+		lager.Data{"info": appInfo},
+	)
+	return
+}
+
 func (c *Caching) Initialize() {
 	c.setInstanceName()
 
@@ -73,23 +98,7 @@ func (c *Caching) Initialize() {
 	}
 
 	for _, app := range apps {
-		var appInfo = AppInfo{
-			Name:    app.Name,
-			Org:     app.SpaceData.Entity.OrgData.Entity.Name,
-			OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
-			Space:   app.SpaceData.Entity.Name,
-			SpaceID: app.SpaceData.Entity.Guid,
-		}
-		if c.spaceWhiteList == nil || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name] || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name] {
-			appInfo.Monitored = true
-		} else {
-			appInfo.Monitored = false
-		}
-		c.appInfosByGuid[app.Guid] = appInfo
-		c.logger.Debug("adding to app info cache",
-			lager.Data{"guid": app.Guid},
-			lager.Data{"info": appInfo},
-		)
+		c.addAppinfoRecord(app)
 	}
 
 	c.logger.Info("Cache initialize completed",
@@ -136,27 +145,8 @@ func (c *Caching) GetAppInfo(appGuid string) AppInfo {
 			}
 		} else {
 			// store app info in map
-			appInfo = AppInfo{
-				Name:    app.Name,
-				Org:     app.SpaceData.Entity.OrgData.Entity.Name,
-				OrgID:   app.SpaceData.Entity.OrgData.Entity.Guid,
-				Space:   app.SpaceData.Entity.Name,
-				SpaceID: app.SpaceData.Entity.Guid,
-			}
-			if c.spaceWhiteList == nil || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name] || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name] {
-				appInfo.Monitored = true
-			} else {
-				appInfo.Monitored = false
-			}
-			func() {
-				c.appInfoLock.Lock()
-				defer c.appInfoLock.Unlock()
-				c.appInfosByGuid[app.Guid] = appInfo
-			}()
-			c.logger.Debug("adding to app info cache",
-				lager.Data{"guid": app.Guid},
-				lager.Data{"info": appInfo})
-			// return the app name
+			c.addAppinfoRecord(app)
+			// return App Info
 			return appInfo
 		}
 	}

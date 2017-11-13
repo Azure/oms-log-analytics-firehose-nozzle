@@ -254,7 +254,9 @@ func (o *OmsNozzle) routeEvents() error {
 			case events.Envelope_HttpStartStop:
 				if !o.nozzleConfig.ExcludeHttpEvents {
 					omsMessage = messages.NewHTTPStartStop(msg, o.cachingClient)
-					pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					if omsMessage != nil {
+						pendingEvents[omsMessageType] = append(pendingEvents[omsMessageType], omsMessage)
+					}
 				}
 			default:
 				o.logger.Info("uncategorized message", lager.Data{"message": msg.String()})
