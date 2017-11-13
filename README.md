@@ -135,7 +135,7 @@ OMS also provides a mobile app for users to view OMS views, receiving alerts and
 
 Simply download App from your app store and login with your account, you can have experience just the same as on your workplace everywhere.
 
-OMS Apps now available on [Windows(Mobile devices)](https://www.microsoft.com/en-us/store/p/microsoft-operations-management-suite/9wzdncrfjz2r), [Android](https://play.google.com/store/apps/details?id=com.microsoft.operations.AndroidPhone) and [iOS](https://itunes.apple.com/us/app/microsoft-operations-management-suite/id1042424859) devices.
+OMS Apps now available on [Windows (Mobile devices)](https://www.microsoft.com/en-us/store/p/microsoft-operations-management-suite/9wzdncrfjz2r), [Android](https://play.google.com/store/apps/details?id=com.microsoft.operations.AndroidPhone) and [iOS](https://itunes.apple.com/us/app/microsoft-operations-management-suite/id1042424859) devices.
 
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:
