@@ -54,6 +54,7 @@ DOPPLER_ADDR              : Loggregator's traffic controller URL
 FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
+SPACE_WHITELIST           : Comma separated space white list, logs from apps within these spaces will be forwarded. If not set, all apps will be monitored. Format should be ORG_NAME.SPACE_NAME or ORG_NAME.*
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
 CF_ENVIRONMENT            : Set to any string value for identifying logs and metrics from different CF environments
 IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
