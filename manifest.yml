@@ -20,6 +20,7 @@ applications:
     SKIP_SSL_VALIDATION: true
     CF_ENVIRONMENT: "cf"
     # EVENT_FILTER: "METRIC,HTTP" # Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
+    # SPACE_WHITELIST: "system.azure, azure.*" # Comma separated space white list, logs from apps within these spaces will be forwarded. If not set, all apps will be monitored. Format should be ORG_NAME.SPACE_NAME or ORG_NAME.*
     IDLE_TIMEOUT: 60s
     LOG_LEVEL: INFO # Valid log levels: DEBUG, INFO, ERROR
     LOG_EVENT_COUNT: true

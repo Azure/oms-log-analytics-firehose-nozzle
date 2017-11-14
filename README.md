@@ -54,6 +54,7 @@ DOPPLER_ADDR              : Loggregator's traffic controller URL
 FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
+SPACE_WHITELIST           : Comma separated space white list, logs from apps within these spaces will be forwarded. If not set, all apps will be monitored. Format should be ORG_NAME.SPACE_NAME or ORG_NAME.*
 SKIP_SSL_VALIDATION       : If true, allows insecure connections to the UAA and the Trafficcontroller
 CF_ENVIRONMENT            : Set to any string value for identifying logs and metrics from different CF environments
 IDLE_TIMEOUT              : Keep Alive duration for the firehose consumer
@@ -135,7 +136,7 @@ OMS also provides a mobile app for users to view OMS views, receiving alerts and
 
 Simply download App from your app store and login with your account, you can have experience just the same as on your workplace everywhere.
 
-OMS Apps now available on [Windows(Mobile devices)](https://www.microsoft.com/en-us/store/p/microsoft-operations-management-suite/9wzdncrfjz2r), [Android](https://play.google.com/store/apps/details?id=com.microsoft.operations.AndroidPhone) and [iOS](https://itunes.apple.com/us/app/microsoft-operations-management-suite/id1042424859) devices.
+OMS Apps now available on [Windows (Mobile devices)](https://www.microsoft.com/en-us/store/p/microsoft-operations-management-suite/9wzdncrfjz2r), [Android](https://play.google.com/store/apps/details?id=com.microsoft.operations.AndroidPhone) and [iOS](https://itunes.apple.com/us/app/microsoft-operations-management-suite/id1042424859) devices.
 
 # Test
 You need [ginkgo](https://github.com/onsi/ginkgo) to run the test. Run the following command to execute test:

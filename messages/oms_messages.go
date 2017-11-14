@@ -109,6 +109,9 @@ func NewHTTPStartStop(e *events.Envelope, c caching.CachingClient) *HTTPStartSto
 		id := cfUUIDToString(m.ApplicationId)
 		r.ApplicationID = id
 		var appInfo = c.GetAppInfo(id)
+		if !appInfo.Monitored {
+			return nil
+		}
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
 		r.ApplicationOrgID = appInfo.OrgID
@@ -157,6 +160,9 @@ func NewLogMessage(e *events.Envelope, c caching.CachingClient) *LogMessage {
 	}
 	if m.AppId != nil {
 		var appInfo = c.GetAppInfo(*m.AppId)
+		if !appInfo.Monitored {
+			return nil
+		}
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
 		r.ApplicationOrgID = appInfo.OrgID
@@ -216,6 +222,9 @@ func NewContainerMetric(e *events.Envelope, c caching.CachingClient) *ContainerM
 	}
 	if m.ApplicationId != nil {
 		var appInfo = c.GetAppInfo(*m.ApplicationId)
+		if !appInfo.Monitored {
+			return nil
+		}
 		r.ApplicationName = appInfo.Name
 		r.ApplicationOrg = appInfo.Org
 		r.ApplicationOrgID = appInfo.OrgID

@@ -6,6 +6,7 @@ type AppInfo struct {
 	OrgId   string
 	Space   string
 	SpaceId string
+	Monitored bool
 }
 
 type MockCaching struct {
