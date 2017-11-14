@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "Cloud Foundry",
                         "Name": "Cloud Foundry",
-                        "DisplayName": "Cloud Foundry",
-                        "Author": "davre@microsoft.com,lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "InformationBlade",
@@ -90,7 +89,7 @@
                                         "Subtitle": "By Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type:contains(\"CL\") TimeGenerated >= now-1HOURS | measure count() by Environment_s",
+                                        "Query": "search TimeGenerated >= ago(1h) | extend Type = $table | where Type contains_cs \"CL\" | summarize AggregatedValue = count() by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type:contains(\"CL\") TimeGenerated >= now-1HOURS | measure count() by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -106,7 +105,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type:contains(\"CL\") | measure count() by Environment_s,Type",
+                                        "Query": "search * | extend Type = $table | where Type contains_cs \"CL\" | summarize AggregatedValue = count() by Environment_s, Type\r\n// Oql: Type:contains(\"CL\") | measure count() by Environment_s,Type",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Sum",
@@ -139,7 +138,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -159,7 +158,7 @@
                                         "Subtitle": "By Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -175,7 +174,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Environment_s,Job_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Name_s) by Environment_s, Job_s\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Environment_s,Job_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Summary",
@@ -208,7 +207,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -228,7 +227,7 @@
                                         "Subtitle": "By Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Environment_s",
+                                        "Query": "CF_ContainerMetric_CL | where TimeGenerated >= ago(1h) | summarize AggregatedValue = dcount(ApplicationID_g) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -244,7 +243,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure countDistinct(InstanceIndex_d) as InstanceCount by Environment_s,ApplicationName_s",
+                                        "Query": "CF_ContainerMetric_CL | summarize InstanceCount = dcount(InstanceIndex_d) by Environment_s, ApplicationName_s\r\n// Oql: Type=CF_ContainerMetric_CL | measure countDistinct(InstanceIndex_d) as InstanceCount by Environment_s,ApplicationName_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -277,7 +276,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -297,7 +296,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() as count by Environment_s  interval 1Minute",
+                                        "Query": "CF_LogMessage_CL | where Origin_s == \"gorouter\" and SourceTypeKey_s == \"RTR-OUT\" | summarize [\"count\"] = count() by bin(TimeGenerated, 1m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() as count by Environment_s  interval 1Minute",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -309,7 +308,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() by Environment_s, ApplicationName_s  interval 1Minute",
+                                        "Query": "CF_LogMessage_CL | where Origin_s == \"gorouter\" and SourceTypeKey_s == \"RTR-OUT\" | summarize AggregatedValue = count() by bin(TimeGenerated, 1m), Environment_s, ApplicationName_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_LogMessage_CL Origin_s=gorouter SourceTypeKey_s=\"RTR-OUT\" | measure count() by Environment_s, ApplicationName_s  interval 1Minute",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -342,7 +341,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -362,7 +361,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Environment_s  interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize CPU = avg(CPUPercentage_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Environment_s  interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -374,7 +373,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Environment_s,ApplicationName_s  interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize CPU = avg(CPUPercentage_d) by bin(TimeGenerated, 5m), Environment_s, ApplicationName_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(CPUPercentage_d) as CPU by Environment_s,ApplicationName_s  interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -407,7 +406,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -427,7 +426,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Environment_s interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize Mem = avg((MemoryBytes_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -439,7 +438,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Environment_s,ApplicationName_s interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize Mem = avg((MemoryBytes_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s, ApplicationName_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(div(MemoryBytes_d,1048576)) as Mem by Environment_s,ApplicationName_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -472,7 +471,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -492,7 +491,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Environment_s interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize Disk = avg((DiskBytes_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -504,7 +503,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Environment_s,ApplicationName_s interval 5Minutes",
+                                        "Query": "CF_ContainerMetric_CL | summarize Disk = avg((DiskBytes_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s, ApplicationName_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL | measure avg(div(DiskBytes_d,1048576)) as Disk by Environment_s,ApplicationName_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -537,7 +536,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -554,36 +553,37 @@
                                     },
                                     "queries": [
                                         {
-                                            "query": "Type=Syslog | measure count() by SeverityLevel",
+                                            "query": "Syslog | summarize AggregatedValue = count() by SeverityLevel\r\n// Oql: Type=Syslog | measure count() by SeverityLevel",
                                             "displayName": "Syslog By Severity"
                                         },
                                         {
-                                            "query": "Type=CF_LogMessage_CL | measure count() by SourceType_s, MessageType_s",
+                                            "query": "CF_LogMessage_CL | summarize AggregatedValue = count() by SourceType_s, MessageType_s\r\n// Oql: Type=CF_LogMessage_CL | measure count() by SourceType_s, MessageType_s",
                                             "displayName": "CF Logs - By Source then Type"
                                         },
                                         {
-                                            "query": "Type=CF_LogMessage_CL | measure count() by MessageType_s, SourceType_s",
+                                            "query": "CF_LogMessage_CL | summarize AggregatedValue = count() by MessageType_s, SourceType_s\r\n// Oql: Type=CF_LogMessage_CL | measure count() by MessageType_s, SourceType_s",
                                             "displayName": "CF Logs - By Type then Source"
                                         },
                                         {
-                                            "query": "Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=\"latency\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                            "query": "CF_ValueMetric_CL | where Origin_s == \"gorouter\" and Name_s == \"latency\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=gorouter Name_s=\"latency\" | measure avg(Value_d) by Environment_s interval 5Minutes",
                                             "displayName": "Average Router Latency - 5 Minute Interval"
                                         },
                                         {
-                                            "query": "Type=CF_LogMessage_CL TimeGenerated >= now-1HOURS | measure count() by Environment_s, ApplicationName_s | sort Environment_s,ApplicationName_s",
+                                            "query": "CF_LogMessage_CL | where TimeGenerated >= ago(1h) | summarize AggregatedValue = count() by Environment_s, ApplicationName_s | sort by Environment_s asc, ApplicationName_s asc\r\n// Oql: Type=CF_LogMessage_CL TimeGenerated >= now-1HOURS | measure count() by Environment_s, ApplicationName_s | sort Environment_s,ApplicationName_s",
                                             "displayName": "Log Messages By App - Last Hour"
                                         }
                                     ]
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "SingleQueryDonutBuilderTileV1",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Environment_s",
+                                    "Query": "CF_ContainerMetric_CL | where TimeGenerated >= ago(1h) | summarize AggregatedValue = dcount(ApplicationID_g) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ContainerMetric_CL TimeGenerated >= now-1HOURS  | measure countdistinct(ApplicationID_g)  by  Environment_s",
                                     "CenterLegend": {
                                         "Text": "Total Apps",
                                         "Operation": "Sum",
@@ -595,13 +595,19 @@
                                             "#0072c6",
                                             "#00bcf2"
                                         ],
-                                        "valueColorMapping": []
-                                    }
+                                        "valueColorMapping": [],
+                                        "legend": true,
+                                        "skipLegendPositioning": true,
+                                        "center": true,
+                                        "unitType": "Count",
+                                        "fromUnit": "Ones"
+                                    },
+                                    "HideOtherLegend": true
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ContainerMetric_CL",
+                                        "Query": "CF_ContainerMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ContainerMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

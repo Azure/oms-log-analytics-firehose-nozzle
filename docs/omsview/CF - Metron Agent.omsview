@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - Metron Agent",
                         "Name": "CF - Metron Agent",
-                        "DisplayName": "CF - Metron Agent",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "LineChartBuilderBlade",
@@ -64,7 +63,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeMarshaller.sentEnvelopes\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -76,15 +75,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeMarshaller.sentEnvelopes\" | summarize AggregatedValue = max(Total_d) by Environment_s, Job_s, IP_s// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeMarshaller.sentEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Total"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -109,7 +108,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -129,7 +128,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeUnmarshaller.receivedEnvelopes\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minute",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -141,7 +140,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeUnmarshaller.receivedEnvelopes\" | summarize AggregatedValue = max(Total_d) by Environment_s, Job_s, IP_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeUnmarshaller.receivedEnvelopes\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -174,7 +173,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -194,7 +193,7 @@
                                                 "Subtitle": ""
                                             },
                                             "LineChart": {
-                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
+                                                "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s contains_cs \"sentMessageCount\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -212,7 +211,7 @@
                                                 "Subtitle": ""
                                             },
                                             "LineChart": {
-                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentByteCount\") | measure sum(div(Delta_d,5242880)) by Environment_s,Name_s interval 5Minutes",
+                                                "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s contains_cs \"sentByteCount\" | summarize AggregatedValue = sum((Delta_d / 5242880)) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentByteCount\") | measure sum(div(Delta_d,5242880)) by Environment_s,Name_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -230,7 +229,7 @@
                                                 "Subtitle": ""
                                             },
                                             "LineChart": {
-                                                "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sendErrorCount\") | measure max(Total_d) by Environment_s,Name_s interval 5Minutes",
+                                                "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s contains_cs \"sendErrorCount\" | summarize AggregatedValue = max(Total_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sendErrorCount\") | measure max(Total_d) by Environment_s,Name_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -261,7 +260,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and ((Name_s contains_cs \"dropsondeUnmarshaller\" and Name_s contains_cs \"Received\") or Name_s == \"dropsondeUnmarshaller.logMessageTotal\") | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure sum(div(Delta_d,5)) by Environment_s,Name_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -273,7 +272,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure max(Total_d) by Environment_s,Name_s,IP_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and ((Name_s contains_cs \"dropsondeUnmarshaller\" and Name_s contains_cs \"Received\") or Name_s == \"dropsondeUnmarshaller.logMessageTotal\") | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s, IP_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent (Name_s:contains(\"dropsondeUnmarshaller\") and Name_s:contains(\"Received\")) or Name_s=\"dropsondeUnmarshaller.logMessageTotal\" | measure max(Total_d) by Environment_s,Name_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -306,7 +305,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -326,7 +325,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeAgentListener.receivedMessageCount\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -338,7 +337,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeAgentListener.receivedMessageCount\" | summarize AggregatedValue = max(Total_d) by Environment_s, Job_s, IP_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedMessageCount\" | measure max(Total_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -371,7 +370,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -391,7 +390,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure sum(div(Delta_d, 5240)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeAgentListener.receivedByteCount\" | summarize AggregatedValue = sum((Delta_d / 5240)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure sum(div(Delta_d, 5240)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -403,7 +402,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure max(div(Total_d, 1048576)) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s == \"dropsondeAgentListener.receivedByteCount\" | summarize AggregatedValue = max((Total_d / 1048576)) by Environment_s, Job_s, IP_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s=\"dropsondeAgentListener.receivedByteCount\" | measure max(div(Total_d, 1048576)) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -436,18 +435,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "LineChartBuilderTile",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "LineChart": {
-                                    "Query": "Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"MetronAgent\" and Name_s contains_cs \"sentMessageCount\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=MetronAgent Name_s:contains(\"sentMessageCount\") | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
                                     "yAxis": {
                                         "isLogarithmic": false,
                                         "units": {
@@ -461,7 +461,7 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_CounterEvent_CL",
+                                        "Query": "CF_CounterEvent_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }

@@ -43,10 +43,9 @@
                     "properties": {
                         "Id": "CF - Component Metrics",
                         "Name": "CF - Component Metrics",
-                        "DisplayName": "CF - Component Metrics",
-                        "Author": "lizzha@microsoft.com",
+                        "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
-                        "Version": 1,
+                        "Version": 2,
                         "Dashboard": [
                             {
                                 "Id": "SingleQueryDonutBuilderBladeV1",
@@ -64,7 +63,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=numCPUS TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"numCPUS\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Name_s=numCPUS TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "CPUs",
                                             "Operation": "Sum",
@@ -80,15 +79,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=numCPUS | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"numCPUS\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=numCPUS | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "CPU Num"
                                         },
                                         "Color": "#0072c6",
+                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -113,7 +112,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -133,7 +132,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=numGoRoutines TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"numGoRoutines\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=numGoRoutines TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "GoRoutines",
                                             "Operation": "Sum",
@@ -149,7 +148,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=numGoRoutines | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"numGoRoutines\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=numGoRoutines | measure avg(Value_d) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -182,7 +181,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -202,7 +201,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocated\" TimeGenerated>Now-1Hour | measure avg(div(Value_d, 1048576)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocated\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1048576)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocated\" TimeGenerated>Now-1Hour | measure avg(div(Value_d, 1048576)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "MB",
                                             "Operation": "Sum",
@@ -218,7 +217,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocated\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocated\" | summarize AggregatedValue = avg((Value_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocated\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -251,7 +250,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -271,7 +270,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedStack\" TimeGenerated>Now-1Hour | measure avg(div(Value_d,1048576)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocatedStack\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1048576)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedStack\" TimeGenerated>Now-1Hour | measure avg(div(Value_d,1048576)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "MB",
                                             "Operation": "Sum",
@@ -287,7 +286,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedStack\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocatedStack\" | summarize AggregatedValue = avg((Value_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedStack\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -320,7 +319,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -340,7 +339,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedHeap\" TimeGenerated>Now-1Hour | measure avg(div(Value_d,1048576)) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocatedHeap\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg((Value_d / 1048576)) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedHeap\" TimeGenerated>Now-1Hour | measure avg(div(Value_d,1048576)) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "MB",
                                             "Operation": "Sum",
@@ -356,7 +355,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedHeap\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numBytesAllocatedHeap\" | summarize AggregatedValue = avg((Value_d / 1048576)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numBytesAllocatedHeap\" | measure avg(div(Value_d,1048576)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -389,7 +388,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -409,7 +408,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.lastGCPauseTimeNS\" | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.lastGCPauseTimeNS\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.lastGCPauseTimeNS\" | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -421,7 +420,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.lastGCPauseTimeNS\" | measure avg(div(Value_d,1000000)) by Environment_s,Job_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.lastGCPauseTimeNS\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s, Job_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.lastGCPauseTimeNS\" | measure avg(div(Value_d,1000000)) by Environment_s,Job_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -454,7 +453,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -474,7 +473,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numMallocs\" | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numMallocs\" | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numMallocs\" | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -490,7 +489,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numMallocs\" | measure max(Value_d) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numMallocs\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, IP_s\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numMallocs\" | measure max(Value_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -523,7 +522,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -543,7 +542,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numFrees\" | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numFrees\" | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numFrees\" | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -559,7 +558,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "Type=CF_ValueMetric_CL Name_s=\"memoryStats.numFrees\" | measure max(Value_d) by Environment_s,Job_s,IP_s",
+                                        "Query": "CF_ValueMetric_CL | where Name_s == \"memoryStats.numFrees\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, IP_s\r\n// Oql: Type=CF_ValueMetric_CL Name_s=\"memoryStats.numFrees\" | measure max(Value_d) by Environment_s,Job_s,IP_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -592,18 +591,19 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "{selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
                                     }
                                 }
                             }
                         ],
+                        "Filters": [],
                         "OverviewTile": {
                             "Id": "SingleQueryDonutBuilderTileV1",
                             "Type": "OverviewTile",
-                            "Version": 0,
+                            "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "Type=CF_ValueMetric_CL | measure countdistinct(Job_s) by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL | measure countdistinct(Job_s) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Jobs",
                                         "Operation": "Sum",
@@ -615,13 +615,19 @@
                                             "#0072c6",
                                             "#00bcf2"
                                         ],
-                                        "valueColorMapping": []
-                                    }
+                                        "valueColorMapping": [],
+                                        "legend": true,
+                                        "skipLegendPositioning": true,
+                                        "center": true,
+                                        "unitType": "Count",
+                                        "fromUnit": "Ones"
+                                    },
+                                    "HideOtherLegend": true
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "Type=CF_ValueMetric_CL",
+                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
