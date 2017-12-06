@@ -101,14 +101,16 @@ forms:
    - name: API_ADDR
      type: string
      label: Cloud Foundry API Address
-     description: e.g. https://api.203.0.113.0.xip.io
+     description: e.g. https://api.203.0.113.0.xip.io . If current environment is to be monitored, leave it empty and nozzle will fetch the address automatically
+     optional: true
      constraints:
      - must_match_regex: '^https://.*$'
        error_message: 'This address starts with "https://"'
    - name: DOPPLER_ADDR
      type: string
      label: Cloud Foundry Doppler Address
-     description: e.g. wss://doppler.203.0.113.0.xip.io:443
+     description: e.g. wss://doppler.203.0.113.0.xip.io:443 . If empty, nozzle will generate doppler address based on API address
+     optional: true
      constraints:
      - must_match_regex: '^wss://.*$'
        error_message: 'This address starts with "wss://"'

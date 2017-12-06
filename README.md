@@ -59,8 +59,8 @@ OMS_KEY                   : OMS key
 OMS_POST_TIMEOUT          : HTTP post timeout for sending events to OMS Log Analytics
 OMS_BATCH_TIME            : Interval for posting a batch to OMS Log Analytics
 OMS_MAX_MSG_NUM_PER_BATCH : The max number of messages in a batch to OMS Log Analytics
-API_ADDR                  : The api URL of the CF environment
-DOPPLER_ADDR              : Loggregator's traffic controller URL
+API_ADDR                  : The API address of the CF environment. If set empty or absent, nozzle will use API address for current CF environment
+DOPPLER_ADDR              : Loggregator's traffic controller URL. If set empty or absent, nozzle will generate it from API address
 FIREHOSE_USER             : CF user who has admin and firehose access
 FIREHOSE_USER_PASSWORD    : Password of the CF user
 EVENT_FILTER              : Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP
