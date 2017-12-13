@@ -218,7 +218,7 @@ func (o *OmsNozzle) routeEvents() error {
 					o.logger.Error("received TruncatingBuffer alert", nil)
 					o.logSlowConsumerAlert()
 				}
-				if strings.Contains(m.Name, "doppler_proxy.slow_consumer") {
+				if strings.Contains(m.Name, "doppler_proxy.slow_consumer") && m.Delta > 0 {
 					o.logger.Error("received slow_consumer alert", nil)
 					o.logSlowConsumerAlert()
 				}
