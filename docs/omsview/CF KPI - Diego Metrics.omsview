@@ -33,16 +33,16 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "CF KPI - Diego Metrics",
+                    "name": "CF - Diego Metrics",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF KPI - Diego Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - Diego Metrics')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "CF KPI - Diego Metrics",
-                        "Name": "CF KPI - Diego Metrics",
+                        "Id": "CF - Diego Metrics",
+                        "Name": "CF - Diego Metrics",
                         "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
                         "Version": 2,

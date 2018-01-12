@@ -72,18 +72,19 @@
                                                 "displayUnit": "Ones"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"dropsondeUnmarshaller\" and Name_s != \"dropsondeUnmarshaller.unmarshalErrors\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"dropsondeUnmarshaller\") and Name_s!=\"dropsondeUnmarshaller.unmarshalErrors\" | measure max(Total_d) by Environment_s,Name_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
+                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Total"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Last Sample",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -108,7 +109,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -137,7 +139,8 @@
                                                 "displayUnit": "Ones"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_ValueMetric_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"messageRouter.numberOf\" | summarize AggregatedValue = max(Value_d) by Environment_s, Name_s//OQL: Type=CF_ValueMetric_CL Origin_s=DopplerServer Name_s:contains(\"messageRouter.numberOf\") | measure max(Value_d) by Environment_s,Name_s",
@@ -173,7 +176,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -193,7 +197,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedMessageCount\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedMessageCount\" | summarize AggregatedValue = sum((Delta_d / 5)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" | measure sum(div(Delta_d,5)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -202,10 +206,11 @@
                                                 "displayUnit": "Ones"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"Listener.receivedMessageCount\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedMessageCount\") | measure max(Total_d) by Environment_s,Name_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedMessageCount\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedMessageCount\") | measure max(Total_d) by Environment_s, Name_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -238,7 +243,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -258,7 +264,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedByteCount\" | summarize AggregatedValue = sum((Delta_d / 5242880)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedByteCount\" | measure sum(div(Delta_d,5242880)) by Environment_s interval 5Minutes",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedByteCount\" | summarize AggregatedValue = sum((Delta_d / 5242880)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedByteCount\" | measure sum(div(Delta_d,5242880)) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -267,10 +273,11 @@
                                                 "displayUnit": "Megabytes"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"Listener.receivedByteCount\" | summarize AggregatedValue = max((Total_d / 1048576)) by Environment_s, Name_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedByteCount\") | measure max(div(Total_d,1048576)) by Environment_s,Name_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s contains_cs \"Listener.receivedByteCount\" | summarize AggregatedValue = max((Total_d / 1048576)) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s:contains(\"Listener.receivedByteCount\") | measure max(div(Total_d,1048576)) by Environment_s,Name_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Summary",
@@ -303,7 +310,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -323,7 +331,7 @@
                                         "Subtitle": ""
                                     },
                                     "LineChart": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"dropsondeUnmarshaller.unmarshalErrors\" | summarize AggregatedValue = sum(Delta_d) by bin(TimeGenerated, 1m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure sum(Delta_d) by Environment_s interval 1Minute",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"dropsondeUnmarshaller.unmarshalErrors\" | summarize AggregatedValue = sum(Delta_d) by bin(TimeGenerated, 1m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure sum(Delta_d) by Environment_s interval 1Minute",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -332,10 +340,11 @@
                                                 "displayUnit": ""
                                             },
                                             "customLabel": "Count"
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"dropsondeUnmarshaller.unmarshalErrors\" | summarize AggregatedValue = max(Total_d) by Environment_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure max(Total_d) by Environment_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"dropsondeUnmarshaller.unmarshalErrors\" | summarize AggregatedValue = max(Total_d) by Environment_s// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"dropsondeUnmarshaller.unmarshalErrors\" | measure max(Total_d) by Environment_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -368,7 +377,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -388,7 +398,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"doppler.shedEnvelopes\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"doppler.shedEnvelopes\" | measure max(Total_d) by Environment_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"doppler.shedEnvelopes\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"doppler.shedEnvelopes\" | measure max(Total_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -401,10 +411,11 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"TruncatingBuffer.totalDroppedMessages\" | summarize AggregatedValue = max(Total_d) by Environment_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"TruncatingBuffer.totalDroppedMessages\" | measure max(Total_d) by Environment_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"TruncatingBuffer.totalDroppedMessages\" | summarize AggregatedValue = max(Total_d) by Environment_s// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"TruncatingBuffer.totalDroppedMessages\" | measure max(Total_d) by Environment_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -437,44 +448,40 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             }
                         ],
                         "Filters": [],
                         "OverviewTile": {
-                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Id": "LineChartCalloutBuilderTile",
                             "Type": "OverviewTile",
                             "Version": 2,
                             "Configuration": {
-                                "Donut": {
-                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedMessageCount\" and TimeGenerated > ago(1h) | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=DopplerServer Name_s=\"listeners.totalReceivedMessageCount\" TimeGenerated>Now-1Hour | measure max(Total_d) by Environment_s",
-                                    "CenterLegend": {
-                                        "Text": "Received Messages",
-                                        "Operation": "Sum",
-                                        "ArcsToSelect": []
+                                "LineChart": {
+                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"DopplerServer\" and Name_s == \"listeners.totalReceivedMessageCount\" | summarize AggregatedValue = sum(Delta_d) by Environment_s, bin(EventTime_t, 5m) | sort by AggregatedValue desc",
+                                    "Callout": {
+                                        "Title": "Total Messages",
+                                        "Series": "",
+                                        "Operation": "Sum"
                                     },
-                                    "Options": {
-                                        "colors": [
-                                            "#00188f",
-                                            "#0072c6",
-                                            "#00bcf2"
-                                        ],
-                                        "valueColorMapping": [],
-                                        "legend": true,
-                                        "skipLegendPositioning": true,
-                                        "center": true,
-                                        "unitType": "Count",
-                                        "fromUnit": "Ones"
-                                    },
-                                    "HideOtherLegend": true
+                                    "yAxis": {
+                                        "isLogarithmic": false,
+                                        "units": {
+                                            "baseUnitType": "",
+                                            "baseUnit": "",
+                                            "displayUnit": ""
+                                        },
+                                        "customLabel": ""
+                                    }
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": true,
-                                        "Query": "CF_CounterEvent_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                        "Enabled": false,
+                                        "Query": "search * | limit 1 | project TimeGenerated",
+                                        "Message": ""
                                     }
                                 }
                             }

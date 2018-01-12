@@ -72,7 +72,8 @@
                                                 "displayUnit": "Milliseconds"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_CounterEvent_CL | where Origin_s == \"auctioneer\" and Name_s contains_cs \"Auctions\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=auctioneer Name_s:contains(\"Auctions\") | measure max(Total_d) by Environment_s,Name_s",
@@ -108,7 +109,10 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item} | sort by TimeGenerated desc",
+                                        "NavigationSelect": {
+                                            "NavigationQuery": "search {selected item} | sort by TimeGenerated desc"
+                                        }
                                     }
                                 }
                             },
@@ -137,7 +141,8 @@
                                                 "displayUnit": "Milliseconds"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_CounterEvent_CL | where Origin_s == \"auctioneer\" and Name_s == \"RequestCount\" | summarize AggregatedValue = max(Total_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=auctioneer Name_s=RequestCount | measure max(Total_d) by Environment_s interval 5Minutes",
@@ -173,44 +178,35 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             }
                         ],
                         "Filters": [],
                         "OverviewTile": {
-                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Id": "LineChartBuilderTile",
                             "Type": "OverviewTile",
                             "Version": 2,
                             "Configuration": {
-                                "Donut": {
-                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"auctioneer\" and Name_s == \"RequestCount\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=auctioneer Name_s=RequestCount | measure max(Total_d) by Environment_s",
-                                    "CenterLegend": {
-                                        "Text": "Auction Requests",
-                                        "Operation": "Sum",
-                                        "ArcsToSelect": []
-                                    },
-                                    "Options": {
-                                        "colors": [
-                                            "#00188f",
-                                            "#0072c6",
-                                            "#00bcf2"
-                                        ],
-                                        "valueColorMapping": [],
-                                        "legend": true,
-                                        "skipLegendPositioning": true,
-                                        "center": true,
-                                        "unitType": "Count",
-                                        "fromUnit": "Ones"
-                                    },
-                                    "HideOtherLegend": true
+                                "LineChart": {
+                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"auctioneer\" and Name_s == \"RequestCount\" | summarize AggregatedValue = sum(Delta_d) by Environment_s, bin(EventTime_t, 5min) // Oql: Type=CF_CounterEvent_CL Origin_s=auctioneer Name_s=RequestCount | measure max(Total_d) by Environment_s",
+                                    "yAxis": {
+                                        "isLogarithmic": false,
+                                        "units": {
+                                            "baseUnitType": "",
+                                            "baseUnit": "",
+                                            "displayUnit": ""
+                                        },
+                                        "customLabel": "Auction Requests"
+                                    }
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": true,
-                                        "Query": "union CF_CounterEvent_CL, CF_ValueMetric_CL | where Origin_s == \"auctioneer\" | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL or Type=CF_ValueMetric_CL Origin_s=auctioneer",
-                                        "Message": "There is no auctioneer data yet from your Cloud Foundry environment(s)."
+                                        "Enabled": false,
+                                        "Query": "search * | limit 1 | project TimeGenerated",
+                                        "Message": ""
                                     }
                                 }
                             }

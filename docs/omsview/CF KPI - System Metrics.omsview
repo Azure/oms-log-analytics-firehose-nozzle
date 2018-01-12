@@ -33,16 +33,16 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "CF KPI - System Metrics",
+                    "name": "CF - System Metrics",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF KPI - System Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - System Metrics')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "CF KPI - System Metrics",
-                        "Name": "CF KPI - System Metrics",
+                        "Id": "CF - System Metrics",
+                        "Name": "CF - System Metrics",
                         "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
                         "Version": 2,

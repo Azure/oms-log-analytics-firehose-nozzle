@@ -76,7 +76,8 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"BackingStores\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores TimeGenerated>Now-1Hour| measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
@@ -112,7 +113,10 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item} | sort by TimeGenerated desc",
+                                        "NavigationSelect": {
+                                            "NavigationQuery": "search {selected item} | sort by TimeGenerated desc"
+                                        }
                                     }
                                 }
                             },
@@ -145,7 +149,8 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"LoopDevices\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=LoopDevices | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
@@ -181,7 +186,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -201,7 +207,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" and TimeGenerated > ago(1h) | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs TimeGenerated>Now-1Hour | measure avg(Value_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -214,10 +220,11 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs | measure max(Value_d) by Environment_s,IP_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -250,34 +257,40 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             }
                         ],
                         "Filters": [],
                         "OverviewTile": {
-                            "Id": "LineChartBuilderTile",
+                            "Id": "LineChartCalloutBuilderTile",
                             "Type": "OverviewTile",
                             "Version": 2,
                             "Configuration": {
                                 "LineChart": {
-                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"BackingStores\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s, IP_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=BackingStores | measure avg(Value_d) by Environment_s,IP_s interval 5Minutes",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"garden-linux\" and Name_s == \"DepotDirs\" | summarize AggregatedValue = avg(Value_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=garden-linux Name_s=DepotDirs | measure avg(Value_d) by Environment_s",
+                                    "Callout": {
+                                        "Title": "DepotDirs",
+                                        "Series": "",
+                                        "Operation": "Last Sample"
+                                    },
                                     "yAxis": {
                                         "isLogarithmic": false,
                                         "units": {
-                                            "baseUnitType": "Count",
-                                            "baseUnit": "Ones",
-                                            "displayUnit": "Ones"
+                                            "baseUnitType": "",
+                                            "baseUnit": "",
+                                            "displayUnit": ""
                                         },
-                                        "customLabel": "Backing Stores"
+                                        "customLabel": ""
                                     }
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
-                                        "Enabled": true,
-                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                        "Enabled": false,
+                                        "Query": "search * | limit 1 | project TimeGenerated",
+                                        "Message": ""
                                     }
                                 }
                             }
