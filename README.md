@@ -23,6 +23,7 @@ The Microsoft Azure Log Analytics Nozzle is a Cloud Foundry (CF) component which
 ### 3. Create an OMS Workspace in Azure
 
 * [Get started with Log Analytics](https://docs.microsoft.com/en-us/azure/log-analytics/log-analytics-get-started)
+* [OMS Cloud Foundry Monitoring Solution](https://azuremarketplace.microsoft.com/en/marketplace/apps/Microsoft.OMSCloudfoundrySolution)
 
 ## Deploy - Push the Nozzle as an App to Cloud Foundry
 
@@ -123,15 +124,27 @@ Loggregator emits **LGR** log message to indicate problems with the logging proc
 
 ## View in OMS Portal
 
-### 1. Import OMS View
+### 1. Import OMS Default Solution from Azure Marketplace
+
+With our [OMS Cloud Foundry Monitoring Solution](https://azuremarketplace.microsoft.com/en/marketplace/apps/Microsoft.OMSCloudfoundrySolution), you can import our 20+ default views, 130+ alerts and 90+ saved searches covering all KPI of Cloud Foundry you might care about, with only simple configurations.
+
+Please check [here](https://github.com/Azure/azure-quickstart-templates/tree/master/oms-cloudfoundry-solution) for detailed document and underlying templates.
+
+_You can find a complete list of KPI [here](https://docs.pivotal.io/pivotalcf/2-1/monitoring/kpi.html)._
+
+### 2. Customizing your OMS Workplace
+
+#### 2.1. Import Individual OMS View
 
 From the main OMS Overview page, go to **View Designer** -> **Import** -> **Browse**, select one of the [omsview](./docs/omsview) files, e.g. [Cloud Foundry.omsview](./docs/omsview/Cloud%20Foundry.omsview), and save the view. Now a **Tile** will be displayed on the main OMS Overview page. Click the **Tile**, it shows visualized metrics.
 
 Operators could customize these views or create new views through **View Designer**.
 
-> Please note the "Cloud Foundry.omsview" is a preview version of Cloud Foundry OMS view template, a fully configured default template is in progress, please send your suggestions and feedback for the full view by creating Github issues.
+To create your own view, please refer to the document [here](https://github.com/Azure/azure-quickstart-templates/tree/master/oms-cloudfoundry-solution#customization-and-upgrade).
 
-### 2. <a name="alert">Create Alert rules</a>
+> Please feel free to send your suggestions and feedback for the full view by creating Github issues.
+
+#### 3.1. <a name="alert">Create Alert Rules Manually</a>
 
 This section describes some sample alert rules that operators may want to create for identifying important information in their Cloud Foundry deployments.
 
@@ -150,7 +163,7 @@ Operators could customize the queries and threshold values as needed.
 | Type=CF_ValueMetric_CL Name_s=slowConsumerAlert                               | Number of results > 0   | When the nozzle receives slow consumer alert from Loggregator, it sends **slowConsumerAlert** ValueMetric to OMS. |
 | Type=CF_CounterEvent_CL Job_s=nozzle Name_s=eventsLost Delta_d>0              | Number of results > 0   | If the delta number of **lost events** reaches a threshold, it means the nozzle might have some problem running. |
 
-### 3. Access OMS Everywhere
+## Access OMS Everywhere
 
 OMS also provides a mobile app for users to view OMS views, receiving alerts and searching for logs from your mobile devices.
 
