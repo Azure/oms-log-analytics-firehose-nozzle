@@ -64,7 +64,7 @@ func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient
 }
 
 func (o *OmsNozzle) Start() error {
-	o.cachingClient.Initialize()
+	o.cachingClient.Initialize(true)
 
 	// setup for termination signal from CF
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
