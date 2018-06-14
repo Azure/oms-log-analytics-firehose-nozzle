@@ -30,6 +30,7 @@ type OmsNozzle struct {
 	totalEventsReceived uint64
 	totalEventsSent     uint64
 	totalEventsLost     uint64
+	totalDataSent       uint64
 	mutex               *sync.Mutex
 }
 
@@ -59,6 +60,7 @@ func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient
 		totalEventsReceived: uint64(0),
 		totalEventsSent:     uint64(0),
 		totalEventsLost:     uint64(0),
+		totalDataSent:       uint64(0),
 		mutex:               &sync.Mutex{},
 	}
 }
@@ -163,6 +165,7 @@ func (o *OmsNozzle) postData(events *map[string][]interface{}, addCount bool) {
 						if addCount {
 							o.mutex.Lock()
 							o.totalEventsSent += uint64(len(v))
+							o.totalDataSent += uint64(len(msgAsJson))
 							o.mutex.Unlock()
 						}
 						break
