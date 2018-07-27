@@ -33,7 +33,7 @@ type CachingClient interface {
 	GetAppInfo(string) AppInfo
 	GetInstanceName() string
 	GetEnvironmentName() string
-	Initialize()
+	Initialize(bool)
 }
 
 func NewCaching(config *cfclient.Config, logger lager.Logger, environment string, spaceFilter string) CachingClient {
