@@ -15,8 +15,8 @@ applications:
     OMS_MAX_MSG_NUM_PER_BATCH: 1000
     FIREHOSE_USER: CHANGE_ME
     FIREHOSE_USER_PASSWORD: CHANGE_ME
-    API_ADDR: https://api.<CF_SYSTEM_DOMAIN>
-    DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443
+    # API_ADDR: https://api.<CF_SYSTEM_DOMAIN>  # CF API Address. If current environment is to be monitored, leave it empty/commented and nozzle will fetch its addresses automatically
+    # DOPPLER_ADDR: wss://doppler.<CF_SYSTEM_DOMAIN>:443  # CF Doppler Address. If absent or set empty, nozzle will generate doppler address based on API address automatically
     SKIP_SSL_VALIDATION: true
     CF_ENVIRONMENT: "cf"
     # EVENT_FILTER: "METRIC,HTTP" # Event types to be filtered out. The format is a comma separated list, valid event types are METRIC,LOG,HTTP

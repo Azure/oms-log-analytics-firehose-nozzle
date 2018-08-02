@@ -33,16 +33,16 @@
             "resources": [
                 {
                     "apiVersion": "2015-11-01-preview",
-                    "name": "CF KPI - System Metrics",
+                    "name": "CF - System Metrics",
                     "type": "views",
                     "location": "[parameters('location')]",
-                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF KPI - System Metrics')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/CF - System Metrics')]",
                     "dependson": [
                         "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
                     ],
                     "properties": {
-                        "Id": "CF KPI - System Metrics",
-                        "Name": "CF KPI - System Metrics",
+                        "Id": "CF - System Metrics",
+                        "Name": "CF - System Metrics",
                         "Author": "lizzha@microsoft.com, chuhua@microsoft.com",
                         "Source": "Local",
                         "Version": 2,
@@ -63,7 +63,7 @@
                                         "Subtitle": "By Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Environment_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Job_s) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -79,15 +79,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Name_s) by Environment_s, Job_s// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Environment_s, Job_s",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(15m) | summarize AggregatedValue = dcount(Name_s) by Environment_s, Job_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-15MINUTES | measure countdistinct(Name_s) by Environment_s, Job_s",
                                         "HideGraph": false,
                                         "enableSparklines": true,
+                                        "operation": "Summary",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Count"
                                         },
                                         "Color": "#0072c6",
-                                        "operation": "Summary",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -122,17 +122,17 @@
                                 "Version": 0,
                                 "Configuration": {
                                     "General": {
-                                        "title": "VM System Disk Used",
+                                        "title": "VM User CPU Utilization",
                                         "newGroup": false,
                                         "icon": "",
                                         "useIcon": false
                                     },
                                     "Header": {
-                                        "Title": "Average VM System Disk Used",
+                                        "Title": "Average VM User CPU Utilization",
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.system.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.system.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.cpu.user\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.cpu.user\" | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -144,7 +144,267 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.system.percent\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.system.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.cpu.user\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, Index_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.cpu.user\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "User CPU Used (%)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "operation": "Last Sample",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "VM System CPU Utilization",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average System VM CPU Utilization",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.cpu.sys\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.cpu.sys\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Percentage",
+                                                "baseUnit": "ZeroToOne",
+                                                "displayUnit": "ZeroToOne"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.cpu.sys\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, Index_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.cpu.sys\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "ColumnsTitle": {
+                                            "Name": "Environment",
+                                            "Value": "System CPU Used (%)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "operation": "Last Sample",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "VM Memory Utilization",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average VM Memory Utilization",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.mem.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.mem.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.mem.percent\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, Index_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.mem.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "ColumnsTitle": {
+                                            "Name": "Type",
+                                            "Value": "Memory Used (%)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "operation": "Summary",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "search {selected item} | sort by TimeGenerated desc"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "VM Memory Swap Utilization",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average VM Memory Swap Utilization",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.swap.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.swap.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "",
+                                                "baseUnit": "",
+                                                "displayUnit": ""
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.swap.percent\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, Index_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.swap.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "HideGraph": false,
+                                        "enableSparklines": true,
+                                        "ColumnsTitle": {
+                                            "Name": "Type",
+                                            "Value": "Memory Swap Used (%)"
+                                        },
+                                        "Color": "#0072c6",
+                                        "operation": "Summary",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "search {selected item} | sort by TimeGenerated desc"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "LineChartBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "VM System Disk Used",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Average VM System Disk Used",
+                                        "Subtitle": "by Environment"
+                                    },
+                                    "LineChart": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.system.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.system.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "yAxis": {
+                                            "isLogarithmic": false,
+                                            "units": {
+                                                "baseUnitType": "Percentage",
+                                                "baseUnit": "ZeroToOne",
+                                                "displayUnit": "ZeroToOne"
+                                            },
+                                            "customLabel": ""
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.system.percent\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.system.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -177,7 +437,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -197,7 +457,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.ephemeral.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.ephemeral.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.ephemeral.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.ephemeral.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -209,7 +469,7 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.ephemeral.percent\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.ephemeral.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.ephemeral.percent\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.ephemeral.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
                                         "operation": "Last Sample",
@@ -242,7 +502,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             },
@@ -262,7 +522,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "LineChart": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.persistent.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.persistent.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.persistent.percent\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.persistent.percent\" | measure avg(Value_d) by Environment_s interval 5Minutes",
                                         "yAxis": {
                                             "isLogarithmic": false,
                                             "units": {
@@ -274,80 +534,15 @@
                                         }
                                     },
                                     "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.disk.persistent.percent\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.disk.persistent.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.disk.persistent.percent\" | summarize AggregatedValue = max(Value_d) by Environment_s, Job_s, Index_s// Oql: Type=CF_ValueMetric_CL Name_s=\"system.disk.persistent.percent\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
                                         "HideGraph": false,
                                         "enableSparklines": true,
-                                        "operation": "Last Sample",
                                         "ColumnsTitle": {
                                             "Name": "Environment",
                                             "Value": "Disk Used (%)"
                                         },
                                         "Color": "#0072c6",
-                                        "thresholds": {
-                                            "isEnabled": false,
-                                            "values": [
-                                                {
-                                                    "name": "Normal",
-                                                    "threshold": "Default",
-                                                    "color": "#009e49",
-                                                    "isDefault": true
-                                                },
-                                                {
-                                                    "name": "Warning",
-                                                    "threshold": "60",
-                                                    "color": "#fcd116",
-                                                    "isDefault": false
-                                                },
-                                                {
-                                                    "name": "Error",
-                                                    "threshold": "90",
-                                                    "color": "#ba141a",
-                                                    "isDefault": false
-                                                }
-                                            ]
-                                        },
-                                        "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
-                                    }
-                                }
-                            },
-                            {
-                                "Id": "LineChartBuilderBlade",
-                                "Type": "Blade",
-                                "Version": 0,
-                                "Configuration": {
-                                    "General": {
-                                        "title": "VM CPU Utilization",
-                                        "newGroup": false,
-                                        "icon": "",
-                                        "useIcon": false
-                                    },
-                                    "Header": {
-                                        "Title": "Average VM CPU Utilization",
-                                        "Subtitle": "by Environment"
-                                    },
-                                    "LineChart": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.cpu.user\" | summarize AggregatedValue = avg(Value_d) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.cpu.user\" | measure avg(Value_d) by Environment_s interval 5Minutes",
-                                        "yAxis": {
-                                            "isLogarithmic": false,
-                                            "units": {
-                                                "baseUnitType": "Percentage",
-                                                "baseUnit": "ZeroToOne",
-                                                "displayUnit": "ZeroToOne"
-                                            },
-                                            "customLabel": ""
-                                        }
-                                    },
-                                    "List": {
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.cpu.user\" | summarize AggregatedValue = max(Value_d) by bin(TimeGenerated, 5m), Environment_s, Job_s, Index_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bosh-hm-forwarder Name_s=\"system.cpu.user\" | measure max(Value_d) by Environment_s,Job_s,Index_s interval 5Minutes",
-                                        "HideGraph": false,
-                                        "enableSparklines": true,
                                         "operation": "Last Sample",
-                                        "ColumnsTitle": {
-                                            "Name": "Environment",
-                                            "Value": "CPU Used (%)"
-                                        },
-                                        "Color": "#0072c6",
                                         "thresholds": {
                                             "isEnabled": false,
                                             "values": [
@@ -372,7 +567,7 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
                                     }
                                 }
                             }
@@ -384,7 +579,7 @@
                             "Version": 2,
                             "Configuration": {
                                 "Donut": {
-                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" and Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(1h) | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\" Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-1Hour | measure countdistinct(Job_s) by Environment_s",
+                                    "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | where Name_s == \"system.healthy\" and Value_d == 0 and TimeGenerated >= ago(1h) | summarize AggregatedValue = dcount(Job_s) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_ValueMetric_CL Name_s=\"system.healthy\" Value_d=0 TimeGenerated >= now-1Hour | measure countdistinct(Job_s) by Environment_s",
                                     "CenterLegend": {
                                         "Text": "Unhealthy Jobs",
                                         "Operation": "Sum",
@@ -408,8 +603,8 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\"",
-                                        "Message": "There is no data yet from Bosh Health Monitor. Please visit https://github.com/cloudfoundry/bosh-hm-forwarder-release for details about forwarding bosh health metrics into Loggregator."
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bosh-hm-forwarder\" or Origin_s == \"bosh-system-metrics-forwarder\" | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=\"bosh-hm-forwarder\"",
+                                        "Message": "There is no data yet from neither Bosh System Metrics Forwarder nor Bosh Health Metrics Forwarder. Please visit https://github.com/cloudfoundry/bosh-hm-forwarder-release for details about forwarding bosh health metrics into Loggregator."
                                     }
                                 }
                             }

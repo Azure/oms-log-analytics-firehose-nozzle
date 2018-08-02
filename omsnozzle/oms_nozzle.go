@@ -30,6 +30,7 @@ type OmsNozzle struct {
 	totalEventsReceived uint64
 	totalEventsSent     uint64
 	totalEventsLost     uint64
+	totalDataSent       uint64
 	mutex               *sync.Mutex
 }
 
@@ -59,12 +60,13 @@ func NewOmsNozzle(logger lager.Logger, firehoseClient firehose.Client, omsClient
 		totalEventsReceived: uint64(0),
 		totalEventsSent:     uint64(0),
 		totalEventsLost:     uint64(0),
+		totalDataSent:       uint64(0),
 		mutex:               &sync.Mutex{},
 	}
 }
 
 func (o *OmsNozzle) Start() error {
-	o.cachingClient.Initialize()
+	o.cachingClient.Initialize(true)
 
 	// setup for termination signal from CF
 	signal.Notify(o.signalChan, syscall.SIGTERM, syscall.SIGINT)
@@ -163,6 +165,7 @@ func (o *OmsNozzle) postData(events *map[string][]interface{}, addCount bool) {
 						if addCount {
 							o.mutex.Lock()
 							o.totalEventsSent += uint64(len(v))
+							o.totalDataSent += uint64(len(msgAsJson))
 							o.mutex.Unlock()
 						}
 						break
@@ -218,7 +221,7 @@ func (o *OmsNozzle) routeEvents() error {
 					o.logger.Error("received TruncatingBuffer alert", nil)
 					o.logSlowConsumerAlert()
 				}
-				if strings.Contains(m.Name, "doppler_proxy.slow_consumer") {
+				if strings.Contains(m.Name, "doppler_proxy.slow_consumer") && m.Delta > 0 {
 					o.logger.Error("received slow_consumer alert", nil)
 					o.logSlowConsumerAlert()
 				}

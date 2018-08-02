@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"os"
 	"os/signal"
 	"runtime/pprof"
@@ -39,9 +41,8 @@ const (
 
 // Required parameters
 var (
-	//TODO: query info endpoint for URLs
-	apiAddress           = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").Required().String()
-	dopplerAddress       = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").Required().String()
+	apiAddress           = kingpin.Flag("api-addr", "Api URL").OverrideDefaultFromEnvar("API_ADDR").String()
+	dopplerAddress       = kingpin.Flag("doppler-addr", "Traffic controller URL").OverrideDefaultFromEnvar("DOPPLER_ADDR").String()
 	cfUser               = kingpin.Flag("firehose-user", "CF user with admin and firehose access").OverrideDefaultFromEnvar("FIREHOSE_USER").Required().String()
 	cfPassword           = kingpin.Flag("firehose-user-password", "Password of the CF user").OverrideDefaultFromEnvar("FIREHOSE_USER_PASSWORD").Required().String()
 	environment          = kingpin.Flag("cf-environment", "CF environment name").OverrideDefaultFromEnvar("CF_ENVIRONMENT").Default("cf").String()
@@ -83,6 +84,29 @@ func main() {
 	threadDumpChan := registerGoRoutineDumpSignalChannel()
 	defer close(threadDumpChan)
 	go dumpGoRoutine(threadDumpChan)
+
+	var VCAP_APPLICATION map[string]*json.RawMessage
+	err := json.Unmarshal([]byte(os.Getenv("VCAP_APPLICATION")), &VCAP_APPLICATION)
+	if err != nil {
+		logger.Error("environment variable unmarshal failed", errors.New(err.Error()))
+	}
+
+	var ENVIRONMENT_API_ADDR string
+	err = json.Unmarshal(*VCAP_APPLICATION["cf_api"], &ENVIRONMENT_API_ADDR)
+	if err != nil {
+		logger.Error("environment variable unmarshal failed", errors.New(err.Error()))
+	}
+
+	if len(*apiAddress) <= 0 {
+		apiAddress = &ENVIRONMENT_API_ADDR
+	}
+	logger.Info("config", lager.Data{"API_ADDR": *apiAddress})
+
+	if len(*dopplerAddress) <= 0 {
+		temp := strings.Replace(*apiAddress, "https://api.", "wss://doppler.", 1) + ":443"
+		dopplerAddress = &temp
+	}
+	logger.Info("config", lager.Data{"DOPPLER_ADDR": *dopplerAddress})
 
 	if maxOMSPostTimeoutSeconds >= omsPostTimeout.Seconds() && minOMSPostTimeoutSeconds <= omsPostTimeout.Seconds() {
 		logger.Info("config", lager.Data{"OMS_POST_TIMEOUT": (*omsPostTimeout).String()})

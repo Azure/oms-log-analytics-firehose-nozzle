@@ -339,8 +339,8 @@
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "CF_ValueMetric_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL",
-                                        "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"etcd\"",
+                                        "Message": "Log from ETCD server not found, please make sure you have your cloud foundry environment connected.\n\nFor Cloud Foundry 2.0+, etcd is no longer used and this tile will not have corresponding data.1"
                                     }
                                 }
                             }

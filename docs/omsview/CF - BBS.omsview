@@ -72,7 +72,8 @@
                                                 "displayUnit": "Seconds"
                                             },
                                             "customLabel": ""
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
                                         "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"RequestCount\" | summarize AggregatedValue = max(Total_d) by bin(TimeGenerated, 5m), Environment_s, Name_s | sort by TimeGenerated desc// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s,Name_s interval 5Minutes",
@@ -108,7 +109,10 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item} | sort by TimeGenerated desc",
+                                        "NavigationSelect": {
+                                            "NavigationQuery": "search {selected item} | sort by TimeGenerated desc"
+                                        }
                                     }
                                 }
                             },
@@ -128,7 +132,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceTaskRuns\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTaskRuns | measure max(Total_d) by Environment_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceTaskRuns\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTaskRuns | measure max(Total_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -141,10 +145,11 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and (Name_s == \"ConvergenceTasksKicked\" or Name_s == \"ConvergenceTasksPruned\") | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTasksKicked or Name_s=ConvergenceTasksPruned | measure max(Total_d) by Environment_s,Name_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and (Name_s == \"ConvergenceTasksKicked\" or Name_s == \"ConvergenceTasksPruned\") | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceTasksKicked or Name_s=ConvergenceTasksPruned | measure max(Total_d) by Environment_s,Name_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -177,7 +182,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -197,7 +203,7 @@
                                         "Subtitle": "by Environment"
                                     },
                                     "Donut": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceLRPRuns\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceLRPRuns | measure max(Total_d) by Environment_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceLRPRuns\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=ConvergenceLRPRuns | measure max(Total_d) by Environment_s",
                                         "CenterLegend": {
                                             "Text": "Total",
                                             "Operation": "Sum",
@@ -210,10 +216,11 @@
                                                 "#00bcf2"
                                             ],
                                             "valueColorMapping": []
-                                        }
+                                        },
+                                        "NavigationSelect": {}
                                     },
                                     "List": {
-                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s contains_cs \"ConvergenceLRPPreProcessing\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s:contains(\"ConvergenceLRPPreProcessing\") | measure max(Total_d) by Environment_s,Name_s",
+                                        "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceLRPRuns\" | summarize AggregatedValue = max(Total_d) by Environment_s, Name_s// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s:contains(\"ConvergenceLRPPreProcessing\") | measure max(Total_d) by Environment_s,Name_s",
                                         "HideGraph": true,
                                         "enableSparklines": false,
                                         "operation": "Last Sample",
@@ -246,7 +253,8 @@
                                             ]
                                         },
                                         "NameDSVSeparator": "",
-                                        "NavigationQuery": "search {selected item}\r\n// Oql: {selected item}"
+                                        "NavigationQuery": "search {selected item}// Oql: {selected item}",
+                                        "NavigationSelect": {}
                                     }
                                 }
                             },
@@ -266,7 +274,7 @@
                                                 "Subtitle": "by Environment"
                                             },
                                             "LineChart": {
-                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceLRPDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceLRPDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceLRPDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceLRPDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -275,7 +283,8 @@
                                                         "displayUnit": "Milliseconds"
                                                     },
                                                     "customLabel": ""
-                                                }
+                                                },
+                                                "NavigationSelect": {}
                                             }
                                         },
                                         {
@@ -284,7 +293,7 @@
                                                 "Subtitle": "by Environment"
                                             },
                                             "LineChart": {
-                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceTaskDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceTaskDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
+                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"ConvergenceTaskDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=ConvergenceTaskDuration | measure avg(div(Value_d, 1000000)) by Environment_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -293,7 +302,8 @@
                                                         "displayUnit": "Milliseconds"
                                                     },
                                                     "customLabel": ""
-                                                }
+                                                },
+                                                "NavigationSelect": {}
                                             }
                                         },
                                         {
@@ -302,7 +312,7 @@
                                                 "Subtitle": "by Environment"
                                             },
                                             "LineChart": {
-                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"MetricsReportingDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc\r\n// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=MetricsReportingDuration | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
+                                                "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" and Name_s == \"MetricsReportingDuration\" | summarize AggregatedValue = avg((Value_d / 1000000)) by bin(TimeGenerated, 5m), Environment_s | sort by TimeGenerated desc// Oql: Type=CF_ValueMetric_CL Origin_s=bbs Name_s=MetricsReportingDuration | measure avg(div(Value_d,1000000)) by Environment_s interval 5Minutes",
                                                 "yAxis": {
                                                     "isLogarithmic": false,
                                                     "units": {
@@ -311,7 +321,8 @@
                                                         "displayUnit": "Milliseconds"
                                                     },
                                                     "customLabel": ""
-                                                }
+                                                },
+                                                "NavigationSelect": {}
                                             }
                                         }
                                     ]
@@ -320,36 +331,31 @@
                         ],
                         "Filters": [],
                         "OverviewTile": {
-                            "Id": "SingleQueryDonutBuilderTileV1",
+                            "Id": "LineChartCalloutBuilderTile",
                             "Type": "OverviewTile",
                             "Version": 2,
                             "Configuration": {
-                                "Donut": {
-                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"RequestCount\" | summarize AggregatedValue = max(Total_d) by Environment_s | sort by AggregatedValue desc\r\n// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s",
-                                    "CenterLegend": {
-                                        "Text": "Total Requests",
-                                        "Operation": "Sum",
-                                        "ArcsToSelect": []
+                                "LineChart": {
+                                    "Query": "CF_CounterEvent_CL | where Origin_s == \"bbs\" and Name_s == \"RequestCount\" | summarize AggregatedValue = max(Delta_d) by Environment_s | sort by AggregatedValue desc// Oql: Type=CF_CounterEvent_CL Origin_s=bbs Name_s=RequestCount | measure max(Total_d) by Environment_s",
+                                    "Callout": {
+                                        "Title": "Total Requests",
+                                        "Series": "",
+                                        "Operation": "Sum"
                                     },
-                                    "Options": {
-                                        "colors": [
-                                            "#00188f",
-                                            "#0072c6",
-                                            "#00bcf2"
-                                        ],
-                                        "valueColorMapping": [],
-                                        "legend": true,
-                                        "skipLegendPositioning": true,
-                                        "center": true,
-                                        "unitType": "Count",
-                                        "fromUnit": "Ones"
-                                    },
-                                    "HideOtherLegend": true
+                                    "yAxis": {
+                                        "isLogarithmic": false,
+                                        "units": {
+                                            "baseUnitType": "",
+                                            "baseUnit": "",
+                                            "displayUnit": ""
+                                        },
+                                        "customLabel": ""
+                                    }
                                 },
                                 "Advanced": {
                                     "DataFlowVerification": {
                                         "Enabled": true,
-                                        "Query": "CF_CounterEvent_CL | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL",
+                                        "Query": "CF_ValueMetric_CL | where Origin_s == \"bbs\" | sort by TimeGenerated desc\r\n// Oql: Type=CF_CounterEvent_CL",
                                         "Message": "There is no data yet from your Cloud Foundry environment(s). Please visit https://github.com/Azure/oms-log-analytics-firehose-nozzle for details about collecting Cloud Foundry logs and metrics to OMS."
                                     }
                                 }
