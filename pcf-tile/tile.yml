@@ -30,7 +30,7 @@ packages:
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
     buildpack: https://github.com/cloudfoundry/go-buildpack.git
-    instances: (( .properties.NOZZLE_INSTANCE_NUMBER.value ))
+    instances: (( .properties.nozzle_instance_number.value ))
     memory: 512M
     no-route: true
   health_check: none
@@ -72,7 +72,7 @@ forms:
    - name: OMS_KEY
      type: secret
      label: OMS Workspace Key
-   - name: NOZZLE_INSTANCE_NUMBER
+   - name: nozzle_instance_number
      type: integer
      label: OMS Nozzle Instance Number
      default: 2
