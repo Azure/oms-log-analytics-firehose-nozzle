@@ -183,6 +183,8 @@ ginkgo -r
 
 To collect syslogs and performance metrics of VMs in CloudFoundry deployment, a system metric provider is required.
 
-We strongly recommend you to use [`Azure OMS Agent Bosh release`](https://github.com/Azure/oms-agent-for-linux-boshrelease). If you install this nozzle of version 2.0+ with corresponding tile from `Pivotal Network` [here](https://network.pivotal.io/products/microsoft-azure-log-analytics-nozzle/), `Azure OMS Agent Bosh release` should be bundled in the tile, please check [its document](http://docs.pivotal.io/partners/azure-log-analytics-nozzle/) for detail.
+For PCF 2.0+, ['Bosh System Metrics Forwarder`](https://github.com/cloudfoundry/bosh-system-metrics-forwarder-release) has been included in your deployment, VM metrics will be forwarded to loggregator automatically.
 
-At the same time, you can also use [`BOSH Health Metric Forwarder`](https://github.com/cloudfoundry/bosh-hm-forwarder-release). Please refer to its document for instructions. _Be advanced that we have noticed that it might occasionally conflict with `Azure OMS Agent`._
+At the same time, you can also install [`BOSH Health Metric Forwarder`](https://github.com/cloudfoundry/bosh-hm-forwarder-release) manually if you're using older version. Please refer to its document for instructions. _Be advanced, we have noticed that it might occasionally conflict with `Azure OMS Agent`._
+
+For Syslog, we recommend you to use [`Azure OMS Agent Bosh release`](https://github.com/Azure/oms-agent-for-linux-boshrelease). We have planed to provide other approaches for Syslog in the future.
