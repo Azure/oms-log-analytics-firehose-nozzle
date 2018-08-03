@@ -79,6 +79,7 @@ forms:
      constraints:
        min: 1
        max: 100
+     description: Number of nozzle application. Scale it according to the instruction at https://docs.pivotal.io/pivotalcf/2-2/devguide/services/oms-nozzle.html#scale-nozzle
    - name: OMS_POST_TIMEOUT
      type: string
      default: 10s
