@@ -11,5 +11,5 @@ if [ "$1" = "-major" ]; then
 elif [ "$1" = "-minor" ]; then
   tile build minor
 else
-  tile build
+  tile build $1
 fi

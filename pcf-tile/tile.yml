@@ -30,7 +30,7 @@ packages:
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
     buildpack: https://github.com/cloudfoundry/go-buildpack.git
-    instances: 2
+    instances: (( .properties.nozzle_instance_number.value ))
     memory: 512M
     no-route: true
   health_check: none
@@ -72,6 +72,14 @@ forms:
    - name: OMS_KEY
      type: secret
      label: OMS Workspace Key
+   - name: nozzle_instance_number
+     type: integer
+     label: OMS Nozzle Instance Number
+     default: 2
+     constraints:
+       min: 1
+       max: 100
+     description: Number of nozzle application. Scale it according to the instruction at https://docs.pivotal.io/pivotalcf/2-2/devguide/services/oms-nozzle.html#scale-nozzle
    - name: OMS_POST_TIMEOUT
      type: string
      default: 10s
