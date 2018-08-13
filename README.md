@@ -187,4 +187,4 @@ For PCF 2.0+, ['Bosh System Metrics Forwarder`](https://github.com/cloudfoundry/
 
 At the same time, you can also install [`BOSH Health Metric Forwarder`](https://github.com/cloudfoundry/bosh-hm-forwarder-release) manually if you're using older version. Please refer to its document for instructions. _Be advanced, we have noticed that it might occasionally conflict with `Azure OMS Agent`._
 
-For Syslog, we recommend you to use [`Azure OMS Agent Bosh release`](https://github.com/Azure/oms-agent-for-linux-boshrelease). We have planed to provide other approaches for Syslog in the future.
+For Syslog, we recommend you to use [`Azure OMS Agent Bosh release`](https://github.com/Azure/oms-agent-for-linux-boshrelease). We have planned to provide other approaches for Syslog in the future.
