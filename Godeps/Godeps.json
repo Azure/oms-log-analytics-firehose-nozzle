@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/Azure/oms-log-analytics-firehose-nozzle",
-	"GoVersion": "go1.7",
+	"GoVersion": "go1.10",
 	"GodepVersion": "v75",
 	"Packages": [
 		"./..."
