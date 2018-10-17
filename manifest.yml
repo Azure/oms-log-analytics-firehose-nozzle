@@ -3,7 +3,7 @@ applications:
 - name: oms_nozzle
   memory: 512M
   instances: 2
-  buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.8.28
+  buildpack: go_buildpack
   command: oms-log-analytics-firehose-nozzle
   no-route: true
   health-check-type: none

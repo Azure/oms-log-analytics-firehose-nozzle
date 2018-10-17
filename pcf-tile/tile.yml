@@ -29,7 +29,7 @@ packages:
     cf delete-org -f azure-log-analytics-nozzle-org
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
-    buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.8.28
+    buildpack: go_buildpack
     instances: (( .properties.nozzle_instance_number.value ))
     memory: 512M
     no-route: true
