@@ -5,6 +5,8 @@ import (
 	hex "encoding/hex"
 	"time"
 
+	"github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
+
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/messages"
 	"github.com/Azure/oms-log-analytics-firehose-nozzle/mocks"
 	"github.com/cloudfoundry/sonde-go/events"
@@ -12,25 +14,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type AppInfo struct {
-	Name    string
-	Org     string
-	OrgID   string
-	Space   string
-	SpaceID string
-}
-
 var _ = Describe("Messages", func() {
 	var (
 		instanceName    string
 		environmentName string
-		caching         *mocks.MockCaching
+		cache           *mocks.MockCaching
 	)
 
 	BeforeEach(func() {
 		instanceName = "nozzleinstace"
 		environmentName = "dev"
-		caching = &mocks.MockCaching{
+		cache = &mocks.MockCaching{
 			InstanceName:    instanceName,
 			EnvironmentName: environmentName,
 		}
@@ -59,7 +53,7 @@ var _ = Describe("Messages", func() {
 			Tags:       tags,
 		}
 
-		m := *messages.NewBaseMessage(envelope, caching)
+		m := *messages.NewBaseMessage(envelope, cache)
 
 		Expect(m.NozzleInstance).To(Equal(instanceName))
 		Expect(m.EventType).To(Equal("LogMessage"))
@@ -104,22 +98,21 @@ var _ = Describe("Messages", func() {
 			LogMessage: &logMessage,
 		}
 
-		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
 			Expect(appGuid).To(Equal(appId))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: true,
 			}
 		}
 
-		m := *messages.NewLogMessage(envelope, caching)
+		m := *messages.NewLogMessage(envelope, cache)
 
 		Expect(m).NotTo(Equal(nil))
-		Expect(m.ApplicationID).To(Equal(appId))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
 		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
@@ -136,21 +129,21 @@ var _ = Describe("Messages", func() {
 		Expect(m.BaseMessage.EventType).To(Equal("LogMessage"))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 
-		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
 			Expect(appGuid).To(Equal(appId))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: false,
 			}
 		}
 
-		m := *messages.NewLogMessage(envelope, caching)
+		m2 := messages.NewLogMessage(envelope, cache)
 
-		Expect(m).To(Equal(nil))
+		Expect(m2).To(BeNil())
 	})
 
 	It("creates HttpStartStop from Envelope", func() {
@@ -204,22 +197,22 @@ var _ = Describe("Messages", func() {
 			HttpStartStop: &httpStartStop,
 		}
 
-		caching.MockGetAppInfo = func(appGuid string) string {
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
 			Expect(appGuid).To(Equal(formattedUUID))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: true,
 			}
 		}
 
-		m := *messages.NewHTTPStartStop(envelope, caching)
+		m := *messages.NewHTTPStartStop(envelope, cache)
 
 		Expect(m).NotTo(Equal(nil))
-		Expect(m.ApplicationID).To(Equal(appId))
+		Expect(m.ApplicationID).To(Equal("f803e6dc-3990-45e6-5478-851a104ffd0a"))
 		Expect(m.ApplicationName).To(Equal(appName))
 		Expect(m.ApplicationOrg).To(Equal(appOrg))
 		Expect(m.ApplicationOrgID).To(Equal(appOrgID))
@@ -242,21 +235,21 @@ var _ = Describe("Messages", func() {
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 
-		caching.MockGetAppInfo = func(appGuid string) AppInfo {
-			Expect(appGuid).To(Equal(appId))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
+			Expect(appGuid).To(Equal("f803e6dc-3990-45e6-5478-851a104ffd0a"))
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: false,
 			}
 		}
 
-		m := *messages.NewLogMessage(envelope, caching)
+		m2 := messages.NewHTTPStartStop(envelope, cache)
 
-		Expect(m).To(Equal(nil))
+		Expect(m2).To(BeNil())
 	})
 
 	It("creates Error from Envelope", func() {
@@ -276,7 +269,7 @@ var _ = Describe("Messages", func() {
 			Error:     &err,
 		}
 
-		m := *messages.NewError(envelope, caching)
+		m := *messages.NewError(envelope, cache)
 
 		Expect(m.Message).To(Equal(msg))
 		Expect(m.Code).To(Equal(code))
@@ -300,14 +293,14 @@ var _ = Describe("Messages", func() {
 		appSpace := "oms_nozzle"
 		appSpaceID := "ABCDEF-ABCD-ABCD-ABCDEFGH"
 
-		caching.MockGetAppInfo = func(appGuid string) string {
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
 			Expect(appGuid).To(Equal(appId))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: true,
 			}
 		}
@@ -327,7 +320,7 @@ var _ = Describe("Messages", func() {
 			ContainerMetric: &metric,
 		}
 
-		m := *messages.NewContainerMetric(envelope, caching)
+		m := *messages.NewContainerMetric(envelope, cache)
 
 		Expect(m).NotTo(Equal(nil))
 		Expect(m.ApplicationID).To(Equal(appId))
@@ -345,21 +338,21 @@ var _ = Describe("Messages", func() {
 		Expect(m.BaseMessage.EventType).To(Equal(eventType.String()))
 		Expect(m.BaseMessage.Environment).To(Equal(environmentName))
 
-		caching.MockGetAppInfo = func(appGuid string) AppInfo {
+		cache.MockGetAppInfo = func(appGuid string) caching.AppInfo {
 			Expect(appGuid).To(Equal(appId))
-			return AppInfo{
-				Name:    appName,
-				Org:     appOrg,
-				Space:   appSpace,
-				OrgID:   appOrgID,
-				SpaceID: appSpaceID,
+			return caching.AppInfo{
+				Name:      appName,
+				Org:       appOrg,
+				Space:     appSpace,
+				OrgID:     appOrgID,
+				SpaceID:   appSpaceID,
 				Monitored: false,
 			}
 		}
 
-		m := *messages.NewLogMessage(envelope, caching)
+		m2 := messages.NewContainerMetric(envelope, cache)
 
-		Expect(m).To(Equal(nil))
+		Expect(m2).To(BeNil())
 	})
 
 	It("creates CounterEvent from Envelope", func() {
@@ -383,7 +376,7 @@ var _ = Describe("Messages", func() {
 			Origin:       &origin,
 		}
 
-		m := *messages.NewCounterEvent(envelope, caching)
+		m := *messages.NewCounterEvent(envelope, cache)
 
 		Expect(m.Name).To(Equal(name))
 		Expect(m.Delta).To(Equal(delta))
@@ -414,7 +407,7 @@ var _ = Describe("Messages", func() {
 			Origin:      &origin,
 		}
 
-		m := *messages.NewValueMetric(envelope, caching)
+		m := *messages.NewValueMetric(envelope, cache)
 
 		Expect(m.Name).To(Equal(name))
 		Expect(m.Value).To(Equal(value))
