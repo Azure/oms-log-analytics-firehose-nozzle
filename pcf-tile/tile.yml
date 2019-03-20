@@ -66,10 +66,10 @@ forms:
    label: Nozzle Config
    description: Properties for Azure Log Analytics Nozzle
    properties:
-   - name: OMS_WORKSPACE
+   - name: oms_workspace
      type: string
      label: OMS Workspace ID
-   - name: OMS_KEY
+   - name: oms_key
      type: secret
      label: OMS Workspace Key
    - name: nozzle_instance_number
@@ -80,17 +80,17 @@ forms:
        min: 1
        max: 100
      description: Number of nozzle application. Scale it according to the instruction at https://docs.pivotal.io/pivotalcf/2-2/devguide/services/oms-nozzle.html#scale-nozzle
-   - name: OMS_POST_TIMEOUT
+   - name: oms_post_timeout
      type: string
      default: 10s
      label: OMS Post Timeout
      description: Timeout duration for posting to OMS Log Analytics
-   - name: OMS_BATCH_TIME
+   - name: oms_batch_time
      type: string
      default: 10s
      label: OMS Batch Time
      description: Time interval for posting an event batch to OMS Log Analytics
-   - name: OMS_MAX_MSG_NUM_PER_BATCH
+   - name: oms_max_msg_num_per_batch
      type: integer
      default: 1000
      label: Max Event Number Per Batch
@@ -98,15 +98,15 @@ forms:
      constraints:
        min: 1
        max: 10000
-   - name: FIREHOSE_USER
+   - name: firehose_user
      type: string
      label: Firehose Username
      description: The CF user who has admin and firehose access
-   - name: FIREHOSE_USER_PASSWORD
+   - name: firehose_user_password
      type: secret
      label: Firehose User Password
      description: The password of the CF user who has admin and firehose access
-   - name: API_ADDR
+   - name: api_addr
      type: string
      label: Cloud Foundry API Address
      description: e.g. https://api.203.0.113.0.xip.io . If current environment is to be monitored, leave it empty and nozzle will fetch the address automatically
@@ -114,7 +114,7 @@ forms:
      constraints:
      - must_match_regex: '^https://.*$'
        error_message: 'This address starts with "https://"'
-   - name: DOPPLER_ADDR
+   - name: doppler_addr
      type: string
      label: Cloud Foundry Doppler Address
      description: e.g. wss://doppler.203.0.113.0.xip.io:443 . If empty, nozzle will generate doppler address based on API address
@@ -122,41 +122,41 @@ forms:
      constraints:
      - must_match_regex: '^wss://.*$'
        error_message: 'This address starts with "wss://"'
-   - name: CF_ENVIRONMENT
+   - name: cf_environment
      type: string
      label: Cloud Foundry Environment
      description: Label to identify logs and metrics from different CF environments
      default: "cf"
-   - name: SKIP_SSL_VALIDATION
+   - name: skip_ssl_validation
      type: boolean 
      label: Skip SSL Validation
      default: false
-   - name: EVENT_FILTER
+   - name: event_filter
      type: string
      label: Event Types to be Filtered out
      description: A comma separated list of event types to be dropped. Valid types are METRIC,LOG,HTTP
      optional: true
-   - name: SPACE_WHITELIST
+   - name: space_whitelist
      type: string
      label: App Space Whitelist
      description: A comma separated list of spaces used as whitelist for app log. For example "system.azure, azure.*"
      optional: true
-   - name: IDLE_TIMEOUT
+   - name: idle_timeout
      type: string
      description: Keep Alive Duration for Firehose Consumer
      default: 60s
      label: Idle Timeout
-   - name: LOG_EVENT_COUNT
+   - name: log_event_count
      type: boolean
      label: Log Event Count
      description: Whether to log to OMS Log Analytics the count of events that the nozzle has recevied, sent and lost
      default: true
-   - name: LOG_EVENT_COUNT_INTERVAL
+   - name: log_event_count_interval
      type: string
      label: Log Event Count Interval
      description: The time interval to log event count
      default: 60s
-   - name: LOG_LEVEL
+   - name: log_level
      type: dropdown_select
      label: Log Level
      description: The minimal log level of the nozzle
