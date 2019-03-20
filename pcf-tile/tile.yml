@@ -139,7 +139,7 @@ forms:
    - name: space_whitelist
      type: string
      label: App Space Whitelist
-     description: A comma separated list of spaces used as whitelist for app log. For example "system.azure, azure.*"
+     description: A comma separated list of spaces used as whitelist for app log. For example \"system.azure, azure.*\"
      optional: true
    - name: idle_timeout
      type: string
