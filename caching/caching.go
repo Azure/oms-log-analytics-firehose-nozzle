@@ -67,7 +67,10 @@ func (c *Caching) addAppinfoRecord(app cfclient.App) {
 		Space:   app.SpaceData.Entity.Name,
 		SpaceID: app.SpaceData.Entity.Guid,
 	}
-	if c.spaceWhiteList == nil || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name] || c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name] {
+	if c.spaceWhiteList == nil ||
+		c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name] ||
+		c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name] ||
+		c.spaceWhiteList[app.SpaceData.Entity.OrgData.Entity.Name+"."+app.SpaceData.Entity.Name+"."+app.Name] {
 		appInfo.Monitored = true
 	} else {
 		appInfo.Monitored = false
