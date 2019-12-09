@@ -1,21 +1,14 @@
 package mocks
 
-type AppInfo struct {
-	Name    string
-	Org     string
-	OrgId   string
-	Space   string
-	SpaceId string
-	Monitored bool
-}
+import "github.com/Azure/oms-log-analytics-firehose-nozzle/caching"
 
 type MockCaching struct {
-	MockGetAppInfo  func(string) AppInfo
+	MockGetAppInfo  func(string) caching.AppInfo
 	InstanceName    string
 	EnvironmentName string
 }
 
-func (c *MockCaching) GetAppInfo(appGuid string) AppInfo {
+func (c *MockCaching) GetAppInfo(appGuid string) caching.AppInfo {
 	return c.MockGetAppInfo(appGuid)
 }
 
@@ -27,6 +20,6 @@ func (c *MockCaching) GetEnvironmentName() string {
 	return c.EnvironmentName
 }
 
-func (c *MockCaching) Initialize() {
+func (c *MockCaching) Initialize(loadApps bool) {
 	return
 }
