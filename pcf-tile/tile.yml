@@ -30,7 +30,7 @@ packages:
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
     command: oms-log-analytics-firehose-nozzle
-    buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.8.40
+    buildpack: go_buildpack
     command: oms-log-analytics-firehose-nozzle
     instances: (( .properties.nozzle_instance_number.value ))
     memory: 512M
