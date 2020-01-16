@@ -30,7 +30,7 @@ packages:
   manifest:
     path: resources/azure-log-analytics-nozzle.zip
     command: oms-log-analytics-firehose-nozzle
-    buildpack: https://github.com/cloudfoundry/go-buildpack.git#v1.8.40
+    buildpack: go_buildpack
     command: oms-log-analytics-firehose-nozzle
     instances: (( .properties.nozzle_instance_number.value ))
     memory: 512M
@@ -42,10 +42,10 @@ packages:
 # strongly recommend you leave this alone so that your tile always
 # runs with the latest stemcell.
 #
-# stemcell_criteria:
-#   os: ubuntu-trusty
-#   requires_cpi: false
-#   version: '3062'
+stemcell_criteria:
+  os: ubuntu-xenial
+  requires_cpi: false
+  version: '315'
 
 # Add properties you want to pass to your applications.
 # Properties specified here will not be configurable by the user.
