@@ -8,6 +8,8 @@ Azure [Log Analytics](https://azure.microsoft.com/en-us/services/log-analytics/)
 
 The Microsoft Azure Log Analytics Nozzle is a Cloud Foundry (CF) component which forwards metrics from the [Loggregator](https://docs.cloudfoundry.org/loggregator/architecture.html) Firehose to OMS Log Analytics. In the following document, it will be referred to as `Log Analytics Nozzle` or `nozzle` for short.
 
+**Warning**: This product was originally written against and published to the Pivotal Network against the Firehose V1 API (So no gurantee that it will work with current version of Cloud Foundry). In November 2019 the Cloud Foundry project indicated that this API would be [deprecated](https://lists.cloudfoundry.org/g/cf-dev/topic/proposal_deprecation_of_the/29741830). In preparation for this the OMS Nozzle has been removed from general support and is no longer supported under the standard [Pivotal Lifecycle Policy](https://tanzu.vmware.com/support/lifecycle_policy). For future support, please raise a ticket with Pivotal, indicating the existence of this ticket with Microsoft.
+
 ## Prerequisites
 
 ### 1. Deploy a CF or PCF environment in Azure
